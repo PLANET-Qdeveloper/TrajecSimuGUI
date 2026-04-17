@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<initialize name="liftoff">
+  <!--
+    This file sets up the aircraft to start off
+    at cruise conditions.
+  -->
+  <ubody     unit="M/SEC">   {{ velocity_u }}  </ubody>
+  <vbody     unit="M/SEC">   {{ velocity_v }}  </vbody>
+  <wbody     unit="M/SEC">   {{ velocity_w }}  </wbody>
+  <phi       unit="DEG">     {{ roll }}  </phi>        <!-- Yaw -->
+  <theta     unit="DEG">     {{ pitch }}  </theta>      <!-- Pitch, 90=pointed up -->
+  <psi       unit="DEG">     {{ yaw }}  </psi>        <!-- Roll -->
+  <altitude  unit="M">       {{ elevation }}  </altitude>   <!-- AGL. for height above sea level see elevation, below -->
+
+  <!-- launch site -->
+  <latitude  unit="DEG">     {{ latitude }}  </latitude>
+  <longitude unit="DEG">   {{ longitude }}  </longitude>
+  <elevation unit="M">      0.01      </elevation>
+  <winddir   unit="DEG">    0.0      </winddir>
+  <vwind     unit="FT/SEC">  0.0       </vwind>
+</initialize>

@@ -1,0 +1,26 @@
+[package]
+name = "simulator_core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Core simulator engine: JSBSim C++ binding, XML generation, custom simulator"
+
+[dependencies]
+cxx       = "1"
+minijinja = "2"
+tempfile  = "3"
+uuid      = { version = "1", features = ["v4"] }
+
+serde      = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio      = { version = "1", features = ["sync"] }
+
+uom = { version = "0.36", features = ["f64"] }
+
+thiserror  = "2"
+log        = "0.4"
+env_logger = "0.11"
+
+[build-dependencies]
+cxx-build = "1"

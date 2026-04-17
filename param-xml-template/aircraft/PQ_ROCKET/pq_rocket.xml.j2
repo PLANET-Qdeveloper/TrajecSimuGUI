@@ -1,0 +1,309 @@
+<?xml version="1.0" ?>
+<fdm_config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            name="PQ_ROCKET" version="2.0"
+            xsi:noNamespaceSchemaLocation="http://jsbsim.sourceforge.net/JSBSim.xsd"
+            release="ALPHA">
+
+  <!--
+    Unit note: all template values are in JSBSim internal units.
+    Conversions (N→lbf, kg→lbs, deg→rad, m/s→fps) are done in Rust (XmlContext).
+    XML unit="…" attributes are the only conversions inside JSBSim.
+
+    Precomputed in Rust:
+      frontal_area_m2      = pi * (diameter/2)^2
+      emptywt_kg           = mass.total_mass - fuel.contents
+      body_radius          = diameter / 2  (used for both tank radii)
+      oxidizer_drain_{xyz} = oxidizer.drain_position ?? oxidizer.position
+      oxidizer_contents_lbs= oxidizer.contents * 2.20462
+      fuel_drain_lbs       = (fuel.contents - fuel.contents_after_burn) * 2.20462
+      thruster_rel_{xyz}   = thruster_pos - cg
+      thrust_table         = [[t_sec, thrust_lbf], ...]  (N→lbf)
+      winds_table          = [[alt_m, dir_rad, speed_fps], ...]
+
+    Aerodynamic input is already integrated at input stage:
+      cd0_alpha_mach_table = 2D tableData (row=alpha, col=mach)
+      cn_table             = [[mach, CNα_total], ...]
+      cs_table             = [[mach, CSβ_total], ...]
+  -->
+
+  <fileheader>
+    <author> TrajecSimuGUI — auto-generated </author>
+    <filecreationdate> auto </filecreationdate>
+    <version> 1.0 </version>
+    <description> Hybrid rocket ballistic model. </description>
+  </fileheader>
+
+  <!-- ── Airframe metrics ──────────────────────────────────────────────── -->
+  <metrics>
+    <wingarea  unit="M2"> {{ frontal_area_m2 }} </wingarea>
+    <wingspan  unit="M" > {{ diameter }}        </wingspan>
+    <chord     unit="M" > {{ diameter }}           </chord>
+    <htailarea unit="M2">  0 </htailarea>
+    <htailarm  unit="M" >  0 </htailarm>
+    <vtailarea unit="M2">  0 </vtailarea>
+    <vtailarm  unit="M" >  0 </vtailarm>
+    <location name="AERORP" unit="M">
+      <x> {{ cp_x }} </x>
+      <y> {{ cp_y }} </y>
+      <z> {{ cp_z }} </z>
+    </location>
+    <location name="EYEPOINT" unit="M">
+      <x> 0.0 </x><y> 0.0 </y><z> 0.0 </z>
+    </location>
+    <location name="VRP" unit="M">
+      <x> 0.0 </x><y> 0.0 </y><z> 0.0 </z>
+    </location>
+  </metrics>
+
+  <!-- ── Mass and inertia ──────────────────────────────────────────────── -->
+  <mass_balance>
+    <ixx unit="KG*M2"> {{ inertia_xx }} </ixx>
+    <iyy unit="KG*M2"> {{ inertia_yy }} </iyy>
+    <izz unit="KG*M2"> {{ inertia_zz }} </izz>
+    <ixy unit="KG*M2"> {{ inertia_xy }} </ixy>
+    <ixz unit="KG*M2"> {{ inertia_xz }} </ixz>
+    <iyz unit="KG*M2"> {{ inertia_yz }} </iyz>
+    <emptywt unit="KG"> {{ emptywt_kg }} </emptywt>
+    <location name="CG" unit="M">
+      <x> {{ cg_x }} </x>
+      <y> {{ cg_y }} </y>
+      <z> {{ cg_z }} </z>
+    </location>
+  </mass_balance>
+
+  <!-- ── Ground contact ────────────────────────────────────────────────── -->
+  <ground_reactions>
+    <contact type="STRUCTURE" name="Default">
+      <location unit="IN"><x>0</x><y>0</y><z>0</z></location>
+      <static_friction>  1.0 </static_friction>
+      <dynamic_friction> 1.0 </dynamic_friction>
+      <spring_coeff  unit="LBS/FT">      10.0 </spring_coeff>
+      <damping_coeff unit="LBS/FT/SEC">  10.0 </damping_coeff>
+    </contact>
+  </ground_reactions>
+
+  <!-- ── Propulsion ────────────────────────────────────────────────────── -->
+  <propulsion>
+
+    <!-- tank[0]: oxidizer — contents tracked by fcs/fuel_remaining -->
+    <tank type="FUEL" number="0">
+      <location unit="M">
+        <x> {{ oxidizer_x }} </x>
+        <y> {{ oxidizer_y }} </y>
+        <z> {{ oxidizer_z }} </z>
+      </location>
+      <drain_location unit="M">
+        <x> {{ oxidizer_drain_x }} </x>
+        <y> {{ oxidizer_drain_y }} </y>
+        <z> {{ oxidizer_drain_z }} </z>
+      </drain_location>
+      <radius   unit="M">    {{ body_radius }}      </radius>
+      <capacity unit="KG">   {{ oxidizer_contents }} </capacity>
+      <contents unit="KG">   {{ oxidizer_contents }} </contents>
+    </tank>
+
+    <!-- tank[1]: fuel grain — no drain, no grain geometry -->
+    <tank type="FUEL" number="1">
+      <location unit="M">
+        <x> {{ fuel_x }} </x>
+        <y> {{ fuel_y }} </y>
+        <z> {{ fuel_z }} </z>
+      </location>
+      <radius   unit="M">  {{ body_radius }}   </radius>
+      <capacity unit="KG"> {{ fuel_contents_kg }} </capacity>
+      <contents unit="KG"> {{ fuel_contents_kg }} </contents>
+    </tank>
+
+  </propulsion>
+
+  <!-- ── Flight control ────────────────────────────────────────────────── -->
+  <flight_control name="PQ_ROCKET_CONTROL">
+
+    <!-- CP position (m) → inches for metrics/aero-rp-x-in -->
+    <channel name="cp_x">
+      <fcs_function name="fcs/cp_x">
+        <function>
+          <table>
+            <independentVar>velocities/mach</independentVar>
+            <tableData>
+              {% for cp in cp_mach_table -%}
+              {{ cp[0] }} {{ cp[1] }}
+              {% endfor %}
+            </tableData>
+          </table>
+        </function>
+      </fcs_function>
+      <pure_gain name="metrics/aero-rp-x-in">
+        <input>fcs/cp_x</input>
+        <gain> 39.37007874015748 </gain>
+      </pure_gain>
+    </channel>
+
+    <!-- Normalised burn fraction → tank contents in lbs -->
+    <channel name="fuel_remaining">
+      <fcs_function name="fcs/fuel_remaining">
+        <function>
+          <table>
+            <independentVar>simulation/sim-time-sec</independentVar>
+            <tableData>
+              {% for fr in fuel_remaining_table -%}
+              {{ fr[0] }} {{ fr[1] }}
+              {% endfor %}
+            </tableData>
+          </table>
+        </function>
+        <clipto><min>0.</min><max>1.</max></clipto>
+      </fcs_function>
+      <pure_gain name="propulsion/tank[0]/contents-lbs">
+        <input>fcs/fuel_remaining</input>
+        <gain> {{ oxidizer_contents_lbs }} </gain>
+      </pure_gain>
+      <pure_gain name="propulsion/tank[1]/contents-lbs">
+        <input>fcs/fuel_remaining</input>
+        <gain> {{ fuel_drain_lbs }} </gain>
+      </pure_gain>
+    </channel>
+
+    <!-- Thrust curve (lbf, pre-converted from N in Rust) -->
+    <channel name="thrust">
+      <fcs_function name="fcs/thrust">
+        <function>
+          <table>
+            <independentVar>simulation/sim-time-sec</independentVar>
+            <tableData>
+              {% for t in thrust_table -%}
+              {{ t[0] }} {{ t[1] }}
+              {% endfor %}
+            </tableData>
+          </table>
+        </function>
+        <clipto><min>0.</min><max>10000000000.</max></clipto>
+        <output>external_reactions/thrust/magnitude</output>
+      </fcs_function>
+    </channel>
+
+  </flight_control>
+
+  <!-- ── External reactions ────────────────────────────────────────────── -->
+  <external_reactions>
+    <!-- thruster_rel_{xyz} = thruster_pos − cg  (pre-computed in Rust) -->
+    <force name="thrust" frame="BODY">
+      <function>
+        <property>external_reactions/thrust/magnitude</property>
+      </function>
+      <location unit="M">
+        <x> {{ thruster_rel_x }} </x>
+        <y> {{ thruster_rel_y }} </y>
+        <z> {{ thruster_rel_z }} </z>
+      </location>
+      <direction>
+        <x> 1 </x><y> 0 </y><z> 0 </z>
+      </direction>
+    </force>
+  </external_reactions>
+
+  <!-- ── Aerodynamics ──────────────────────────────────────────────────── -->
+  <aerodynamics>
+
+    <axis name="DRAG">
+      <function name="aero/coefficient/CD0">
+        <description>Axial drag vs alpha and Mach</description>
+        <product>
+          <property>aero/qbar-psf</property>
+          <property>metrics/Sw-sqft</property>
+          <table>
+            <independentVar lookup="row">aero/alpha-rad</independentVar>
+            <independentVar lookup="column">velocities/mach</independentVar> 
+            <tableData>
+              {% for row in cd0_alpha_mach_table -%}
+              {% for v in row -%}{{ v }} {% endfor %}
+              {% endfor %}
+            </tableData>
+          </table>
+        </product>
+      </function>
+    </axis>
+
+    <axis name="LIFT">
+      <function name="aero/coefficient/CN">
+        <description>Normal-force slope vs Mach (integrated input)</description>
+        <product>
+          <property>aero/qbar-psf</property>
+          <property>metrics/Sw-sqft</property>
+          <property>aero/alpha-rad</property>
+          <table>
+            <independentVar>velocities/mach</independentVar>
+            <tableData>
+              {% for row in cn_table -%}
+              {{ row[0] }} {{ row[1] }}
+              {% endfor %}
+            </tableData>
+          </table>
+        </product>
+      </function>
+    </axis>
+
+    <axis name="SIDE">
+      <function name="aero/coefficient/CS">
+        <description>Side-force slope vs Mach (integrated input)</description>
+        <product>
+          <property>aero/qbar-psf</property>
+          <property>metrics/Sw-sqft</property>
+          <property>aero/beta-rad</property>
+          <table>
+            <independentVar>velocities/mach</independentVar>
+            <tableData>
+              {% for row in cs_table -%}
+              {{ row[0] }} {{ row[1] }}
+              {% endfor %}
+            </tableData>
+          </table>
+        </product>
+      </function>
+    </axis>
+
+    <axis name="ROLL">
+      <function name="aero/coefficient/Clp">
+        <description>Roll damping</description>
+        <product>
+          <property>aero/qbar-psf</property>
+          <property>metrics/Sw-sqft</property>
+          <property>metrics/bw-ft</property>
+          <property>aero/bi2vel</property>
+          <property>velocities/p-aero-rad_sec</property>
+          <value> {{ roll_damping_coefficient }} </value>
+        </product>
+      </function>
+    </axis>
+
+    <axis name="PITCH">
+      <function name="aero/coefficient/Cmq">
+        <description>Pitch damping</description>
+        <product>
+          <property>aero/qbar-psf</property>
+          <property>metrics/Sw-sqft</property>
+          <property>metrics/cbarw-ft</property>
+          <property>aero/ci2vel</property>
+          <property>velocities/q-aero-rad_sec</property>
+          <value> {{ pitch_damping_coefficient }} </value>
+        </product>
+      </function>
+    </axis>
+
+    <axis name="YAW">
+      <function name="aero/coefficient/Cnr">
+        <description>Yaw damping</description>
+        <product>
+          <property>aero/qbar-psf</property>
+          <property>metrics/Sw-sqft</property>
+          <property>metrics/bw-ft</property>
+          <property>aero/bi2vel</property>
+          <property>velocities/r-aero-rad_sec</property>
+          <value> {{ yaw_damping_coefficient }} </value>
+        </product>
+      </function>
+    </axis>
+
+  </aerodynamics>
+
+</fdm_config>

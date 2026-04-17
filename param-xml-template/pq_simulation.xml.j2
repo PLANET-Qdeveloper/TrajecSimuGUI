@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="http://jsbsim.sf.net/JSBSimScript.xsl"?>
+<runscript xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="http://jsbsim.sf.net/JSBSimScript.xsd"
+    name="Rocket flight.">
+
+  <!--
+    All values are already in JSBSim internal units (converted by Rust):
+      winds_table  : [[alt_m, dir_rad, speed_fps], ...]
+      flight_duration, time_step : seconds
+  -->
+
+  <use aircraft="PQ_ROCKET" initialize="liftoff"/>
+
+  <run start="0" end="{{ flight_duration }}" dt="{{ time_step }}">
+
+    <!-- Motor Burnout: oxidizer depleted -->
+    <event name="Motor Burnout">
+      <condition>propulsion/tank[0]/contents-lbs lt 0.1</condition>
+    </event>
+
+    <!-- Apogee: downward velocity begins -->
+    <event name="Apogee">
+      <condition>velocities/v-down-fps gt 1</condition>
+      {% if apogee_mode == 1 %}
+      <set name="simulation/terminate" value="1"/>
+      {% endif %}
+    </event>
+
+    <!-- Landing: terminate simulation -->
+    <event name="Landed">
+      <condition>position/h-agl-ft lt 0.01</condition>
+      <set name="simulation/terminate" value="1"/>
+    </event>
+
+    <!-- Winds aloft: apply wind profile above launcher -->
+    <event name="Winds aloft" continuous="true">
+      <condition>position/h-sl-meters gt {{ launcher_height }}</condition>
+
+      <!-- Direction in rad (pre-converted from deg in Rust) -->
+      <set name="atmosphere/psiw-rad">
+        <function>
+          <table>
+            <independentVar lookup="row"> position/h-sl-meters </independentVar>
+            <tableData>
+              {% for wind in winds_table -%}
+              {{ wind[0] }} {{ wind[1] }}
+              {% endfor %}
+            </tableData>
+          </table>
+        </function>
+      </set>
+
+      <!-- Speed in fps (pre-converted from m/s in Rust) -->
+      <set name="atmosphere/wind-mag-fps">
+        <function>
+          <table>
+            <independentVar lookup="row"> position/h-sl-meters </independentVar>
+            <tableData>
+              {% for wind in winds_table -%}
+              {{ wind[0] }} {{ wind[2] }}
+              {% endfor %}
+            </tableData>
+          </table>
+        </function>
+      </set>
+    </event>
+
+  </run>
+
+  <!-- Debug CSV output. Primary state is read via GetPropertyValue. -->
+  <output name="pq_rocket_output_raw.csv" type="CSV" rate="100" file="unitconversions.xml">
+    <property caption="Latitude">position/lat-gc-deg</property>
+    <property caption="Longitude">position/long-gc-deg</property>
+    <property apply="convert-ft-To-m"           caption="Altitude">position/h-agl-ft</property>
+    <property apply="convert-rad-To-deg"         caption="AngleOfAttack">aero/alpha-rad</property>
+    <property apply="convert-rad-To-deg"         caption="Sideslip">aero/beta-rad</property>
+    <property apply="convert-ft_sec2-To-m_sec2"  caption="AccelX">accelerations/udot-ft_sec2</property>
+    <property apply="convert-ft_sec2-To-m_sec2"  caption="AccelY">accelerations/vdot-ft_sec2</property>
+    <property apply="convert-ft_sec2-To-m_sec2"  caption="AccelZ">accelerations/wdot-ft_sec2</property>
+    <property apply="convert-lbs-To-N"           caption="Thrust">external_reactions/thrust/magnitude</property>
+    <property apply="convert-fps-To-ms"          caption="TrueVelocity">velocities/vtrue-fps</property>
+    <property apply="convert-fps-To-m_s"         caption="GroundVelocity">velocities/vg-fps</property>
+    <property apply="convert-rad-To-deg"         caption="Pitch">attitude/theta-rad</property>
+    <property apply="convert-rad-To-deg"         caption="Roll">attitude/phi-rad</property>
+    <property apply="convert-rad-To-deg"         caption="Yaw">attitude/psi-rad</property>
+    <property apply="convert-psf-To-Pa"          caption="DynPressure">aero/qbar-psf</property>
+    <property apply="convert-fps-To-m_s"         caption="WindSpeed">atmosphere/wind-mag-fps</property>
+    <property caption="Mach">velocities/mach</property>
+    <property caption="OmegaX">velocities/p-rad_sec</property>
+    <property caption="OmegaY">velocities/q-rad_sec</property>
+    <property caption="OmegaZ">velocities/r-rad_sec</property>
+    <property caption="Cmq">aero/coefficient/Cmq</property>
+  </output>
+
+</runscript>

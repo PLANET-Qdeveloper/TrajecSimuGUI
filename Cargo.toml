@@ -1,0 +1,21 @@
+[workspace]
+members = [
+    "crates/simulator_core",
+    "crates/simulator_cli",
+    "crates/simulator_gui",
+]
+exclude = ["jsbsim", "src", "src-tauri", "public", "static"]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/misohiyoko/TrajecSimuGUI"
+
+[profile.release]
+opt-level = 3
+lto = true
+
+[profile.dev]
+opt-level = 0
