@@ -28,6 +28,7 @@
 pub mod error;
 pub mod jsbsim;
 pub mod output;
+pub mod orchestrator;
 pub mod params;
 pub mod progress;
 pub mod workspace;
@@ -37,8 +38,13 @@ pub mod simple_simulator;
 pub use error::{Result, SimulatorError};
 pub use jsbsim::JsbSimSimulator;
 pub use output::SimulationState;
+pub use orchestrator::{Phase, SimulationOrchestrator, UnifiedSimulationOutput};
 pub use params::RocketParams;
-pub use progress::{MilestoneKind, ProgressSnapshot, SimulationEvent};
+pub use progress::{
+    EventKind,
+    EventSource,
+    EventStamp,
+};
 
 use params::RocketParams as Params;
 use output::SimulationState as State;

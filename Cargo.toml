@@ -2,7 +2,6 @@
 members = [
     "crates/simulator_core",
     "crates/simulator_cli",
-    "crates/simulator_gui",
 ]
 exclude = ["jsbsim", "src", "src-tauri", "public", "static"]
 resolver = "2"

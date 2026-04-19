@@ -7,7 +7,7 @@ pub mod sim_control;
 pub use aero::{AeroParams, Cd0AlphaMachTable};
 pub use body_mass::BodyMassParams;
 pub use engine::{EngineParams, FuelParams, TankParams};
-pub use launch_env::LaunchEnvParams;
+pub use launch_env::{LaunchEnvParams, TerrainModel};
 pub use sim_control::SimControl;
 
 use serde::{Deserialize, Serialize};
@@ -36,6 +36,11 @@ impl RocketParams {
         if self.body_mass.total_mass <= 0.0 {
             return Err(SimulatorError::InvalidParameters(
                 "mass.total_mass must be positive".into(),
+            ));
+        }
+        if self.launch_env.rail_length_m <= 0.0 {
+            return Err(SimulatorError::InvalidParameters(
+                "launch.rail_length_m must be positive".into(),
             ));
         }
         if self.sim.flight_duration <= 0.0 || self.sim.time_step <= 0.0 {
