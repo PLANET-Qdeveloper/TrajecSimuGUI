@@ -19,7 +19,17 @@ FDMWrapper::FDMWrapper()
 FDMWrapper::~FDMWrapper() = default;
 
 void FDMWrapper::set_root_dir(rust::Str path) {
+    // FGFDMExec's own `LoadModel` consults the `AircraftPath` / `EnginePath`
+    // / `SystemsPath` members directly (without re-applying `GetFullPath`),
+    // so setting only `RootDir` would leave the ctor defaults (`"aircraft"`,
+    // etc.) as relative strings and JSBSim would fail to open the config
+    // file. Mirror the layout used by the stock `JSBSim` CLI so aircraft
+    // XML is resolved under `<root>/aircraft/...`.
     fdm_->SetRootDir(SGPath(std::string(path)));
+    fdm_->SetAircraftPath(SGPath("aircraft"));
+    fdm_->SetEnginePath(SGPath("engine"));
+    fdm_->SetSystemsPath(SGPath("systems"));
+    fdm_->SetOutputPath(SGPath("."));
 }
 
 bool FDMWrapper::load_script(rust::Str path) {
@@ -40,6 +50,10 @@ double FDMWrapper::get_property(rust::Str name) const {
 
 void FDMWrapper::set_property(rust::Str name, double value) {
     fdm_->SetPropertyValue(std::string(name), value);
+}
+
+void FDMWrapper::set_sim_time(double value) {
+    fdm_->Setsim_time(value);
 }
 
 std::unique_ptr<FDMWrapper> new_fdm_wrapper() {

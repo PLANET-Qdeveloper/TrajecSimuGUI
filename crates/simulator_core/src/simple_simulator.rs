@@ -8,6 +8,7 @@
 pub mod launch_rail;
 pub mod jsbsim_stage;
 pub mod parachute;
+pub(crate) mod env;
 
 use crate::orchestrator::Phase;
 use crate::output::SimulationState;

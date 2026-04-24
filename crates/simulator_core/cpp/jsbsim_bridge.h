@@ -42,6 +42,11 @@ public:
     /// Use for real-time control injection between steps.
     void set_property(rust::Str name, double value);
 
+    /// Override JSBSim's internal simulation time (`FGFDMExec::Setsim_time`).
+    /// `run_ic` resets sim-time to 0; call this *after* `run_ic` to start
+    /// integration from a non-zero time (e.g. a launch-rail-exit handoff).
+    void set_sim_time(double value);
+
 private:
     std::unique_ptr<JSBSim::FGFDMExec> fdm_;
 };

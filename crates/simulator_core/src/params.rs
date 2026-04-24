@@ -2,12 +2,14 @@ pub mod aero;
 pub mod engine;
 pub mod launch_env;
 pub mod body_mass;
+pub mod parachute;
 pub mod sim_control;
 
 pub use aero::{AeroParams, Cd0AlphaMachTable};
 pub use body_mass::BodyMassParams;
 pub use engine::{EngineParams, FuelParams, TankParams};
-pub use launch_env::{LaunchEnvParams, TerrainModel};
+pub use launch_env::{InitialPosition, LaunchEnvParams, TerrainModel};
+pub use parachute::ParachuteParams;
 pub use sim_control::SimControl;
 
 use serde::{Deserialize, Serialize};
@@ -24,6 +26,8 @@ pub struct RocketParams {
     pub aero:    AeroParams,
     pub launch_env: LaunchEnvParams,
     pub sim:     SimControl,
+    #[serde(default)]
+    pub parachute: ParachuteParams,
 }
 
 impl RocketParams {

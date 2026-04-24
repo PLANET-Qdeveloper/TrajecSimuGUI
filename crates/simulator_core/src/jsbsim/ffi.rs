@@ -33,5 +33,10 @@ pub mod ffi {
         /// Write a named JSBSim property.
         /// Use between `run()` calls to inject real-time control inputs.
         fn set_property(self: Pin<&mut FDMWrapper>, name: &str, value: f64);
+
+        /// Override JSBSim's internal simulation time (`FGFDMExec::Setsim_time`).
+        /// `run_ic` resets sim-time to 0; call this *after* `run_ic` to start
+        /// integration from a non-zero time (e.g. a launch-rail-exit handoff).
+        fn set_sim_time(self: Pin<&mut FDMWrapper>, value: f64);
     }
 }

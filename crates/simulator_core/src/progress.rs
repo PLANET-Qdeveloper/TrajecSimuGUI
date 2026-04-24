@@ -45,3 +45,16 @@ pub struct EventStamp {
     pub sim_time_sec: f64,
     pub source: EventSource,
 }
+
+/// One-shot branch trigger specification: "fire `delay_sec` after `origin` event."
+///
+/// Pure configuration; the "has fired" latch is held by whichever phase-runner
+/// or orchestrator owns the trigger, since that state is run-local and should
+/// not be serialized into user-provided parameter files.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct DelayedBranchTrigger {
+    /// Event that starts the countdown.
+    pub origin: EventKind,
+    /// Delay from origin event before the trigger fires [s].
+    pub delay_sec: f64,
+}

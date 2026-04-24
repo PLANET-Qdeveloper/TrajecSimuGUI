@@ -89,6 +89,9 @@ pub struct XmlContext {
     pub fuel_y: f64,
     pub fuel_z: f64,
     pub fuel_contents_kg: f64,
+    /// Burnable fuel mass in lbs — template's `<gain>` for the fuel tank's
+    /// `contents-lbs` channel: `(contents - after_burn) · KG_TO_LBS`.
+    pub fuel_drain_lbs: f64,
 
     // ── Thruster / curves ─────────────────────────────────────────────────
     /// Thruster position relative to CG (m), used by `<external_reactions>`.
@@ -151,22 +154,33 @@ impl From<&RocketParams> for XmlContext {
         cd0_alpha_mach_table.push(p.aero.cd0_alpha_mach_table.mach_keys.clone());
         cd0_alpha_mach_table.extend(p.aero.cd0_alpha_mach_table.rows.clone());
 
+        // Position: rail-exit handoff overrides pad coordinates.
+        let (latitude, longitude, altitude_agl_m) =
+            match p.launch_env.initial_position_override {
+                Some(ip) => (ip.latitude_deg, ip.longitude_deg, ip.altitude_agl_m),
+                None => (
+                    p.launch_env.latitude,
+                    p.launch_env.longitude,
+                    p.launch_env.elevation,
+                ),
+            };
+
         Self {
             // SimControl
             flight_duration: p.sim.flight_duration,
             time_step: p.sim.time_step,
             apogee_mode: p.sim.apogee_mode,
 
-            // Launch / liftoff
-            latitude: p.launch_env.latitude,
-            longitude: p.launch_env.longitude,
-            elevation: p.launch_env.elevation,
+            // Launch / liftoff — use handoff override if present.
+            latitude,
+            longitude,
+            elevation: altitude_agl_m,
             pitch: p.launch_env.pitch,
             roll: p.launch_env.roll,
             yaw: p.launch_env.yaw,
-            velocity_u: 0.0,
-            velocity_v: 0.0,
-            velocity_w: 0.0,
+            velocity_u: p.launch_env.initial_body_velocity_mps[0],
+            velocity_v: p.launch_env.initial_body_velocity_mps[1],
+            velocity_w: p.launch_env.initial_body_velocity_mps[2],
 
             // Environment
             launcher_height: p.launch_env.launcher_height,
@@ -216,6 +230,7 @@ impl From<&RocketParams> for XmlContext {
             fuel_y: f.position[1],
             fuel_z: f.position[2],
             fuel_contents_kg: (f.contents - f.after_burn).max(0.0),
+            fuel_drain_lbs: (f.contents - f.after_burn).max(0.0) * KG_TO_LBS,
             // Thruster and curves
             thruster_rel_x: p.engine.thruster_pos[0] - p.body_mass.cg[0],
             thruster_rel_y: p.engine.thruster_pos[1] - p.body_mass.cg[1],
@@ -223,5 +238,121 @@ impl From<&RocketParams> for XmlContext {
             thrust_table,
             fuel_remaining_table,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::params::{
+        AeroParams, BodyMassParams, Cd0AlphaMachTable, EngineParams, FuelParams, LaunchEnvParams,
+        SimControl, TankParams,
+    };
+
+    fn minimal_params() -> RocketParams {
+        RocketParams {
+            body_mass: BodyMassParams {
+                diameter: 0.1,
+                total_mass: 10.0,
+                cg: [0.5, 0.0, 0.0],
+                inertia: [1.0, 1.0, 1.0, 0.0, 0.0, 0.0],
+            },
+            engine: EngineParams {
+                thrust_table: vec![[0.0, 100.0], [1.0, 0.0]],
+                thruster_pos: [1.0, 0.0, 0.0],
+                tank: TankParams {
+                    position: [0.5, 0.0, 0.0],
+                    drain_position: None,
+                    contents: 0.1,
+                },
+                fuel: FuelParams {
+                    position: [0.5, 0.0, 0.0],
+                    contents: 0.1,
+                    after_burn: 0.0,
+                },
+            },
+            aero: AeroParams {
+                cp_at_launch: [0.5, 0.0, 0.0],
+                cp_mach_table: vec![[0.0, 0.5]],
+                cd0_alpha_mach_table: Cd0AlphaMachTable {
+                    mach_keys: vec![0.0],
+                    rows: vec![vec![0.0, 0.3]],
+                },
+                cn_table: vec![[0.0, 2.0]],
+                cs_table: vec![[0.0, 2.0]],
+                roll_damping_coefficient: 0.0,
+                pitch_damping_coefficient: 0.0,
+                yaw_damping_coefficient: 0.0,
+            },
+            launch_env: LaunchEnvParams {
+                latitude: 35.0,
+                longitude: 139.0,
+                elevation: 0.0,
+                launcher_height: 5.0,
+                rail_length_m: 5.0,
+                terrain: None,
+                pitch: 90.0,
+                roll: 0.0,
+                yaw: 0.0,
+                winds_table: vec![],
+                initial_body_velocity_mps: [0.0, 0.0, 0.0],
+                initial_position_override: None,
+            },
+            sim: SimControl::default(),
+            parachute: Default::default(),
+        }
+    }
+
+    /// Default initial_body_velocity (zero) passes through.
+    #[test]
+    fn zero_initial_body_velocity_passes_through() {
+        let ctx = XmlContext::from(&minimal_params());
+        assert_eq!(ctx.velocity_u, 0.0);
+        assert_eq!(ctx.velocity_v, 0.0);
+        assert_eq!(ctx.velocity_w, 0.0);
+    }
+
+    /// Non-zero initial body velocity (rail-exit handoff) appears in
+    /// the context unchanged, so `liftoff.xml.j2` receives it as-is.
+    #[test]
+    fn rail_exit_body_velocity_passes_through() {
+        let mut params = minimal_params();
+        params.launch_env.initial_body_velocity_mps = [25.0, 0.5, -0.25];
+        let ctx = XmlContext::from(&params);
+        assert_eq!(ctx.velocity_u, 25.0);
+        assert_eq!(ctx.velocity_v, 0.5);
+        assert_eq!(ctx.velocity_w, -0.25);
+    }
+
+    /// Without an override, pad coordinates flow into the context.
+    #[test]
+    fn pad_coordinates_used_when_no_override() {
+        let mut params = minimal_params();
+        params.launch_env.latitude = 35.5;
+        params.launch_env.longitude = 139.7;
+        params.launch_env.elevation = 12.0;
+        let ctx = XmlContext::from(&params);
+        assert_eq!(ctx.latitude, 35.5);
+        assert_eq!(ctx.longitude, 139.7);
+        assert_eq!(ctx.elevation, 12.0);
+    }
+
+    /// `initial_position_override` takes precedence over pad coordinates.
+    #[test]
+    fn initial_position_override_replaces_pad_coords() {
+        let mut params = minimal_params();
+        params.launch_env.latitude = 35.5;
+        params.launch_env.longitude = 139.7;
+        params.launch_env.elevation = 12.0;
+        params.launch_env.initial_position_override =
+            Some(crate::params::InitialPosition {
+                latitude_deg: 36.0,
+                longitude_deg: 140.1,
+                altitude_agl_m: 5.0,
+            });
+        let ctx = XmlContext::from(&params);
+        assert_eq!(ctx.latitude, 36.0);
+        assert_eq!(ctx.longitude, 140.1);
+        assert_eq!(ctx.elevation, 5.0);
     }
 }

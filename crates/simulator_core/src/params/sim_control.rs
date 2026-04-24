@@ -13,6 +13,12 @@ pub struct SimControl {
     pub apogee_mode: u8,
     /// How many JSBSim steps between `get_state()` calls (1 = every step).
     pub state_sample_interval: u32,
+    /// Initial simulation time (s). Applied via `FGFDMExec::Setsim_time`
+    /// right after `RunIC`, which itself resets sim-time to 0. Used by
+    /// the orchestrator to keep timestamps continuous across the
+    /// launch-rail → JSBSim handoff.
+    #[serde(default)]
+    pub start_sim_time_sec: f64,
 }
 
 impl Default for SimControl {
@@ -22,6 +28,7 @@ impl Default for SimControl {
             time_step: 0.01,
             apogee_mode: 0,
             state_sample_interval: 1,
+            start_sim_time_sec: 0.0,
         }
     }
 }

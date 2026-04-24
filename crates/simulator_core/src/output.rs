@@ -25,6 +25,15 @@ pub struct Velocity {
     pub true_airspeed_mps: f64,
     /// Ground-track speed magnitude (m/s).
     pub ground_speed_mps: f64,
+    /// Body-axis forward velocity along the nose (m/s).
+    /// Maps to JSBSim `velocities/u-fps`.
+    pub u_mps: f64,
+    /// Body-axis lateral (right-wing) velocity (m/s).
+    /// Maps to JSBSim `velocities/v-fps`.
+    pub v_mps: f64,
+    /// Body-axis downward velocity (m/s).
+    /// Maps to JSBSim `velocities/w-fps`.
+    pub w_mps: f64,
 }
 
 /// Euler attitude angles.

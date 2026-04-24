@@ -1,0 +1,6 @@
+---
+source: crates/simulator_core/src/simple_simulator/parachute.rs
+assertion_line: 597
+expression: stage.v_down_mps
+---
+16.36011367386633

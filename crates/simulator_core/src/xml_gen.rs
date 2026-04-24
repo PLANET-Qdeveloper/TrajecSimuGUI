@@ -74,7 +74,10 @@ impl XmlGenerator {
         };
 
         fs::write(ws.script_path(),                          render("simulation")?)?;
-        fs::write(ws.aircraft_dir().join("pq_rocket.xml"),   render("aircraft")?)?;
+        // JSBSim's `<use aircraft="PQ_ROCKET"/>` loads `PQ_ROCKET.xml` (case-
+        // sensitive match to the aircraft name) on filesystems that don't
+        // fold case, so write with the uppercase name rather than `pq_rocket`.
+        fs::write(ws.aircraft_dir().join("PQ_ROCKET.xml"),   render("aircraft")?)?;
         fs::write(ws.aircraft_dir().join("liftoff.xml"),     render("liftoff")?)?;
         fs::write(ws.root().join("unitconversions.xml"),     UNIT_CONVERSIONS_XML)?;
 

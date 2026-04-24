@@ -96,3 +96,7 @@ pub trait Simulator: Send + Sync {
         Ok(())
     }
 }
+
+fn assert_send_sync<T: Send + Sync>() {}
+
+const _ : () =  {let _ = assert_send_sync::<JsbSimSimulator>;};

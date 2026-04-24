@@ -111,7 +111,14 @@ impl Simulator for JsbSimSimulator {
             ));
         }
 
-        // 5. Keep the workspace alive for the duration of the run.
+        // 5. Override JSBSim's internal clock if the caller asked for a
+        //    non-zero start time (e.g. launch-rail-exit handoff). RunIC
+        //    always resets sim-time to 0, so this must come *after* it.
+        if params.sim.start_sim_time_sec != 0.0 {
+            self.fdm_mut().set_sim_time(params.sim.start_sim_time_sec);
+        }
+
+        // 6. Keep the workspace alive for the duration of the run.
         self._workspace = Some(ws);
         self.running = true;
         Ok(())

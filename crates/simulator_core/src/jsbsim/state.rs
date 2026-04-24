@@ -45,6 +45,22 @@ pub fn extract_state(fdm: &FDMWrapper) -> SimulationState {
     )
     .get::<uom::si::velocity::meter_per_second>();
 
+    // Body-axis velocity components (u/v/w).
+    let u_mps = Velocity::new::<foot_per_second>(
+        fdm.get_property("velocities/u-fps"),
+    )
+    .get::<uom::si::velocity::meter_per_second>();
+
+    let v_mps = Velocity::new::<foot_per_second>(
+        fdm.get_property("velocities/v-fps"),
+    )
+    .get::<uom::si::velocity::meter_per_second>();
+
+    let w_mps = Velocity::new::<foot_per_second>(
+        fdm.get_property("velocities/w-fps"),
+    )
+    .get::<uom::si::velocity::meter_per_second>();
+
     // ── Attitude ────────────────────────────────────────────────────────
     let pitch_deg = Angle::new::<radian>(
         fdm.get_property("attitude/theta-rad"),
@@ -121,7 +137,13 @@ pub fn extract_state(fdm: &FDMWrapper) -> SimulationState {
             lon_deg: fdm.get_property("position/long-gc-deg"),
             alt_agl_m,
         },
-        velocity: VelOut { true_airspeed_mps, ground_speed_mps },
+        velocity: VelOut {
+            true_airspeed_mps,
+            ground_speed_mps,
+            u_mps,
+            v_mps,
+            w_mps,
+        },
         attitude: Attitude { pitch_deg, roll_deg, yaw_deg },
         angular_rates: AngularRates {
             p_rad_sec: p,

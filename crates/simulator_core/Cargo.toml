@@ -21,6 +21,7 @@ uom = { version = "0.36", features = ["f64"] }
 thiserror  = "2"
 log        = "0.4"
 env_logger = "0.11"
+insta = "1.47.2"
 
 [build-dependencies]
 cxx-build = "1"

@@ -1,7 +1,24 @@
+
 use serde::{Deserialize, Serialize};
 
 fn default_rail_length_m() -> f64 {
     5.0
+}
+
+/// Geodetic position override for JSBSim's initial conditions.
+///
+/// Written into the `liftoff.xml.j2` `<latitude>`, `<longitude>` and
+/// `<altitude>` (AGL) tags when `LaunchEnvParams::initial_position_override`
+/// is set. Used by the orchestrator to start JSBSim from the launch-rail
+/// exit point rather than the pad origin.
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize)]
+pub struct InitialPosition {
+    /// Geodetic latitude (degrees north).
+    pub latitude_deg: f64,
+    /// Longitude (degrees east).
+    pub longitude_deg: f64,
+    /// Altitude above ground level (m).
+    pub altitude_agl_m: f64,
 }
 
 /// Terrain model placeholder.
@@ -54,4 +71,22 @@ pub struct LaunchEnvParams {
     /// `speed_mps`  — wind speed (m/s).
     /// `direction_deg` — meteorological wind direction (degrees, 0 = north).
     pub winds_table: Vec<[f64; 3]>,
+
+    /// Initial body-axis velocity written into JSBSim's initial
+    /// conditions as `[u, v, w]` (m/s).
+    ///
+    /// Default `[0, 0, 0]` is the correct value for a cold launch from
+    /// the pad. The orchestrator overwrites this with the launch-rail
+    /// exit velocity at the `OnRail → Ballistic` handoff so that JSBSim
+    /// starts its integration from the rail-clear state rather than rest.
+    #[serde(default)]
+    pub initial_body_velocity_mps: [f64; 3],
+
+    /// Optional override of the JSBSim initial-condition position.
+    ///
+    /// `None` → use the pad coordinates (`latitude`, `longitude`,
+    /// `elevation`). The orchestrator sets this to the launch-rail exit
+    /// point at the `OnRail → Ballistic` handoff.
+    #[serde(default)]
+    pub initial_position_override: Option<InitialPosition>,
 }
