@@ -69,16 +69,20 @@ pub(crate) fn advance_latlon_by_enu(
 }
 
 /// True when `alt_agl_m` is at or below the configured terrain height at
-/// `(lat, lon)`. Absence of a terrain model returns `false` (open sky).
+/// `(lat, lon)`. With no terrain model configured, flat ground at pad
+/// elevation is assumed (terrain height = 0 AGL), matching JSBSim's
+/// landed-event behaviour on the ballistic side.
 pub(crate) fn hit_terrain(
     params: &RocketParams,
     lat_deg: f64,
     lon_deg: f64,
     alt_agl_m: f64,
 ) -> bool {
-    let Some(terrain) = params.launch_env.terrain.as_ref() else {
-        return false;
-    };
-    let terrain_h_m = terrain.altitude_m(lat_deg, lon_deg);
+    let terrain_h_m = params
+        .launch_env
+        .terrain
+        .as_ref()
+        .map(|t| t.altitude_m(lat_deg, lon_deg))
+        .unwrap_or(0.0);
     alt_agl_m <= terrain_h_m
 }
