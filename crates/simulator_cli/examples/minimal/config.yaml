@@ -1,0 +1,52 @@
+# Minimal simulation config used by the simulator_cli integration smoke.
+# Mirrors the values exercised by crates/simulator_core/tests/jsbsim_smoke.rs
+# so a full rail + ballistic + parachute flow should be reachable.
+
+launch:
+  latitude: 35.0
+  longitude: 139.0
+  elevation: 5.0           # pad MSL [m]
+  launcher_height: 5.0     # launcher height [m]
+  rail_length: 5.0         # rail length [m]
+  pitch: 89.0              # deg (90 = vertical)
+  roll: 0.0
+  yaw: 0.0
+  wind_speed_mps: 3.0
+  wind_direction_deg: 270.0  # meteorological "from" direction
+
+body:
+  diameter: 0.15
+  total_mass: 30.0
+  cg: [1.0, 0.0, 0.0]
+  inertia: [15.0, 15.0, 0.2, 0.0, 0.0, 0.0]   # [Ixx, Iyy, Izz, Ixy, Ixz, Iyz]
+
+engine:
+  thrust_table: tables/thrust.csv
+  thruster_pos: [2.0, 0.0, 0.0]
+  tank:
+    position: [0.8, 0.0, 0.0]
+    contents: 2.0          # kg
+  fuel:
+    position: [0.8, 0.0, 0.0]
+    contents: 1.5          # kg
+    after_burn: 0.1
+
+aero:
+  cp_at_launch: [1.2, 0.0, 0.0]
+  cp_mach_table: tables/cp_mach.csv
+  cd0_alpha_mach_table: tables/cd_alpha_mach.csv
+  cn_table: tables/cn_mach.csv
+  cs_table: tables/cs_mach.csv
+  roll_damping: 0.0
+  pitch_damping: 0.0
+  yaw_damping: 0.0
+
+parachute:
+  terminal_velocity_table: tables/vterm.csv
+  deploy_delay_sec: 1.0
+
+sim:
+  flight_duration: 120.0
+  time_step: 0.01
+  apogee_mode: 0
+  state_sample_interval: 1
