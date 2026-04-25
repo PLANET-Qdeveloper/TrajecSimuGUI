@@ -1,0 +1,52 @@
+# Converted from input_reference/landed_area.yaml into simulator_cli example schema.
+
+launch:
+  latitude: 40.242865
+  longitude: 140.01045
+  elevation: 5.3
+  launcher_height: 5.0
+  rail_length: 5.0
+  pitch: 75.0
+  roll: 0.0
+  yaw: 283.0
+  wind_speed_mps: 0.0
+  wind_direction_deg: 13.0
+
+body:
+  diameter: 0.145
+  total_mass: 21.163
+  cg: [1.144, 0.0, 0.0]
+  inertia: [0.05, 4.12, 4.12, 0.0, 0.0, 0.0]
+
+engine:
+  thrust_table: tables/thrust.csv
+  thruster_pos: [1.889, 0.0, 0.0]
+  tank:
+    position: [0.869, 0.0, 0.0]
+    drain_position: [1.141, 0.0, 0.0]
+    contents: 3.53
+  fuel:
+    position: [1.559, 0.0, 0.0]
+    contents: 0.643
+    after_burn: 0.1
+
+aero:
+  cp_at_launch: [1.374, 0.0, 0.0]
+  cp_mach_table: tables/cp_mach.csv
+  cd0_alpha_mach_table: tables/cd_alpha_mach.csv
+  cn_table: tables/cn_mach.csv
+  cs_table: tables/cs_mach.csv
+  roll_damping: -0.073
+  pitch_damping: -2.394
+  yaw_damping: -2.394
+
+parachute:
+  terminal_velocity_table: tables/vterm.csv
+  deploy_delay_sec: 0.01
+
+sim:
+  flight_duration: 4000.0
+  time_step: 0.001
+  apogee_mode: 0
+  state_sample_interval: 10
+
