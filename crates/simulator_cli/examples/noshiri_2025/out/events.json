@@ -1,0 +1,32 @@
+[
+  {
+    "kind": "Start",
+    "sim_time_sec": 0.0,
+    "source": "Orchestrator"
+  },
+  {
+    "kind": "LaunchClear",
+    "sim_time_sec": 0.5700000000000004,
+    "source": "LaunchRail"
+  },
+  {
+    "kind": "EngineBurnout",
+    "sim_time_sec": 10.540999999999597,
+    "source": "JsbSim"
+  },
+  {
+    "kind": "Apogee",
+    "sim_time_sec": 26.576000000009497,
+    "source": "JsbSim"
+  },
+  {
+    "kind": "ParachuteOpen",
+    "sim_time_sec": 26.58600000000951,
+    "source": "Orchestrator"
+  },
+  {
+    "kind": "ParachuteLanded",
+    "sim_time_sec": 186.00999999998487,
+    "source": "Parachute"
+  }
+]
