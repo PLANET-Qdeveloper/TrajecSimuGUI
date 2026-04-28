@@ -210,7 +210,9 @@ impl From<&RocketParams> for XmlContext {
             inertia_xy: p.body_mass.inertia[3],
             inertia_xz: p.body_mass.inertia[4],
             inertia_yz: p.body_mass.inertia[5],
-            emptywt_kg: p.body_mass.total_mass - f.contents,
+            // `total_mass` includes all propellant at launch, so the JSBSim
+            // empty weight must exclude both oxidizer and fuel contents.
+            emptywt_kg: p.body_mass.total_mass - t.contents - (f.contents - f.after_burn).max(0.0),
             cg_x: p.body_mass.cg[0],
             cg_y: p.body_mass.cg[1],
             cg_z: p.body_mass.cg[2],

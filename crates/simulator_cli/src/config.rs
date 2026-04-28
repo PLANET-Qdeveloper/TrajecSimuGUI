@@ -60,7 +60,8 @@ pub struct LaunchConfig {
 #[derive(Debug, Deserialize)]
 pub struct BodyConfig {
     pub diameter: f64,
-    pub total_mass: f64,
+    /// Airframe dry mass with fuel section installed, before tank fill [kg].
+    pub dry_mass_with_fuel_section: f64,
     pub cg: [f64; 3],
     /// `[Ixx, Iyy, Izz, Ixy, Ixz, Iyz]`.
     pub inertia: [f64; 6],
@@ -79,14 +80,17 @@ pub struct TankConfig {
     pub position: [f64; 3],
     #[serde(default)]
     pub drain_position: Option<[f64; 3]>,
-    pub contents: f64,
+    /// Tank contents mass [kg].
+    pub tank_contents: f64,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct FuelConfig {
     pub position: [f64; 3],
-    pub contents: f64,
-    pub after_burn: f64,
+    /// Fuel section mass before burn [kg].
+    pub fuel_section_weight: f64,
+    /// Fuel section mass after burn [kg].
+    pub fuel_section_weight_after_burn: f64,
 }
 
 #[derive(Debug, Deserialize)]

@@ -16,7 +16,7 @@ launch:
 
 body:
   diameter: 0.15
-  total_mass: 30.0
+  dry_mass_with_fuel_section: 28.0
   cg: [1.0, 0.0, 0.0]
   inertia: [15.0, 15.0, 0.2, 0.0, 0.0, 0.0]   # [Ixx, Iyy, Izz, Ixy, Ixz, Iyz]
 
@@ -25,11 +25,11 @@ engine:
   thruster_pos: [2.0, 0.0, 0.0]
   tank:
     position: [0.8, 0.0, 0.0]
-    contents: 2.0          # kg
+    tank_contents: 2.0          # kg
   fuel:
     position: [0.8, 0.0, 0.0]
-    contents: 1.5          # kg
-    after_burn: 0.1
+    fuel_section_weight: 1.5          # kg
+    fuel_section_weight_after_burn: 0.1
 
 aero:
   cp_at_launch: [1.2, 0.0, 0.0]

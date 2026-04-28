@@ -7,7 +7,7 @@ pub struct BodyMassParams {
     pub diameter: f64,
 
     /// Total launch mass including all propellant (kg).
-    /// JSBSim `emptywt` = `total_mass - fuel_contents`.
+    /// JSBSim `emptywt` = `total_mass - tank.contents - fuel.contents`.
     pub total_mass: f64,
 
     /// Centre of gravity from nose tip, body-axis: [x, y, z] (m).
