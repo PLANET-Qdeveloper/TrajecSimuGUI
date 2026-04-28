@@ -1,0 +1,13 @@
+{
+  "apogee_m": 3487.8644267498057,
+  "max_speed_mps": 298.5472424617247,
+  "flight_time_sec": 203.2589999999684,
+  "landing": {
+    "lat_deg": 40.247267706022484,
+    "lon_deg": 139.98609690844768,
+    "alt_agl_m": 0.0,
+    "source": "parachute"
+  },
+  "events_count": 6,
+  "phase_final": "Completed"
+}

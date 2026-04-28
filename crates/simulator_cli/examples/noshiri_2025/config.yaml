@@ -14,7 +14,8 @@ launch:
 
 body:
   diameter: 0.145
-  total_mass: 21.163
+  # Measured airframe dry mass with fuel section installed (before tank fill)
+  dry_mass_with_fuel_section: 17.633
   cg: [1.144, 0.0, 0.0]
   inertia: [0.05, 4.12, 4.12, 0.0, 0.0, 0.0]
 
@@ -24,11 +25,11 @@ engine:
   tank:
     position: [0.869, 0.0, 0.0]
     drain_position: [1.141, 0.0, 0.0]
-    contents: 3.53
+    tank_contents: 3.53
   fuel:
     position: [1.559, 0.0, 0.0]
-    contents: 0.643
-    after_burn: 0.1
+    fuel_section_weight: 0.643
+    fuel_section_weight_after_burn: 0.1
 
 aero:
   cp_at_launch: [1.374, 0.0, 0.0]

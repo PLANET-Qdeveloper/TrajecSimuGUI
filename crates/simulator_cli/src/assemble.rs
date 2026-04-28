@@ -1,6 +1,6 @@
 //! Convert user-facing `Config` + CSV tables into a `RocketParams`.
 
-use anyhow::Result;
+use anyhow::{Result, bail};
 
 use simulator_core::EventKind;
 use simulator_core::params::{
@@ -49,10 +49,19 @@ pub fn assemble(cfg: &Config) -> Result<RocketParams> {
         }
     };
 
+    let launch_mass_kg = cfg.body.dry_mass_with_fuel_section + cfg.engine.tank.tank_contents;
+    let fuel_mass = cfg.engine.fuel.fuel_section_weight;
+    let fuel_after_burn = cfg.engine.fuel.fuel_section_weight_after_burn;
+    if fuel_after_burn > fuel_mass {
+        bail!(
+            "engine.fuel.mass_after_burn ({fuel_after_burn}) must be <= engine.fuel.mass ({fuel_mass})"
+        );
+    }
+
     let params = RocketParams {
         body_mass: BodyMassParams {
             diameter: cfg.body.diameter,
-            total_mass: cfg.body.total_mass,
+            total_mass: launch_mass_kg,
             cg: cfg.body.cg,
             inertia: cfg.body.inertia,
         },
@@ -62,12 +71,12 @@ pub fn assemble(cfg: &Config) -> Result<RocketParams> {
             tank: TankParams {
                 position: cfg.engine.tank.position,
                 drain_position: cfg.engine.tank.drain_position,
-                contents: cfg.engine.tank.contents,
+                contents: cfg.engine.tank.tank_contents,
             },
             fuel: FuelParams {
                 position: cfg.engine.fuel.position,
-                contents: cfg.engine.fuel.contents,
-                after_burn: cfg.engine.fuel.after_burn,
+                contents: fuel_mass,
+                after_burn: fuel_after_burn,
             },
         },
         aero: AeroParams {
@@ -155,7 +164,7 @@ mod tests {
             },
             body: BodyConfig {
                 diameter: 0.15,
-                total_mass: 30.0,
+                dry_mass_with_fuel_section: 28.0,
                 cg: [1.0, 0.0, 0.0],
                 inertia: [15.0, 15.0, 0.2, 0.0, 0.0, 0.0],
             },
@@ -165,12 +174,12 @@ mod tests {
                 tank: TankConfig {
                     position: [0.8, 0.0, 0.0],
                     drain_position: None,
-                    contents: 2.0,
+                    tank_contents: 2.0,
                 },
                 fuel: FuelConfig {
                     position: [0.8, 0.0, 0.0],
-                    contents: 1.5,
-                    after_burn: 0.1,
+                    fuel_section_weight: 1.5,
+                    fuel_section_weight_after_burn: 0.1,
                 },
             },
             aero: AeroConfig {
@@ -258,6 +267,31 @@ mod tests {
         assert!(
             err.to_string().contains("does_not_exist.csv") || err.to_string().contains("reading"),
             "expected missing-file error, got: {err}"
+        );
+    }
+
+    #[test]
+    fn derives_launch_mass_from_dry_with_fuel_section_plus_tank() {
+        let dir = tmpdir("derived_launch_mass");
+        make_fixtures(&dir);
+        let mut cfg = base_cfg(&dir, false);
+        cfg.body.dry_mass_with_fuel_section = 17.0;
+        cfg.engine.tank.tank_contents = 3.0;
+        let params = assemble(&cfg).unwrap();
+        assert!((params.body_mass.total_mass - 20.0).abs() < 1e-9);
+    }
+
+    #[test]
+    fn rejects_after_burn_greater_than_fuel_mass() {
+        let dir = tmpdir("fuel_after_burn_invalid");
+        make_fixtures(&dir);
+        let mut cfg = base_cfg(&dir, false);
+        cfg.engine.fuel.fuel_section_weight = 0.5;
+        cfg.engine.fuel.fuel_section_weight_after_burn = 0.6;
+        let err = assemble(&cfg).unwrap_err();
+        assert!(
+            err.to_string().contains("mass_after_burn") || err.to_string().contains("<="),
+            "expected after-burn validation error, got: {err}"
         );
     }
 }
