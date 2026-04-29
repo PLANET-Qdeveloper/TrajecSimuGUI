@@ -6,6 +6,7 @@ use clap::{Parser, Subcommand};
 mod assemble;
 mod config;
 mod csv_loader;
+mod kml_writer;
 mod runner;
 
 #[derive(Parser, Debug)]
@@ -49,6 +50,7 @@ fn main() -> Result<()> {
             eprintln!("       {}", paths.mainline.display());
             eprintln!("       {}", paths.parachute.display());
             eprintln!("       {}", paths.events.display());
+            eprintln!("       {}", paths.kml.display());
         }
         Cmd::Validate { config } => {
             let cfg = config::Config::load(&config)?;

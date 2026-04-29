@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use serde::{Deserialize, Serialize};
 
 /// Propellant tank (oxidiser / pressurant).
@@ -29,7 +31,8 @@ pub struct FuelParams {
 pub struct EngineParams {
     /// Thrust vs time table: `[[t_sec, thrust_N], …]`.
     /// Template converts N → lbf internally.
-    pub thrust_table: Vec<[f64; 2]>,
+    #[serde(with = "crate::arc_serde::slice")]
+    pub thrust_table: Arc<[[f64; 2]]>,
 
     /// Thruster exit position from nose, body-axis [x, y, z] (m).
     pub thruster_pos: [f64; 3],

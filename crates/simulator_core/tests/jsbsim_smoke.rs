@@ -54,7 +54,7 @@ fn sample_params() -> RocketParams {
             inertia: [15.0, 15.0, 0.2, 0.0, 0.0, 0.0],
         },
         engine: EngineParams {
-            thrust_table: vec![[0.0, 2000.0], [1.0, 2000.0]],
+            thrust_table: vec![[0.0, 2000.0], [1.0, 2000.0]].into(),
             thruster_pos: [2.0, 0.0, 0.0],
             tank: TankParams {
                 position: [0.8, 0.0, 0.0],
@@ -69,13 +69,13 @@ fn sample_params() -> RocketParams {
         },
         aero: AeroParams {
             cp_at_launch: [1.2, 0.0, 0.0],
-            cp_mach_table: vec![[0.0, 1.2], [2.0, 1.2]],
+            cp_mach_table: vec![[0.0, 1.2], [2.0, 1.2]].into(),
             cd0_alpha_mach_table: Cd0AlphaMachTable {
-                mach_keys: vec![0.0, 2.0],
-                rows: vec![vec![0.0, 0.4, 0.4], vec![0.175, 0.5, 0.5]],
+                mach_keys: vec![0.0, 2.0].into(),
+                rows: vec![vec![0.0, 0.4, 0.4], vec![0.175, 0.5, 0.5]].into(),
             },
-            cn_table: vec![[0.0, 2.0], [2.0, 2.0]],
-            cs_table: vec![[0.0, 2.0], [2.0, 2.0]],
+            cn_table: vec![[0.0, 2.0], [2.0, 2.0]].into(),
+            cs_table: vec![[0.0, 2.0], [2.0, 2.0]].into(),
             roll_damping_coefficient: 0.0,
             pitch_damping_coefficient: 0.0,
             yaw_damping_coefficient: 0.0,
@@ -96,7 +96,7 @@ fn sample_params() -> RocketParams {
             yaw: 0.0,
             // JSBSim's XML parser rejects an empty `<tableData>`, so provide
             // at least two anchor rows even in the still-air smoke case.
-            winds_table: vec![[0.0, 0.0, 0.0], [10_000.0, 0.0, 0.0]],
+            winds_table: vec![[0.0, 0.0, 0.0], [10_000.0, 0.0, 0.0]].into(),
             initial_body_velocity_mps: [30.0, 0.0, 0.0],
             initial_position_override: None,
         },
@@ -104,7 +104,8 @@ fn sample_params() -> RocketParams {
             flight_duration: 5.0,
             time_step: 0.01,
             apogee_mode: 0,
-            state_sample_interval: 1,
+            csv_sample_interval: 1,
+            kml_sample_interval: 10,
             start_sim_time_sec: 0.0,
         },
         parachute: Default::default(),

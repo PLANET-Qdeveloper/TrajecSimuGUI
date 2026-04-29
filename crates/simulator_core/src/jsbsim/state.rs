@@ -26,7 +26,10 @@ use super::ffi::ffi::FDMWrapper;
 
 /// Read the full vehicle state from JSBSim in one call.
 ///
-/// Called after every `Run()` (or every `state_sample_interval` steps).
+/// Called after every `Run()`. Per-output decimation is applied at the
+/// writer side via `SimControl::csv_sample_interval` /
+/// `kml_sample_interval`, so this hot path always produces full-resolution
+/// state.
 pub fn extract_state(fdm: &FDMWrapper) -> SimulationState {
     // ── Position ────────────────────────────────────────────────────────
     let alt_agl_m = Length::new::<foot>(

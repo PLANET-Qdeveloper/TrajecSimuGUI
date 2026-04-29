@@ -49,5 +49,6 @@ sim:
   flight_duration: 4000.0
   time_step: 0.001
   apogee_mode: 0
-  state_sample_interval: 10
+  csv_sample_interval: 10
+  kml_sample_interval: 50
 

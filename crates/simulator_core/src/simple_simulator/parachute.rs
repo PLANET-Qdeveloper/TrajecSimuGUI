@@ -319,10 +319,13 @@ fn lookup_terminal_mps(table: &[[f64; 2]], t_sec: f64) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::Arc;
+
     use crate::params::{
         AeroParams, BodyMassParams, Cd0AlphaMachTable, EngineParams, FuelParams, LaunchEnvParams,
-        ParachuteParams, SimControl, TankParams, TerrainModel,
+        ParachuteParams, SimControl, TankParams,
     };
+    use crate::terrain::{FlatTerrain, Terrain};
 
     // ── lookup_terminal_mps ────────────────────────────────────────────────
 
@@ -358,7 +361,7 @@ mod tests {
         v_term_table: Vec<[f64; 2]>,
         settle_tol_frac: f64,
         settle_hold_steps: u32,
-        terrain: Option<TerrainModel>,
+        terrain: Option<Arc<dyn Terrain>>,
     ) -> RocketParams {
         RocketParams {
             body_mass: BodyMassParams {
@@ -368,7 +371,7 @@ mod tests {
                 inertia: [1.0, 1.0, 1.0, 0.0, 0.0, 0.0],
             },
             engine: EngineParams {
-                thrust_table: vec![[0.0, 0.0]],
+                thrust_table: vec![[0.0, 0.0]].into(),
                 thruster_pos: [1.0, 0.0, 0.0],
                 tank: TankParams {
                     position: [0.5, 0.0, 0.0],
@@ -383,13 +386,13 @@ mod tests {
             },
             aero: AeroParams {
                 cp_at_launch: [0.5, 0.0, 0.0],
-                cp_mach_table: vec![[0.0, 0.5]],
+                cp_mach_table: vec![[0.0, 0.5]].into(),
                 cd0_alpha_mach_table: Cd0AlphaMachTable {
-                    mach_keys: vec![0.0],
-                    rows: vec![vec![0.0, 0.3]],
+                    mach_keys: vec![0.0].into(),
+                    rows: vec![vec![0.0, 0.3]].into(),
                 },
-                cn_table: vec![[0.0, 2.0]],
-                cs_table: vec![[0.0, 2.0]],
+                cn_table: vec![[0.0, 2.0]].into(),
+                cs_table: vec![[0.0, 2.0]].into(),
                 roll_damping_coefficient: 0.0,
                 pitch_damping_coefficient: 0.0,
                 yaw_damping_coefficient: 0.0,
@@ -404,7 +407,7 @@ mod tests {
                 pitch: 90.0,
                 roll: 0.0,
                 yaw: 0.0,
-                winds_table: winds,
+                winds_table: winds.into(),
                 initial_body_velocity_mps: [0.0, 0.0, 0.0],
                 initial_position_override: None,
             },
@@ -412,11 +415,12 @@ mod tests {
                 flight_duration: 600.0,
                 time_step: 0.05,
                 apogee_mode: 0,
-                state_sample_interval: 1,
+                csv_sample_interval: 1,
+                kml_sample_interval: 10,
                 start_sim_time_sec: 0.0,
             },
             parachute: ParachuteParams {
-                terminal_velocity_table: v_term_table,
+                terminal_velocity_table: v_term_table.into(),
                 deploy_trigger: None,
                 settle_tol_frac,
                 settle_hold_steps,
@@ -566,7 +570,7 @@ mod tests {
             vec![[0.0, 10.0], [60.0, 10.0]],
             0.05,
             5,
-            Some(TerrainModel::default()),
+            Some(Arc::new(FlatTerrain::new(0.0))),
         );
         // Start almost on the ground, descending at 10 m/s.
         let mut stage = seeded_stage(&params, 0.2, [0.0, 0.0, 10.0]);
@@ -586,7 +590,7 @@ mod tests {
             vec![[0.0, 10.0], [60.0, 10.0]],
             0.05,
             5,
-            Some(TerrainModel::default()),
+            Some(Arc::new(FlatTerrain::new(0.0))),
         );
         let mut stage = seeded_stage(&params, 1000.0, [0.0, 0.0, 100.0]);
         for _ in 0..10 {

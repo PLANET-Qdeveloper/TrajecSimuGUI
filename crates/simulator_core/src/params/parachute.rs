@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use serde::{Deserialize, Serialize};
 
 use crate::progress::DelayedBranchTrigger;
@@ -19,8 +21,8 @@ pub struct ParachuteParams {
     ///
     /// Empty → parachute disabled. The orchestrator treats this as
     /// "no parachute branch" and terminates after ballistic flight ends.
-    #[serde(default)]
-    pub terminal_velocity_table: Vec<[f64; 2]>,
+    #[serde(default = "empty_arc_table", with = "crate::arc_serde::slice")]
+    pub terminal_velocity_table: Arc<[[f64; 2]]>,
 
     /// Event-driven deployment trigger. Deployment fires `delay_sec`
     /// after the origin event is observed (typically `Apogee`).
@@ -52,10 +54,14 @@ fn default_settle_hold_steps() -> u32 {
     5
 }
 
+fn empty_arc_table() -> Arc<[[f64; 2]]> {
+    Arc::from(Vec::<[f64; 2]>::new())
+}
+
 impl Default for ParachuteParams {
     fn default() -> Self {
         Self {
-            terminal_velocity_table: Vec::new(),
+            terminal_velocity_table: empty_arc_table(),
             deploy_trigger: None,
             settle_tol_frac: default_settle_tol_frac(),
             settle_hold_steps: default_settle_hold_steps(),
