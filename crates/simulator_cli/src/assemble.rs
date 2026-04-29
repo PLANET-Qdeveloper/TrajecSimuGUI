@@ -1,6 +1,8 @@
 //! Convert user-facing `Config` + CSV tables into a `RocketParams`.
 
-use anyhow::{Result, bail};
+use std::sync::Arc;
+
+use anyhow::{Context, Result, bail};
 
 use simulator_core::EventKind;
 use simulator_core::params::{
@@ -8,8 +10,9 @@ use simulator_core::params::{
     RocketParams, SimControl, TankParams,
 };
 use simulator_core::progress::DelayedBranchTrigger;
+use simulator_core::terrain::{FlatTerrain, RasterTerrain, Terrain};
 
-use crate::config::Config;
+use crate::config::{Config, TerrainConfig};
 use crate::csv_loader;
 
 /// Sentinel upper altitude for the 2-point constant-wind table. JSBSim's
@@ -39,7 +42,7 @@ pub fn assemble(cfg: &Config) -> Result<RocketParams> {
         Some(p) => {
             let terminal_velocity_table = csv_loader::load_1d(&p.terminal_velocity_table)?;
             ParachuteParams {
-                terminal_velocity_table,
+                terminal_velocity_table: terminal_velocity_table.into(),
                 deploy_trigger: Some(DelayedBranchTrigger {
                     origin: EventKind::Apogee,
                     delay_sec: p.deploy_delay_sec,
@@ -47,6 +50,30 @@ pub fn assemble(cfg: &Config) -> Result<RocketParams> {
                 ..Default::default()
             }
         }
+    };
+
+    let terrain = match &cfg.launch.terrain {
+        None => None,
+        Some(TerrainConfig::Flat { altitude_m }) => {
+            Some(Arc::new(FlatTerrain::new(*altitude_m)) as Arc<dyn Terrain>)
+        }
+        Some(TerrainConfig::Raster {
+            path,
+            origin_lat_deg,
+            origin_lon_deg,
+            d_lat_deg,
+            d_lon_deg,
+            n_rows,
+            n_cols,
+        }) => Some(load_raster_terrain(
+            path,
+            *origin_lat_deg,
+            *origin_lon_deg,
+            *d_lat_deg,
+            *d_lon_deg,
+            *n_rows,
+            *n_cols,
+        )?),
     };
 
     let launch_mass_kg = cfg.body.dry_mass_with_fuel_section + cfg.engine.tank.tank_contents;
@@ -66,7 +93,7 @@ pub fn assemble(cfg: &Config) -> Result<RocketParams> {
             inertia: cfg.body.inertia,
         },
         engine: EngineParams {
-            thrust_table,
+            thrust_table: thrust_table.into(),
             thruster_pos: cfg.engine.thruster_pos,
             tank: TankParams {
                 position: cfg.engine.tank.position,
@@ -81,10 +108,10 @@ pub fn assemble(cfg: &Config) -> Result<RocketParams> {
         },
         aero: AeroParams {
             cp_at_launch: cfg.aero.cp_at_launch,
-            cp_mach_table,
+            cp_mach_table: cp_mach_table.into(),
             cd0_alpha_mach_table,
-            cn_table,
-            cs_table,
+            cn_table: cn_table.into(),
+            cs_table: cs_table.into(),
             roll_damping_coefficient: cfg.aero.roll_damping,
             pitch_damping_coefficient: cfg.aero.pitch_damping,
             yaw_damping_coefficient: cfg.aero.yaw_damping,
@@ -95,11 +122,11 @@ pub fn assemble(cfg: &Config) -> Result<RocketParams> {
             elevation: cfg.launch.elevation,
             launcher_height: cfg.launch.launcher_height,
             rail_length_m: cfg.launch.rail_length,
-            terrain: None,
+            terrain,
             pitch: cfg.launch.pitch,
             roll: cfg.launch.roll,
             yaw: cfg.launch.yaw,
-            winds_table,
+            winds_table: winds_table.into(),
             initial_body_velocity_mps: [0.0; 3],
             initial_position_override: None,
         },
@@ -107,13 +134,58 @@ pub fn assemble(cfg: &Config) -> Result<RocketParams> {
             flight_duration: cfg.sim.flight_duration,
             time_step: cfg.sim.time_step,
             apogee_mode: cfg.sim.apogee_mode,
-            state_sample_interval: cfg.sim.state_sample_interval,
+            csv_sample_interval: cfg.sim.csv_sample_interval,
+            kml_sample_interval: cfg.sim.kml_sample_interval,
             start_sim_time_sec: 0.0,
         },
         parachute,
     };
     params.validate()?;
     Ok(params)
+}
+
+fn load_raster_terrain(
+    path: &std::path::Path,
+    origin_lat_deg: f64,
+    origin_lon_deg: f64,
+    d_lat_deg: f64,
+    d_lon_deg: f64,
+    n_rows: usize,
+    n_cols: usize,
+) -> Result<Arc<dyn Terrain>> {
+    if d_lat_deg <= 0.0 || d_lon_deg <= 0.0 {
+        bail!("terrain.raster d_lat_deg and d_lon_deg must be positive");
+    }
+    let bytes = std::fs::read(path)
+        .with_context(|| format!("reading raster terrain {}", path.display()))?;
+    let expected = n_rows
+        .checked_mul(n_cols)
+        .and_then(|n| n.checked_mul(8))
+        .ok_or_else(|| anyhow::anyhow!("terrain raster dimensions overflow"))?;
+    if bytes.len() != expected {
+        bail!(
+            "terrain raster {} has {} bytes, expected {} (n_rows={} × n_cols={} × 8)",
+            path.display(),
+            bytes.len(),
+            expected,
+            n_rows,
+            n_cols
+        );
+    }
+    let mut heights = Vec::with_capacity(n_rows * n_cols);
+    for chunk in bytes.chunks_exact(8) {
+        let arr: [u8; 8] = chunk.try_into().unwrap();
+        heights.push(f64::from_le_bytes(arr));
+    }
+    Ok(Arc::new(RasterTerrain {
+        origin_lat_deg,
+        origin_lon_deg,
+        d_lat_deg,
+        d_lon_deg,
+        n_rows,
+        n_cols,
+        heights_m: Arc::from(heights),
+    }) as Arc<dyn Terrain>)
 }
 
 #[cfg(test)]
@@ -161,6 +233,7 @@ mod tests {
                 yaw: 0.0,
                 wind_speed_mps: 3.0,
                 wind_direction_deg: 270.0,
+                terrain: None,
             },
             body: BodyConfig {
                 diameter: 0.15,
@@ -204,7 +277,8 @@ mod tests {
                 flight_duration: 60.0,
                 time_step: 0.01,
                 apogee_mode: 0,
-                state_sample_interval: 1,
+                csv_sample_interval: 1,
+                kml_sample_interval: 10,
             },
         }
     }

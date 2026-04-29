@@ -183,8 +183,8 @@ pub fn load_cd_table_deg(path: &Path) -> Result<Cd0AlphaMachTable> {
         rows_out.push(out_row);
     }
     Ok(Cd0AlphaMachTable {
-        mach_keys,
-        rows: rows_out,
+        mach_keys: mach_keys.into(),
+        rows: rows_out.into(),
     })
 }
 
@@ -251,7 +251,7 @@ mod tests {
             "alpha_deg,0.0,1.0\n0.0,0.5,0.8\n90.0,0.6,0.9\n",
         );
         let t = load_cd_table_deg(&p).unwrap();
-        assert_eq!(t.mach_keys, vec![0.0, 1.0]);
+        assert_eq!(&*t.mach_keys, &[0.0, 1.0][..]);
         assert_eq!(t.rows.len(), 2);
         assert!((t.rows[0][0] - 0.0).abs() < 1e-12, "α=0 rad expected");
         assert!(

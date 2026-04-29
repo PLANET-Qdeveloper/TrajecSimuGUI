@@ -1,0 +1,511 @@
+[
+  {
+    "kind": "Start",
+    "sim_time_sec": 0.0,
+    "source": "Orchestrator"
+  },
+  {
+    "kind": "MaxThrust",
+    "sim_time_sec": 0.01,
+    "source": "Analysis",
+    "state": {
+      "time_sec": 0.01,
+      "position": {
+        "lat_deg": 35.00000000044573,
+        "lon_deg": 139.0,
+        "alt_agl_m": 0.0028426424991766343
+      },
+      "velocity": {
+        "true_airspeed_mps": 0.5686151026696125,
+        "ground_speed_mps": 0.009923701878167818,
+        "u_mps": 0.5686151026696125,
+        "v_mps": 0.0,
+        "w_mps": 0.0
+      },
+      "attitude": {
+        "pitch_deg": 89.0,
+        "roll_deg": 0.0,
+        "yaw_deg": 0.0
+      },
+      "angular_rates": {
+        "p_rad_sec": 0.0,
+        "q_rad_sec": 0.0,
+        "r_rad_sec": 0.0
+      },
+      "acceleration": {
+        "ax_mps2": 56.86151026696125,
+        "ay_mps2": 0.0,
+        "az_mps2": 0.0
+      },
+      "aero": {
+        "alpha_deg": 0.0,
+        "beta_deg": 0.0,
+        "qbar_pa": 0.0
+      },
+      "thrust_n": 2000.0,
+      "mach": 0.0
+    }
+  },
+  {
+    "kind": "LaunchClear",
+    "sim_time_sec": 0.4200000000000002,
+    "source": "LaunchRail",
+    "state": {
+      "time_sec": 0.4200000000000002,
+      "position": {
+        "lat_deg": 35.000000800718965,
+        "lon_deg": 139.0,
+        "alt_agl_m": 5.106576670398575
+      },
+      "velocity": {
+        "true_airspeed_mps": 24.553513078259694,
+        "ground_speed_mps": 0.42851788970494653,
+        "u_mps": 24.553513078259694,
+        "v_mps": 0.0,
+        "w_mps": 0.0
+      },
+      "attitude": {
+        "pitch_deg": 89.0,
+        "roll_deg": 0.0,
+        "yaw_deg": 0.0
+      },
+      "angular_rates": {
+        "p_rad_sec": 0.0,
+        "q_rad_sec": 0.0,
+        "r_rad_sec": 0.0
+      },
+      "acceleration": {
+        "ax_mps2": 60.110245963435176,
+        "ay_mps2": 0.0,
+        "az_mps2": 0.0
+      },
+      "aero": {
+        "alpha_deg": 0.0,
+        "beta_deg": 0.0,
+        "qbar_pa": 0.0
+      },
+      "thrust_n": 2000.0,
+      "mach": 0.0
+    }
+  },
+  {
+    "kind": "EngineBurnout",
+    "sim_time_sec": 1.0000000000000007,
+    "source": "JsbSim",
+    "state": {
+      "time_sec": 1.0000000000000007,
+      "position": {
+        "lat_deg": 35.000005663428524,
+        "lon_deg": 138.999994008468,
+        "alt_agl_m": 29.94827677314476
+      },
+      "velocity": {
+        "true_airspeed_mps": 60.86835212894468,
+        "ground_speed_mps": 4.841360990908504,
+        "u_mps": 55.58559606983112,
+        "v_mps": 25.187108693159832,
+        "w_mps": 0.09364868232322351
+      },
+      "attitude": {
+        "pitch_deg": 61.19027802482889,
+        "roll_deg": -87.91505578994543,
+        "yaw_deg": 271.82761452606917
+      },
+      "angular_rates": {
+        "p_rad_sec": 0.0001382862344627058,
+        "q_rad_sec": -0.00048444675817385435,
+        "r_rad_sec": -3.6475495867513477
+      },
+      "acceleration": {
+        "ax_mps2": -26.453256906735312,
+        "ay_mps2": 199.02014211277486,
+        "az_mps2": 0.13452445177580705
+      },
+      "aero": {
+        "alpha_deg": 0.09913646727515493,
+        "beta_deg": 27.193004804270476,
+        "qbar_pa": 2262.7848471759944
+      },
+      "thrust_n": 1999.9999999999704,
+      "mach": 0.17893061732124604
+    }
+  },
+  {
+    "kind": "MaxQ",
+    "sim_time_sec": 1.0800000000000007,
+    "source": "Analysis",
+    "state": {
+      "time_sec": 1.0800000000000007,
+      "position": {
+        "lat_deg": 35.000006662809206,
+        "lon_deg": 138.9999888462168,
+        "alt_agl_m": 34.930577974621535
+      },
+      "velocity": {
+        "true_airspeed_mps": 63.05023744501343,
+        "ground_speed_mps": 6.802563271739636,
+        "u_mps": 45.38987844562025,
+        "v_mps": 44.11626491336484,
+        "w_mps": 0.1037383150822063
+      },
+      "attitude": {
+        "pitch_deg": 39.73709699976617,
+        "roll_deg": -88.69019081214083,
+        "yaw_deg": 270.8388081944486
+      },
+      "angular_rates": {
+        "p_rad_sec": 0.00034881223178128567,
+        "q_rad_sec": -0.0006655760390018219,
+        "r_rad_sec": -6.1720689449719215
+      },
+      "acceleration": {
+        "ax_mps2": -265.8779968398797,
+        "ay_mps2": 273.94296231954735,
+        "az_mps2": 0.11373643697686288
+      },
+      "aero": {
+        "alpha_deg": 0.13805791658926586,
+        "beta_deg": 46.89661516772686,
+        "qbar_pa": 2426.7539464371057
+      },
+      "thrust_n": 399.9999999999834,
+      "mach": 0.1853549826600862
+    }
+  },
+  {
+    "kind": "MaxAirspeed",
+    "sim_time_sec": 1.0800000000000007,
+    "source": "Analysis",
+    "state": {
+      "time_sec": 1.0800000000000007,
+      "position": {
+        "lat_deg": 35.000006662809206,
+        "lon_deg": 138.9999888462168,
+        "alt_agl_m": 34.930577974621535
+      },
+      "velocity": {
+        "true_airspeed_mps": 63.05023744501343,
+        "ground_speed_mps": 6.802563271739636,
+        "u_mps": 45.38987844562025,
+        "v_mps": 44.11626491336484,
+        "w_mps": 0.1037383150822063
+      },
+      "attitude": {
+        "pitch_deg": 39.73709699976617,
+        "roll_deg": -88.69019081214083,
+        "yaw_deg": 270.8388081944486
+      },
+      "angular_rates": {
+        "p_rad_sec": 0.00034881223178128567,
+        "q_rad_sec": -0.0006655760390018219,
+        "r_rad_sec": -6.1720689449719215
+      },
+      "acceleration": {
+        "ax_mps2": -265.8779968398797,
+        "ay_mps2": 273.94296231954735,
+        "az_mps2": 0.11373643697686288
+      },
+      "aero": {
+        "alpha_deg": 0.13805791658926586,
+        "beta_deg": 46.89661516772686,
+        "qbar_pa": 2426.7539464371057
+      },
+      "thrust_n": 399.9999999999834,
+      "mach": 0.1853549826600862
+    }
+  },
+  {
+    "kind": "MaxDynamicPressureAlpha",
+    "sim_time_sec": 1.1900000000000008,
+    "source": "Analysis",
+    "state": {
+      "time_sec": 1.1900000000000008,
+      "position": {
+        "lat_deg": 35.000008054017634,
+        "lon_deg": 138.9999808800519,
+        "alt_agl_m": 41.797734460891384
+      },
+      "velocity": {
+        "true_airspeed_mps": 61.97095351809977,
+        "ground_speed_mps": 6.664580970804633,
+        "u_mps": -2.062923719711046,
+        "v_mps": 62.18102331337805,
+        "w_mps": 0.09580883286814139
+      },
+      "attitude": {
+        "pitch_deg": -7.949316031818332,
+        "roll_deg": -88.9779202505985,
+        "yaw_deg": 269.8649521581174
+      },
+      "angular_rates": {
+        "p_rad_sec": 0.0011631564626095798,
+        "q_rad_sec": -0.005636992025661057,
+        "r_rad_sec": -8.07375961809296
+      },
+      "acceleration": {
+        "ax_mps2": -495.8026794592578,
+        "ay_mps2": -26.755855063741503,
+        "az_mps2": 9.74172091392037
+      },
+      "aero": {
+        "alpha_deg": 178.90591465779954,
+        "beta_deg": 85.33970508973579,
+        "qbar_pa": 2342.837062924763
+      },
+      "thrust_n": 0.0,
+      "mach": 0.18219622891059103
+    }
+  },
+  {
+    "kind": "MaxLateralAcceleration",
+    "sim_time_sec": 1.360000000000001,
+    "source": "Analysis",
+    "state": {
+      "time_sec": 1.360000000000001,
+      "position": {
+        "lat_deg": 35.00001147062375,
+        "lon_deg": 138.9999681373143,
+        "alt_agl_m": 52.15393964820958
+      },
+      "velocity": {
+        "true_airspeed_mps": 60.18118290414635,
+        "ground_speed_mps": 7.520864970115016,
+        "u_mps": -60.4329706980864,
+        "v_mps": -1.5237728238500896,
+        "w_mps": 0.3275822369556358
+      },
+      "attitude": {
+        "pitch_deg": -81.61708689766046,
+        "roll_deg": 71.79913366211107,
+        "yaw_deg": 106.13085242682678
+      },
+      "angular_rates": {
+        "p_rad_sec": -0.37494366911511523,
+        "q_rad_sec": 0.3733304365074731,
+        "r_rad_sec": -10.951197333744743
+      },
+      "acceleration": {
+        "ax_mps2": 27.039952491976525,
+        "ay_mps2": -660.7361964228276,
+        "az_mps2": -13.486368274288747
+      },
+      "aero": {
+        "alpha_deg": 179.78152401040032,
+        "beta_deg": -4.281150436772151,
+        "qbar_pa": 2207.267286268136
+      },
+      "thrust_n": 0.0,
+      "mach": 0.1769549462867732
+    }
+  },
+  {
+    "kind": "MaxAngularRate",
+    "sim_time_sec": 1.360000000000001,
+    "source": "Analysis",
+    "state": {
+      "time_sec": 1.360000000000001,
+      "position": {
+        "lat_deg": 35.00001147062375,
+        "lon_deg": 138.9999681373143,
+        "alt_agl_m": 52.15393964820958
+      },
+      "velocity": {
+        "true_airspeed_mps": 60.18118290414635,
+        "ground_speed_mps": 7.520864970115016,
+        "u_mps": -60.4329706980864,
+        "v_mps": -1.5237728238500896,
+        "w_mps": 0.3275822369556358
+      },
+      "attitude": {
+        "pitch_deg": -81.61708689766046,
+        "roll_deg": 71.79913366211107,
+        "yaw_deg": 106.13085242682678
+      },
+      "angular_rates": {
+        "p_rad_sec": -0.37494366911511523,
+        "q_rad_sec": 0.3733304365074731,
+        "r_rad_sec": -10.951197333744743
+      },
+      "acceleration": {
+        "ax_mps2": 27.039952491976525,
+        "ay_mps2": -660.7361964228276,
+        "az_mps2": -13.486368274288747
+      },
+      "aero": {
+        "alpha_deg": 179.78152401040032,
+        "beta_deg": -4.281150436772151,
+        "qbar_pa": 2207.267286268136
+      },
+      "thrust_n": 0.0,
+      "mach": 0.1769549462867732
+    }
+  },
+  {
+    "kind": "MaxAxialAcceleration",
+    "sim_time_sec": 1.5100000000000011,
+    "source": "Analysis",
+    "state": {
+      "time_sec": 1.5100000000000011,
+      "position": {
+        "lat_deg": 35.000015024836415,
+        "lon_deg": 138.9999569505178,
+        "alt_agl_m": 61.03852331648885
+      },
+      "velocity": {
+        "true_airspeed_mps": 58.6280327461116,
+        "ground_speed_mps": 6.715464879801168,
+        "u_mps": -6.982670500166901,
+        "v_mps": -58.34483912013693,
+        "w_mps": -3.7420296556417765
+      },
+      "attitude": {
+        "pitch_deg": -0.7324025671457258,
+        "roll_deg": 83.8860851114034,
+        "yaw_deg": 84.70063959681302
+      },
+      "angular_rates": {
+        "p_rad_sec": -0.33287483943400137,
+        "q_rad_sec": -0.61820583063782,
+        "r_rad_sec": -7.918811190042579
+      },
+      "acceleration": {
+        "ax_mps2": 467.3822107290569,
+        "ay_mps2": -44.15004892756083,
+        "az_mps2": -15.739868969576456
+      },
+      "aero": {
+        "alpha_deg": -134.81518195682298,
+        "beta_deg": -84.45101187337707,
+        "qbar_pa": 2093.0192898708165
+      },
+      "thrust_n": 0.0,
+      "mach": 0.17240540749476216
+    }
+  },
+  {
+    "kind": "Apogee",
+    "sim_time_sec": 7.519999999999884,
+    "source": "JsbSim",
+    "state": {
+      "time_sec": 7.519999999999884,
+      "position": {
+        "lat_deg": 35.000077347850436,
+        "lon_deg": 138.99958480110365,
+        "alt_agl_m": 231.0425500049629
+      },
+      "velocity": {
+        "true_airspeed_mps": 2.834500510963303,
+        "ground_speed_mps": 5.401438229769497,
+        "u_mps": 4.6285753728271475,
+        "v_mps": -1.105381247773447,
+        "w_mps": 2.921815570191572
+      },
+      "attitude": {
+        "pitch_deg": 6.708980822496298,
+        "roll_deg": -71.60468832028711,
+        "yaw_deg": 250.60753903873896
+      },
+      "angular_rates": {
+        "p_rad_sec": -1.5217316288335931,
+        "q_rad_sec": 4.851648008760686,
+        "r_rad_sec": -8.28033843384329
+      },
+      "acceleration": {
+        "ax_mps2": -6.165710128040643,
+        "ay_mps2": 24.645204420655688,
+        "az_mps2": 23.839747502719025
+      },
+      "aero": {
+        "alpha_deg": 45.840238191335494,
+        "beta_deg": -22.966963128539,
+        "qbar_pa": 4.812873342498897
+      },
+      "thrust_n": 0.0,
+      "mach": 0.008351366791409078
+    }
+  },
+  {
+    "kind": "ParachuteOpen",
+    "sim_time_sec": 8.529999999999863,
+    "source": "Orchestrator",
+    "state": {
+      "time_sec": 8.529999999999863,
+      "position": {
+        "lat_deg": 35.00008343773601,
+        "lon_deg": 138.99952540351737,
+        "alt_agl_m": 224.617738549798
+      },
+      "velocity": {
+        "true_airspeed_mps": 11.565039592963963,
+        "ground_speed_mps": 5.401895719601088,
+        "u_mps": 7.870492596379329,
+        "v_mps": 7.899061429483066,
+        "w_mps": 5.705581077468407
+      },
+      "attitude": {
+        "pitch_deg": -62.2922070351225,
+        "roll_deg": 37.17316801715037,
+        "yaw_deg": 129.17434574708543
+      },
+      "angular_rates": {
+        "p_rad_sec": -5.567506232608253,
+        "q_rad_sec": -4.417870236626553,
+        "r_rad_sec": -8.229271267179366
+      },
+      "acceleration": {
+        "ax_mps2": -31.13387974183472,
+        "ay_mps2": 35.78580244286883,
+        "az_mps2": 12.765792760865523
+      },
+      "aero": {
+        "alpha_deg": 30.19943755291165,
+        "beta_deg": 26.415158649462136,
+        "qbar_pa": 80.17054594113934
+      },
+      "thrust_n": 0.0,
+      "mach": 0.03407191245639225
+    }
+  },
+  {
+    "kind": "ParachuteLanded",
+    "sim_time_sec": 20.309999999999814,
+    "source": "Parachute",
+    "state": {
+      "time_sec": 20.309999999999814,
+      "position": {
+        "lat_deg": 35.00009633731042,
+        "lon_deg": 138.99972312652397,
+        "alt_agl_m": 0.0
+      },
+      "velocity": {
+        "true_airspeed_mps": 3.0,
+        "ground_speed_mps": 0.0,
+        "u_mps": 0.0,
+        "v_mps": 0.0,
+        "w_mps": 0.0
+      },
+      "attitude": {
+        "pitch_deg": 0.0,
+        "roll_deg": 0.0,
+        "yaw_deg": 0.0
+      },
+      "angular_rates": {
+        "p_rad_sec": 0.0,
+        "q_rad_sec": 0.0,
+        "r_rad_sec": 0.0
+      },
+      "acceleration": {
+        "ax_mps2": 0.0,
+        "ay_mps2": 0.0,
+        "az_mps2": 0.0
+      },
+      "aero": {
+        "alpha_deg": 0.0,
+        "beta_deg": 0.0,
+        "qbar_pa": 0.0
+      },
+      "thrust_n": 0.0,
+      "mach": 0.0
+    }
+  }
+]

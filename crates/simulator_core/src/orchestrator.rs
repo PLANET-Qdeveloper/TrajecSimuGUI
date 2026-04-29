@@ -5,6 +5,7 @@
 //! 2) ballistic flight (JSBSim)
 //! 3) parachute branch
 
+use crate::analysis::AnalysisOutput;
 use crate::output::{SimulationOutput, SimulationState};
 use crate::params::InitialPosition;
 use crate::progress::{EventKind, EventSource, EventStamp};
@@ -45,6 +46,9 @@ pub struct UnifiedSimulationOutput {
     pub mainline: SimulationOutput,
     pub parachute_branch: SimulationOutput,
     pub events: Vec<EventStamp>,
+    /// Diagnostics + derived events produced by `analysis::analyze`.
+    /// Empty unless the runner explicitly invokes the analysis pass.
+    pub analysis: AnalysisOutput,
 }
 
 impl UnifiedSimulationOutput {
@@ -105,6 +109,7 @@ impl SimulationOrchestrator {
             kind: EventKind::Start,
             sim_time_sec: 0.0,
             source: EventSource::Orchestrator,
+            state: None,
         });
         Ok(())
     }
@@ -141,6 +146,11 @@ impl SimulationOrchestrator {
                     lon_deg: out.state.position.lon_deg,
                     alt_agl_m: out.state.position.alt_agl_m,
                 };
+                let snapshot = if out.events.is_empty() {
+                    None
+                } else {
+                    Some(out.state.clone())
+                };
                 self.output.push_mainline(out.state);
 
                 for kind in out.events {
@@ -148,6 +158,7 @@ impl SimulationOrchestrator {
                         kind,
                         sim_time_sec: out_time_sec,
                         source: EventSource::LaunchRail,
+                        state: snapshot.clone(),
                     });
                 }
 
@@ -207,6 +218,11 @@ impl SimulationOrchestrator {
                     next_phase = Some(Phase::Parachute);
                 }
 
+                let snapshot = if out.events.is_empty() {
+                    None
+                } else {
+                    Some(out.state.clone())
+                };
                 self.output.push_mainline(out.state);
 
                 for kind in out.events {
@@ -214,6 +230,7 @@ impl SimulationOrchestrator {
                         kind,
                         sim_time_sec: out_time_sec,
                         source: EventSource::JsbSim,
+                        state: snapshot.clone(),
                     });
                 }
 
@@ -232,6 +249,11 @@ impl SimulationOrchestrator {
                 let params = self.params.as_ref().expect("params present");
                 let out = self.parachute.step(params, StageStepInput::default())?;
                 let out_time_sec = out.state.time_sec;
+                let snapshot = if out.events.is_empty() {
+                    None
+                } else {
+                    Some(out.state.clone())
+                };
                 self.output.push_parachute(out.state);
 
                 for kind in out.events {
@@ -239,6 +261,7 @@ impl SimulationOrchestrator {
                         kind,
                         sim_time_sec: out_time_sec,
                         source: EventSource::Parachute,
+                        state: snapshot.clone(),
                     });
                 }
 
@@ -266,10 +289,14 @@ impl SimulationOrchestrator {
             self.parachute
                 .seed_from_ballistic_handoff(h.deploy_sim_time_sec, &h.position, h.vel_enu_down_mps);
             self.parachute_deployed = true;
+            // Snapshot the last ballistic state we just pushed — that's the
+            // vehicle state at the instant the chute deployed.
+            let deploy_state = self.output.mainline.trajectory.last().cloned();
             self.output.push_event(EventStamp {
                 kind: EventKind::ParachuteOpen,
                 sim_time_sec: h.deploy_sim_time_sec,
                 source: EventSource::Orchestrator,
+                state: deploy_state,
             });
         }
 

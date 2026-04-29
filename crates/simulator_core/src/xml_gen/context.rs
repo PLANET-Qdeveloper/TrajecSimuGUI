@@ -110,7 +110,7 @@ impl From<&RocketParams> for XmlContext {
         let f = &p.engine.fuel;
         let oxidizer_drain = t.drain_position.unwrap_or(t.position);
 
-        let mut winds = p.launch_env.winds_table.clone();
+        let mut winds = p.launch_env.winds_table.to_vec();
         winds.sort_by(|a, b| a[0].total_cmp(&b[0]));
         let winds_table = winds
             .into_iter()
@@ -151,8 +151,8 @@ impl From<&RocketParams> for XmlContext {
         let body_radius = p.body_mass.diameter / 2.0;
 
         let mut cd0_alpha_mach_table = Vec::with_capacity(1 + p.aero.cd0_alpha_mach_table.rows.len());
-        cd0_alpha_mach_table.push(p.aero.cd0_alpha_mach_table.mach_keys.clone());
-        cd0_alpha_mach_table.extend(p.aero.cd0_alpha_mach_table.rows.clone());
+        cd0_alpha_mach_table.push(p.aero.cd0_alpha_mach_table.mach_keys.to_vec());
+        cd0_alpha_mach_table.extend(p.aero.cd0_alpha_mach_table.rows.iter().cloned());
 
         // Position: rail-exit handoff overrides pad coordinates.
         let (latitude, longitude, altitude_agl_m) =
@@ -195,10 +195,10 @@ impl From<&RocketParams> for XmlContext {
             cp_x: p.aero.cp_at_launch[0],
             cp_y: p.aero.cp_at_launch[1],
             cp_z: p.aero.cp_at_launch[2],
-            cp_mach_table: p.aero.cp_mach_table.clone(),
+            cp_mach_table: p.aero.cp_mach_table.to_vec(),
             cd0_alpha_mach_table,
-            cn_table: p.aero.cn_table.clone(),
-            cs_table: p.aero.cs_table.clone(),
+            cn_table: p.aero.cn_table.to_vec(),
+            cs_table: p.aero.cs_table.to_vec(),
             roll_damping_coefficient: p.aero.roll_damping_coefficient,
             pitch_damping_coefficient: p.aero.pitch_damping_coefficient,
             yaw_damping_coefficient: p.aero.yaw_damping_coefficient,
@@ -260,7 +260,7 @@ mod tests {
                 inertia: [1.0, 1.0, 1.0, 0.0, 0.0, 0.0],
             },
             engine: EngineParams {
-                thrust_table: vec![[0.0, 100.0], [1.0, 0.0]],
+                thrust_table: vec![[0.0, 100.0], [1.0, 0.0]].into(),
                 thruster_pos: [1.0, 0.0, 0.0],
                 tank: TankParams {
                     position: [0.5, 0.0, 0.0],
@@ -275,13 +275,13 @@ mod tests {
             },
             aero: AeroParams {
                 cp_at_launch: [0.5, 0.0, 0.0],
-                cp_mach_table: vec![[0.0, 0.5]],
+                cp_mach_table: vec![[0.0, 0.5]].into(),
                 cd0_alpha_mach_table: Cd0AlphaMachTable {
-                    mach_keys: vec![0.0],
-                    rows: vec![vec![0.0, 0.3]],
+                    mach_keys: vec![0.0].into(),
+                    rows: vec![vec![0.0, 0.3]].into(),
                 },
-                cn_table: vec![[0.0, 2.0]],
-                cs_table: vec![[0.0, 2.0]],
+                cn_table: vec![[0.0, 2.0]].into(),
+                cs_table: vec![[0.0, 2.0]].into(),
                 roll_damping_coefficient: 0.0,
                 pitch_damping_coefficient: 0.0,
                 yaw_damping_coefficient: 0.0,
@@ -296,7 +296,7 @@ mod tests {
                 pitch: 90.0,
                 roll: 0.0,
                 yaw: 0.0,
-                winds_table: vec![],
+                winds_table: Vec::<[f64; 3]>::new().into(),
                 initial_body_velocity_mps: [0.0, 0.0, 0.0],
                 initial_position_override: None,
             },

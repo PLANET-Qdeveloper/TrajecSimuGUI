@@ -8,7 +8,7 @@ pub mod sim_control;
 pub use aero::{AeroParams, Cd0AlphaMachTable};
 pub use body_mass::BodyMassParams;
 pub use engine::{EngineParams, FuelParams, TankParams};
-pub use launch_env::{InitialPosition, LaunchEnvParams, TerrainModel};
+pub use launch_env::{InitialPosition, LaunchEnvParams};
 pub use parachute::ParachuteParams;
 pub use sim_control::SimControl;
 

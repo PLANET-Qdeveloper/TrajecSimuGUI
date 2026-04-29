@@ -7,6 +7,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result, bail};
 use serde::Serialize;
 
+use simulator_core::analysis;
 use simulator_core::{
     EventKind, Phase, RocketParams, SimulationOrchestrator, SimulationState,
     UnifiedSimulationOutput,
@@ -18,6 +19,7 @@ pub struct RunPaths {
     pub parachute: PathBuf,
     pub events: PathBuf,
     pub summary: PathBuf,
+    pub kml: PathBuf,
 }
 
 pub fn run(params: &RocketParams, out_dir: &Path) -> Result<RunPaths> {
@@ -48,20 +50,44 @@ pub fn run(params: &RocketParams, out_dir: &Path) -> Result<RunPaths> {
         );
     }
 
-    let out = orch.output();
+    // Run post-simulation analysis: per-step diagnostics + derived events
+    // (MaxQ, MaxAxialAcceleration, MaxLateralAcceleration, MaxAngularRate).
+    let mut output = orch.into_output();
+    analysis::analyze(&mut output, params);
+    let out = &output;
+
     let paths = RunPaths {
         mainline: out_dir.join("mainline.csv"),
         parachute: out_dir.join("parachute.csv"),
         events: out_dir.join("events.json"),
         summary: out_dir.join("summary.json"),
+        kml: out_dir.join("trajectory.kml"),
     };
 
-    write_trajectory_csv(&paths.mainline, &out.mainline.trajectory)?;
-    write_trajectory_csv(&paths.parachute, &out.parachute_branch.trajectory)?;
+    let csv_interval = params.sim.csv_sample_interval.max(1) as usize;
+    write_trajectory_csv(&paths.mainline, &out.mainline.trajectory, csv_interval)?;
+    write_trajectory_csv(
+        &paths.parachute,
+        &out.parachute_branch.trajectory,
+        csv_interval,
+    )?;
     write_events_json(&paths.events, out)?;
     write_summary_json(&paths.summary, out)?;
+    crate::kml_writer::write_trajectory_kml(
+        &paths.kml,
+        out,
+        params,
+        params.sim.kml_sample_interval,
+    )?;
 
     Ok(paths)
+}
+
+/// `i` is the trajectory step index, `len` the trajectory length. Keep
+/// rows at multiples of `interval` and always retain the final step so
+/// downstream consumers can read the landing state directly.
+fn keep_step(i: usize, len: usize, interval: usize) -> bool {
+    interval <= 1 || i.is_multiple_of(interval) || i + 1 == len
 }
 
 const CSV_HEADER: &str = "\
@@ -74,11 +100,19 @@ ax_mps2,ay_mps2,az_mps2,\
 alpha_deg,beta_deg,qbar_pa,\
 thrust_n,mach";
 
-fn write_trajectory_csv(path: &Path, traj: &[SimulationState]) -> Result<()> {
+fn write_trajectory_csv(
+    path: &Path,
+    traj: &[SimulationState],
+    interval: usize,
+) -> Result<()> {
     let mut f = fs::File::create(path)
         .with_context(|| format!("creating {}", path.display()))?;
     writeln!(f, "{CSV_HEADER}")?;
-    for s in traj {
+    let len = traj.len();
+    for (i, s) in traj.iter().enumerate() {
+        if !keep_step(i, len, interval) {
+            continue;
+        }
         writeln!(
             f,
             "{:.9},{:.9},{:.9},{:.6},\

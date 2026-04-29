@@ -25,12 +25,15 @@
 //! ```
 
 
+pub mod analysis;
+pub mod arc_serde;
 pub mod error;
 pub mod jsbsim;
 pub mod output;
 pub mod orchestrator;
 pub mod params;
 pub mod progress;
+pub mod terrain;
 pub mod workspace;
 pub mod xml_gen;
 pub mod simple_simulator;
@@ -79,8 +82,10 @@ pub trait Simulator: Send + Sync {
 
     /// Read the current vehicle state.
     ///
-    /// Intended to be called after each `step()` (or every N steps as
-    /// configured by `SimControl::state_sample_interval`).
+    /// Intended to be called after each `step()`. Per-output decimation
+    /// is applied at write-time using `SimControl::csv_sample_interval`
+    /// and `SimControl::kml_sample_interval`, so the simulator itself
+    /// always produces the full-resolution trajectory in memory.
     /// JSBSim backend: reads via `GetPropertyValue`, converts to SI.
     /// Custom backend: returns integrated state directly.
     fn get_state(&self) -> Result<State>;
