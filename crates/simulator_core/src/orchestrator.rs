@@ -126,7 +126,6 @@ impl SimulationOrchestrator {
         // Staged outputs from the match arm, applied after the borrow
         // of `self.params` is released so we can mutate it for handoff.
         let mut next_phase: Option<Phase> = None;
-        let mut terminated = false;
         let mut rail_handoff: Option<RailHandoff> = None;
         let mut parachute_handoff: Option<ParachuteHandoff> = None;
 
@@ -162,14 +161,9 @@ impl SimulationOrchestrator {
                     });
                 }
 
-                if let Some(next) = out.transition_to {
-                    next_phase = Some(next);
-                    if next == Phase::Ballistic {
-                        rail_handoff = Some(exit_handoff);
-                    }
-                }
-                if out.terminate_requested {
-                    terminated = true;
+                if out.completed {
+                    next_phase = Some(Phase::Ballistic);
+                    rail_handoff = Some(exit_handoff);
                 }
             }
             Phase::Ballistic => {
@@ -215,7 +209,6 @@ impl SimulationOrchestrator {
                             out.state.attitude.yaw_deg,
                         ),
                     });
-                    next_phase = Some(Phase::Parachute);
                 }
 
                 let snapshot = if out.events.is_empty() {
@@ -237,11 +230,8 @@ impl SimulationOrchestrator {
                 // Prefer parachute transition over any transition JSBSim
                 // itself requested (e.g. Landed from simulation/terminate).
                 if next_phase.is_none() {
-                    if let Some(next) = out.transition_to {
-                        next_phase = Some(next);
-                    }
-                    if out.terminate_requested {
-                        terminated = true;
+                    if out.completed {
+                        next_phase = Some(Phase::Parachute);
                     }
                 }
             }
@@ -265,11 +255,8 @@ impl SimulationOrchestrator {
                     });
                 }
 
-                if let Some(next) = out.transition_to {
-                    next_phase = Some(next);
-                }
-                if out.terminate_requested {
-                    terminated = true;
+                if out.completed {
+                    next_phase = Some(Phase::Completed);
                 }
             }
             Phase::Start => {
@@ -323,9 +310,6 @@ impl SimulationOrchestrator {
 
         if let Some(p) = next_phase {
             self.phase = p;
-        }
-        if terminated {
-            self.phase = Phase::Completed;
         }
 
         let running = !matches!(self.phase, Phase::Completed);

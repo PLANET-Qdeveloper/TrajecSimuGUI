@@ -106,7 +106,64 @@
         138.9995383,35.0000821,231.868
         138.9995325,35.0000827,230.904
         138.9995266,35.0000833,229.842
-        138.9995254,35.0000834,229.618
+        138.9995207,35.0000839,228.682
+        138.9995148,35.0000845,227.425
+        138.9995090,35.0000851,226.070
+        138.9995031,35.0000857,224.617
+        138.9994973,35.0000863,223.066
+        138.9994916,35.0000869,221.417
+        138.9994858,35.0000875,219.671
+        138.9994800,35.0000881,217.827
+        138.9994742,35.0000887,215.886
+        138.9994684,35.0000893,213.848
+        138.9994626,35.0000899,211.713
+        138.9994569,35.0000906,209.481
+        138.9994511,35.0000914,207.153
+        138.9994453,35.0000922,204.727
+        138.9994395,35.0000929,202.205
+        138.9994337,35.0000936,199.586
+        138.9994278,35.0000943,196.870
+        138.9994219,35.0000950,194.058
+        138.9994161,35.0000957,191.149
+        138.9994103,35.0000965,188.144
+        138.9994045,35.0000973,185.043
+        138.9993987,35.0000981,181.845
+        138.9993930,35.0000988,178.551
+        138.9993872,35.0000994,175.161
+        138.9993813,35.0001001,171.675
+        138.9993753,35.0001007,168.095
+        138.9993693,35.0001016,164.420
+        138.9993633,35.0001026,160.650
+        138.9993573,35.0001036,156.784
+        138.9993512,35.0001045,152.823
+        138.9993451,35.0001053,148.767
+        138.9993391,35.0001061,144.617
+        138.9993330,35.0001069,140.371
+        138.9993269,35.0001073,136.029
+        138.9993212,35.0001078,131.592
+        138.9993158,35.0001086,127.060
+        138.9993105,35.0001097,122.434
+        138.9993049,35.0001109,117.716
+        138.9992992,35.0001120,112.903
+        138.9992935,35.0001129,107.997
+        138.9992877,35.0001139,102.997
+        138.9992820,35.0001148,97.904
+        138.9992763,35.0001158,92.718
+        138.9992706,35.0001167,87.438
+        138.9992648,35.0001175,82.065
+        138.9992589,35.0001181,76.601
+        138.9992526,35.0001190,71.046
+        138.9992466,35.0001202,65.398
+        138.9992410,35.0001215,59.657
+        138.9992353,35.0001226,53.824
+        138.9992296,35.0001235,47.899
+        138.9992237,35.0001244,41.882
+        138.9992179,35.0001253,35.775
+        138.9992121,35.0001262,29.576
+        138.9992062,35.0001270,23.286
+        138.9992004,35.0001279,16.905
+        138.9991944,35.0001286,10.435
+        138.9991887,35.0001292,4.535
       </coordinates>
     </LineString>
   </Placemark>
@@ -203,60 +260,6 @@
     </Point>
   </Placemark>
   <Placemark>
-    <name>Max Q</name>
-    <styleUrl>#event</styleUrl>
-    <description>t=1.080s alt_agl=34.9m mach=0.185 qbar=2426.8Pa</description>
-    <Point>
-      <altitudeMode>absolute</altitudeMode>
-      <coordinates>138.9999888,35.0000067,39.931</coordinates>
-    </Point>
-  </Placemark>
-  <Placemark>
-    <name>Max airspeed</name>
-    <styleUrl>#event</styleUrl>
-    <description>t=1.080s alt_agl=34.9m mach=0.185 qbar=2426.8Pa</description>
-    <Point>
-      <altitudeMode>absolute</altitudeMode>
-      <coordinates>138.9999888,35.0000067,39.931</coordinates>
-    </Point>
-  </Placemark>
-  <Placemark>
-    <name>Max dynamic pressure alpha</name>
-    <styleUrl>#event</styleUrl>
-    <description>t=1.190s alt_agl=41.8m mach=0.182 qbar=2342.8Pa</description>
-    <Point>
-      <altitudeMode>absolute</altitudeMode>
-      <coordinates>138.9999809,35.0000081,46.798</coordinates>
-    </Point>
-  </Placemark>
-  <Placemark>
-    <name>Max lateral accel</name>
-    <styleUrl>#event</styleUrl>
-    <description>t=1.360s alt_agl=52.2m mach=0.177 qbar=2207.3Pa</description>
-    <Point>
-      <altitudeMode>absolute</altitudeMode>
-      <coordinates>138.9999681,35.0000115,57.154</coordinates>
-    </Point>
-  </Placemark>
-  <Placemark>
-    <name>Max angular rate</name>
-    <styleUrl>#event</styleUrl>
-    <description>t=1.360s alt_agl=52.2m mach=0.177 qbar=2207.3Pa</description>
-    <Point>
-      <altitudeMode>absolute</altitudeMode>
-      <coordinates>138.9999681,35.0000115,57.154</coordinates>
-    </Point>
-  </Placemark>
-  <Placemark>
-    <name>Max axial accel</name>
-    <styleUrl>#event</styleUrl>
-    <description>t=1.510s alt_agl=61.0m mach=0.172 qbar=2093.0Pa</description>
-    <Point>
-      <altitudeMode>absolute</altitudeMode>
-      <coordinates>138.9999570,35.0000150,66.039</coordinates>
-    </Point>
-  </Placemark>
-  <Placemark>
     <name>Apogee</name>
     <styleUrl>#event</styleUrl>
     <description>t=7.520s alt_agl=231.0m mach=0.008 qbar=4.8Pa</description>
@@ -272,6 +275,69 @@
     <Point>
       <altitudeMode>absolute</altitudeMode>
       <coordinates>138.9995254,35.0000834,229.618</coordinates>
+    </Point>
+  </Placemark>
+  <Placemark>
+    <name>Max axial accel</name>
+    <styleUrl>#event</styleUrl>
+    <description>t=13.360s alt_agl=57.5m mach=0.169 qbar=2012.0Pa</description>
+    <Point>
+      <altitudeMode>absolute</altitudeMode>
+      <coordinates>138.9992437,35.0001209,62.539</coordinates>
+    </Point>
+  </Placemark>
+  <Placemark>
+    <name>Max lateral accel</name>
+    <styleUrl>#event</styleUrl>
+    <description>t=14.180s alt_agl=7.4m mach=0.191 qbar=2581.1Pa</description>
+    <Point>
+      <altitudeMode>absolute</altitudeMode>
+      <coordinates>138.9991962,35.0001284,12.386</coordinates>
+    </Point>
+  </Placemark>
+  <Placemark>
+    <name>Max dynamic pressure alpha</name>
+    <styleUrl>#event</styleUrl>
+    <description>t=14.280s alt_agl=0.9m mach=0.194 qbar=2655.6Pa</description>
+    <Point>
+      <altitudeMode>absolute</altitudeMode>
+      <coordinates>138.9991900,35.0001291,5.852</coordinates>
+    </Point>
+  </Placemark>
+  <Placemark>
+    <name>Landed</name>
+    <styleUrl>#event</styleUrl>
+    <description>t=14.300s alt_agl=-0.5m mach=0.194 qbar=2670.2Pa</description>
+    <Point>
+      <altitudeMode>absolute</altitudeMode>
+      <coordinates>138.9991887,35.0001292,4.535</coordinates>
+    </Point>
+  </Placemark>
+  <Placemark>
+    <name>Max Q</name>
+    <styleUrl>#event</styleUrl>
+    <description>t=14.300s alt_agl=-0.5m mach=0.194 qbar=2670.2Pa</description>
+    <Point>
+      <altitudeMode>absolute</altitudeMode>
+      <coordinates>138.9991887,35.0001292,4.535</coordinates>
+    </Point>
+  </Placemark>
+  <Placemark>
+    <name>Max airspeed</name>
+    <styleUrl>#event</styleUrl>
+    <description>t=14.300s alt_agl=-0.5m mach=0.194 qbar=2670.2Pa</description>
+    <Point>
+      <altitudeMode>absolute</altitudeMode>
+      <coordinates>138.9991887,35.0001292,4.535</coordinates>
+    </Point>
+  </Placemark>
+  <Placemark>
+    <name>Max angular rate</name>
+    <styleUrl>#event</styleUrl>
+    <description>t=14.300s alt_agl=-0.5m mach=0.194 qbar=2670.2Pa</description>
+    <Point>
+      <altitudeMode>absolute</altitudeMode>
+      <coordinates>138.9991887,35.0001292,4.535</coordinates>
     </Point>
   </Placemark>
   <Placemark>

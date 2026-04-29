@@ -70,7 +70,7 @@ impl StageRunner for JsbSimStage {
         let state = self.sim.get_state()?;
 
         let mut events = Vec::new();
-        let mut terminate_requested = !running;
+        let mut completed = !running;
 
         if !self.burnout_emitted {
             if let Some(t_burn) = self.burnout_time_sec {
@@ -95,19 +95,14 @@ impl StageRunner for JsbSimStage {
         {
             self.sim.set_property("simulation/terminate", 1.0)?;
             self.terrain_terminated = true;
-            terminate_requested = true;
+            completed = true;
             events.push(EventKind::Landed);
         }
 
         Ok(StageStepOutput {
             state,
             events,
-            transition_to: if terminate_requested {
-                Some(Phase::Completed)
-            } else {
-                None
-            },
-            terminate_requested,
+            completed
         })
     }
 }
