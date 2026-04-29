@@ -232,19 +232,18 @@ impl StageRunner for LaunchRailStage {
 		let state = self.to_public_state(params, wind_along_rail, thrust_n, accel);
 
 		let mut events = Vec::new();
-		let mut transition_to = None;
+		let mut completed = false;
 
 		if !self.launch_clear_emitted && self.distance_m >= params.launch_env.rail_length_m {
 			self.launch_clear_emitted = true;
 			events.push(EventKind::LaunchClear);
-			transition_to = Some(Phase::Ballistic);
+			completed = true;
 		}
 
 		Ok(StageStepOutput {
 			state,
 			events,
-			transition_to,
-			terminate_requested: false,
+			completed,
 		})
 	}
 }
@@ -445,7 +444,7 @@ mod tests {
 				.iter()
 				.filter(|e| matches!(e, EventKind::LaunchClear))
 				.count();
-			if out.transition_to == Some(Phase::Ballistic) {
+			if out.completed == true {
 				saw_transition = true;
 			}
 			if stage.distance_m >= 5.0 + 1.0 {

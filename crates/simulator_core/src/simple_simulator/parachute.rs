@@ -253,7 +253,7 @@ impl StageRunner for ParachuteStage {
 
         // Terrain-aware termination.
         let mut events = Vec::new();
-        let mut terminate = false;
+        let mut completed = false;
         if !self.landed && env::hit_terrain(params, self.lat_deg, self.lon_deg, self.alt_agl_m) {
             let terrain_h_m = params
                 .launch_env
@@ -266,7 +266,7 @@ impl StageRunner for ParachuteStage {
             self.v_north_mps = 0.0;
             self.v_down_mps = 0.0;
             self.landed = true;
-            terminate = true;
+            completed = true;
             events.push(EventKind::ParachuteLanded);
         }
 
@@ -275,12 +275,7 @@ impl StageRunner for ParachuteStage {
         Ok(StageStepOutput {
             state,
             events,
-            transition_to: if terminate {
-                Some(Phase::Completed)
-            } else {
-                None
-            },
-            terminate_requested: terminate,
+            completed
         })
     }
 }
@@ -576,8 +571,7 @@ mod tests {
         let mut stage = seeded_stage(&params, 0.2, [0.0, 0.0, 10.0]);
         let out = stage.step(&params, StageStepInput::default()).unwrap();
 
-        assert!(out.terminate_requested);
-        assert_eq!(out.transition_to, Some(Phase::Completed));
+        assert_eq!(out.completed, true);
         assert!(out.events.contains(&EventKind::ParachuteLanded));
         assert!(stage.landed);
         assert_eq!(stage.alt_agl_m, 0.0);

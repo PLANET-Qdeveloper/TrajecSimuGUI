@@ -44,9 +44,7 @@ pub struct StageStepOutput {
 	/// One-shot events fired in this step.
 	pub events: Vec<EventKind>,
 	/// Optional phase transition request.
-	pub transition_to: Option<Phase>,
-	/// Optional termination request.
-	pub terminate_requested: bool,
+	pub completed: bool,
 }
 
 /// Common contract for phase runners.
