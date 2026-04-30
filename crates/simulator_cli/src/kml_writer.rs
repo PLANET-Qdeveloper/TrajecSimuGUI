@@ -74,7 +74,7 @@ fn write_linestring(
     style_id: &str,
     name: &str,
     traj: &[SimulationState],
-    params: &RocketParams,
+    _params: &RocketParams,
     interval: usize,
 ) -> Result<()> {
     if traj.is_empty() {
@@ -90,7 +90,7 @@ fn write_linestring(
         if interval > 1 && i % interval != 0 && i + 1 != len {
             continue;
         }
-        let alt_msl = msl_altitude(s, params);
+        let alt_msl = s.position.alt_agl_m;
         writeln!(
             f,
             "        {:.7},{:.7},{:.3}",
@@ -104,13 +104,13 @@ fn write_linestring(
 fn write_event_placemarks(
     f: &mut fs::File,
     events: &[EventStamp],
-    params: &RocketParams,
+    _params: &RocketParams,
 ) -> Result<()> {
     for e in events {
         // Skip events with no spatial state (e.g. Start at t=0 before
         // the first physics step).
         let Some(state) = e.state.as_ref() else { continue };
-        let alt_msl = msl_altitude(state, params);
+        let alt_msl = state.position.alt_agl_m;
         let kind = e.kind;
         let label = event_label(kind);
         writeln!(
@@ -150,16 +150,6 @@ fn event_label(kind: EventKind) -> &'static str {
     }
 }
 
-fn msl_altitude(s: &SimulationState, params: &RocketParams) -> f64 {
-    let pad = params.launch_env.elevation;
-    let terrain_offset = params
-        .launch_env
-        .terrain
-        .as_ref()
-        .map(|t| t.altitude_m(s.position.lat_deg, s.position.lon_deg))
-        .unwrap_or(0.0);
-    pad + terrain_offset + s.position.alt_agl_m
-}
 
 #[cfg(test)]
 mod tests {
@@ -241,7 +231,6 @@ mod tests {
                 elevation: 5.0,
                 launcher_height: 5.0,
                 rail_length_m: 5.0,
-                terrain: None,
                 pitch: 90.0,
                 roll: 0.0,
                 yaw: 0.0,

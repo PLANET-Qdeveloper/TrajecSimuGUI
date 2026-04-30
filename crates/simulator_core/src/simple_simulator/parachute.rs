@@ -29,7 +29,7 @@
 //!   has been within `settle_tol_frac` of its terminal envelope for
 //!   `settle_hold_steps` consecutive integrator steps.
 
-use crate::orchestrator::Phase;
+
 use crate::output::{
     Acceleration, AeroState, AngularRates, Attitude, Position, SimulationState, Velocity,
 };
@@ -254,14 +254,7 @@ impl StageRunner for ParachuteStage {
         // Terrain-aware termination.
         let mut events = Vec::new();
         let mut completed = false;
-        if !self.landed && env::hit_terrain(params, self.lat_deg, self.lon_deg, self.alt_agl_m) {
-            let terrain_h_m = params
-                .launch_env
-                .terrain
-                .as_ref()
-                .map(|t| t.altitude_m(self.lat_deg, self.lon_deg))
-                .unwrap_or(0.0);
-            self.alt_agl_m = terrain_h_m;
+        if !self.landed &&  self.alt_agl_m <= 0.0{
             self.v_east_mps = 0.0;
             self.v_north_mps = 0.0;
             self.v_down_mps = 0.0;
@@ -314,13 +307,11 @@ fn lookup_terminal_mps(table: &[[f64; 2]], t_sec: f64) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::Arc;
 
     use crate::params::{
         AeroParams, BodyMassParams, Cd0AlphaMachTable, EngineParams, FuelParams, LaunchEnvParams,
         ParachuteParams, SimControl, TankParams,
     };
-    use crate::terrain::{FlatTerrain, Terrain};
 
     // ── lookup_terminal_mps ────────────────────────────────────────────────
 
@@ -356,7 +347,6 @@ mod tests {
         v_term_table: Vec<[f64; 2]>,
         settle_tol_frac: f64,
         settle_hold_steps: u32,
-        terrain: Option<Arc<dyn Terrain>>,
     ) -> RocketParams {
         RocketParams {
             body_mass: BodyMassParams {
@@ -398,7 +388,6 @@ mod tests {
                 elevation: 0.0,
                 launcher_height: 5.0,
                 rail_length_m: 5.0,
-                terrain,
                 pitch: 90.0,
                 roll: 0.0,
                 yaw: 0.0,
@@ -452,7 +441,6 @@ mod tests {
             vec![[0.0, v_term], [60.0, v_term]],
             0.05,
             5,
-            None,
         );
         // Start at rest, high altitude — should accelerate down toward v_term.
         let mut stage = seeded_stage(&params, 1000.0, [0.0, 0.0, 0.0]);
@@ -480,7 +468,6 @@ mod tests {
             vec![[0.0, v_term], [60.0, v_term]],
             0.05,
             5,
-            None,
         );
         let mut stage = seeded_stage(&params, 1000.0, [0.0, 0.0, 0.0]);
         for _ in 0..400 {
@@ -497,7 +484,6 @@ mod tests {
             vec![[0.0, v_term], [60.0, v_term]],
             0.05,
             5,
-            None,
         );
         let start_lat = params.launch_env.latitude;
         let start_lon = params.launch_env.longitude;
@@ -522,7 +508,6 @@ mod tests {
             vec![[0.0, v_term], [60.0, v_term]],
             0.05,
             5,
-            None,
         );
         let mut stage = seeded_stage(&params, 1000.0, [0.0, -10.0, v_term]);
         // Force steady-state mode directly.
@@ -538,7 +523,7 @@ mod tests {
     fn steady_state_follows_time_varying_terminal() {
         // Chute shrinks v_term from 30 → 8 over 1 s (drogue → main transition).
         let table = vec![[0.0, 30.0], [1.0, 8.0], [60.0, 8.0]];
-        let params = make_params(vec![], table, 0.05, 5, None);
+        let params = make_params(vec![], table, 0.05, 5);
         let mut stage = seeded_stage(&params, 1000.0, [0.0, 0.0, 30.0]);
         stage.mode = Mode::SteadyState;
 
@@ -565,7 +550,6 @@ mod tests {
             vec![[0.0, 10.0], [60.0, 10.0]],
             0.05,
             5,
-            Some(Arc::new(FlatTerrain::new(0.0))),
         );
         // Start almost on the ground, descending at 10 m/s.
         let mut stage = seeded_stage(&params, 0.2, [0.0, 0.0, 10.0]);
@@ -584,7 +568,6 @@ mod tests {
             vec![[0.0, 10.0], [60.0, 10.0]],
             0.05,
             5,
-            Some(Arc::new(FlatTerrain::new(0.0))),
         );
         let mut stage = seeded_stage(&params, 1000.0, [0.0, 0.0, 100.0]);
         for _ in 0..10 {

@@ -3,7 +3,6 @@
 //! These were originally private to `LaunchRailStage` but are needed by
 //! `ParachuteStage` too, so they live here as `pub(crate)` primitives.
 
-use crate::RocketParams;
 
 pub(crate) const EARTH_RADIUS_M: f64 = 6_378_137.0;
 pub(crate) const G0_MPS2: f64 = 9.806_65;
@@ -66,23 +65,4 @@ pub(crate) fn advance_latlon_by_enu(
     let lon_scale = lat_deg.to_radians().cos().abs().max(1e-6);
     let dlon_deg = (east_m / (EARTH_RADIUS_M * lon_scale)).to_degrees();
     (lat_deg + dlat_deg, lon_deg + dlon_deg)
-}
-
-/// True when `alt_agl_m` is at or below the configured terrain height at
-/// `(lat, lon)`. With no terrain model configured, flat ground at pad
-/// elevation is assumed (terrain height = 0 AGL), matching JSBSim's
-/// landed-event behaviour on the ballistic side.
-pub(crate) fn hit_terrain(
-    params: &RocketParams,
-    lat_deg: f64,
-    lon_deg: f64,
-    alt_agl_m: f64,
-) -> bool {
-    let terrain_h_m = params
-        .launch_env
-        .terrain
-        .as_ref()
-        .map(|t| t.altitude_m(lat_deg, lon_deg))
-        .unwrap_or(0.0);
-    alt_agl_m <= terrain_h_m
 }

@@ -15,7 +15,6 @@
 //! so that a rocket whose thrust is below gravity simply sits on the
 //! pad.
 
-use crate::orchestrator::Phase;
 use crate::output::{
 	Acceleration, AeroState, AngularRates, Attitude, Position, SimulationState, Velocity,
 };
@@ -307,7 +306,6 @@ mod tests {
 				elevation: 0.0,
 				launcher_height: 5.0,
 				rail_length_m: 5.0,
-				terrain: None,
 				pitch: pitch_deg,
 				roll: 0.0,
 				yaw: yaw_deg,

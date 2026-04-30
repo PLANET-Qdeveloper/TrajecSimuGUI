@@ -37,15 +37,6 @@ pub struct LaunchEnvParams {
     /// Launcher rail length (m). Used by rail-length based `launch_clear`.
     #[serde(default = "default_rail_length_m")]
     pub rail_length_m: f64,
-    /// Optional terrain model used for terrain-aware landing termination.
-    ///
-    /// Held behind an `Arc` so multiple parallel simulations can share a
-    /// single terrain dataset without cloning it. Skipped by serde because
-    /// trait objects cannot round-trip through YAML/JSON; user-facing
-    /// configs describe terrain symbolically and the loader injects the
-    /// concrete trait object at assemble time.
-    #[serde(skip)]
-    pub terrain: Option<Arc<dyn crate::terrain::Terrain>>,
     /// Initial pitch angle (degrees). 90 = vertical.
     pub pitch: f64,
     /// Initial roll angle (degrees).

@@ -292,7 +292,6 @@ mod tests {
                 elevation: 0.0,
                 launcher_height: 5.0,
                 rail_length_m: 5.0,
-                terrain: None,
                 pitch: 90.0,
                 roll: 0.0,
                 yaw: 0.0,
