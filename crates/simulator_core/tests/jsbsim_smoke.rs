@@ -90,7 +90,6 @@ fn sample_params() -> RocketParams {
             elevation: 5.0,
             launcher_height: 5.0,
             rail_length_m: 5.0,
-            terrain: None,
             pitch: 89.0,
             roll: 0.0,
             yaw: 0.0,

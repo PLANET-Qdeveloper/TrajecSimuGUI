@@ -14,9 +14,7 @@
 //! stage reports JSBSim's internal time verbatim.
 
 use crate::jsbsim::JsbSimSimulator;
-use crate::orchestrator::Phase;
 use crate::progress::EventKind;
-use crate::simple_simulator::env;
 use crate::simple_simulator::{StageRunner, StageStepInput, StageStepOutput};
 use crate::{Result, RocketParams, Simulator};
 
@@ -65,7 +63,7 @@ impl StageRunner for JsbSimStage {
         self.sim.initialize(params)
     }
 
-    fn step(&mut self, params: &RocketParams, _input: StageStepInput) -> Result<StageStepOutput> {
+    fn step(&mut self, _params: &RocketParams, _input: StageStepInput) -> Result<StageStepOutput> {
         let running = self.sim.step()?;
         let state = self.sim.get_state()?;
 
@@ -86,12 +84,7 @@ impl StageRunner for JsbSimStage {
         }
 
         if !self.terrain_terminated
-            && env::hit_terrain(
-                params,
-                state.position.lat_deg,
-                state.position.lon_deg,
-                state.position.alt_agl_m,
-            )
+            && state.position.alt_agl_m <= 0.0
         {
             self.sim.set_property("simulation/terminate", 1.0)?;
             self.terrain_terminated = true;

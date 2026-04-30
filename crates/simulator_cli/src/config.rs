@@ -59,33 +59,8 @@ pub struct LaunchConfig {
     pub yaw: f64,
     pub wind_speed_mps: f64,
     pub wind_direction_deg: f64,
-    #[serde(default)]
-    pub terrain: Option<TerrainConfig>,
 }
 
-/// User-facing terrain selection.
-///
-/// `kind: flat` is implemented in the CLI today. `kind: raster` is reserved
-/// for a follow-up — the schema is wired so example configs can declare it
-/// without breaking parsing once the loader lands.
-#[derive(Debug, Deserialize)]
-#[serde(tag = "kind", rename_all = "snake_case")]
-pub enum TerrainConfig {
-    /// Constant-altitude ground (m, MSL).
-    Flat { altitude_m: f64 },
-    /// Equally-spaced lat × lon raster heightmap. The path points to a
-    /// little-endian f64 binary file containing `n_rows * n_cols` heights
-    /// in row-major order.
-    Raster {
-        path: PathBuf,
-        origin_lat_deg: f64,
-        origin_lon_deg: f64,
-        d_lat_deg: f64,
-        d_lon_deg: f64,
-        n_rows: usize,
-        n_cols: usize,
-    },
-}
 
 #[derive(Debug, Deserialize)]
 pub struct BodyConfig {
@@ -183,9 +158,6 @@ impl Config {
         fix(&mut self.aero.cs_table);
         if let Some(p) = self.parachute.as_mut() {
             fix(&mut p.terminal_velocity_table);
-        }
-        if let Some(TerrainConfig::Raster { path, .. }) = self.launch.terrain.as_mut() {
-            fix(path);
         }
     }
 }

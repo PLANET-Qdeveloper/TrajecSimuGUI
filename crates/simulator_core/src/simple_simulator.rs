@@ -10,7 +10,6 @@ pub mod jsbsim_stage;
 pub mod parachute;
 pub(crate) mod env;
 
-use crate::orchestrator::Phase;
 use crate::output::SimulationState;
 use crate::progress::EventKind;
 use crate::{Result, RocketParams};
