@@ -19,6 +19,7 @@ pub use parachute::ParachuteStage;
 
 /// Unified per-step input for every phase runner.
 #[derive(Debug, Clone, Copy)]
+#[derive(Default)]
 pub struct StageStepInput {
     /// Reserved for external controls/injections.
     ///
@@ -28,11 +29,6 @@ pub struct StageStepInput {
     pub _reserved: (),
 }
 
-impl Default for StageStepInput {
-    fn default() -> Self {
-        Self { _reserved: () }
-    }
-}
 
 /// Unified per-step output for every phase runner.
 #[derive(Debug, Clone)]

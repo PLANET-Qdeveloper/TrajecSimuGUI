@@ -30,7 +30,7 @@ use crate::workspace::SimWorkspace;
 use crate::xml_gen::{XmlContext, XmlGenerator};
 use crate::{Result, Simulator, SimulatorError};
 
-use ffi::ffi::FDMWrapper;
+use ffi::bridge::FDMWrapper;
 
 pub struct JsbSimSimulator {
     fdm: UniquePtr<FDMWrapper>,
@@ -55,7 +55,7 @@ unsafe impl Sync for JsbSimSimulator {}
 impl JsbSimSimulator {
     pub fn new() -> Self {
         Self {
-            fdm: ffi::ffi::new_fdm_wrapper(),
+            fdm: ffi::bridge::new_fdm_wrapper(),
             _workspace: None,
             running: false,
             generator: XmlGenerator::new(),
