@@ -1,9 +1,11 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Run simulator_cli" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
-    <option name="buildProfileId" value="Custom:profiling" />
+    <option name="buildProfileId" value="dev" />
     <option name="command" value="run --package simulator_cli --bin simulator_cli -- run --config crates/simulator_cli/examples/noshiri_2025/config.yaml --out-dir crates/simulator_cli/examples/noshiri_2025/out" />
     <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-    <envs />
+    <envs>
+      <env name="DEBUGINFOD_URLS" value="https://debuginfod.archlinux.org/" />
+    </envs>
     <option name="emulateTerminal" value="true" />
     <option name="channel" value="DEFAULT" />
     <option name="requiredFeatures" value="true" />

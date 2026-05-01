@@ -391,7 +391,7 @@ mod tests {
             sim: SimControl {
                 flight_duration: 600.0,
                 time_step: 0.05,
-                apogee_mode: 0,
+                output_decimation_rate: 0,
                 start_sim_time_sec: 0.0,
             },
             parachute: ParachuteParams {

@@ -1679,6 +1679,15 @@
     </LineString>
   </Placemark>
   <Placemark>
+    <name>Max thrust</name>
+    <styleUrl>#event</styleUrl>
+    <description>t=0.471s alt_agl=2.9m mach=0.000 qbar=0.0Pa</description>
+    <Point>
+      <altitudeMode>absolute</altitudeMode>
+      <coordinates>140.0104412,40.2428665,2.859</coordinates>
+    </Point>
+  </Placemark>
+  <Placemark>
     <name>Launch clear</name>
     <styleUrl>#event</styleUrl>
     <description>t=0.570s alt_agl=4.9m mach=0.000 qbar=0.0Pa</description>
@@ -1689,15 +1698,6 @@
   </Placemark>
   <Placemark>
     <name>Max axial accel</name>
-    <styleUrl>#event</styleUrl>
-    <description>t=0.610s alt_agl=5.8m mach=0.076 qbar=414.2Pa</description>
-    <Point>
-      <altitudeMode>absolute</altitudeMode>
-      <coordinates>140.0104321,40.2428682,5.810</coordinates>
-    </Point>
-  </Placemark>
-  <Placemark>
-    <name>Max thrust</name>
     <styleUrl>#event</styleUrl>
     <description>t=0.610s alt_agl=5.8m mach=0.076 qbar=414.2Pa</description>
     <Point>

@@ -316,7 +316,7 @@ mod tests {
             sim: SimControl {
                 flight_duration: 10.0,
                 time_step: 0.01,
-                apogee_mode: 0,
+                output_decimation_rate: 1,
                 start_sim_time_sec: 0.0,
             },
             parachute: Default::default(),

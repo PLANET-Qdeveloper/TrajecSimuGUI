@@ -21,8 +21,6 @@ pub struct XmlContext {
     // ── SimControl ─────────────────────────────────────────────────────────
     pub flight_duration: f64,
     pub time_step: f64,
-    /// 0 = full flight, 1 = terminate at apogee.
-    pub apogee_mode: u8,
 
     // ── LaunchEnvParams / liftoff.xml ─────────────────────────────────────
     pub latitude: f64,
@@ -166,7 +164,6 @@ impl From<&RocketParams> for XmlContext {
             // SimControl
             flight_duration: p.sim.flight_duration,
             time_step: p.sim.time_step,
-            apogee_mode: p.sim.apogee_mode,
 
             // Launch / liftoff — use handoff override if present.
             latitude,

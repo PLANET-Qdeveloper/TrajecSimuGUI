@@ -19,13 +19,6 @@
       <condition>propulsion/tank[0]/contents-lbs lt 0.1</condition>
     </event>
 
-    <!-- Apogee: downward velocity begins -->
-    <event name="Apogee">
-      <condition>velocities/v-down-fps gt 1</condition>
-      {% if ctx.apogee_mode == 1 %}
-      <set name="simulation/terminate" value="1"/>
-      {% endif %}
-    </event>
 
     <!-- Landing: terminate simulation -->
     <event name="Landed">
