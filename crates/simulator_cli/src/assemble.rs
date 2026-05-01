@@ -1,6 +1,5 @@
 //! Convert user-facing `Config` + CSV tables into a `RocketParams`.
 
-use std::cmp::max;
 use anyhow::{bail, Result};
 
 use simulator_core::params::{
