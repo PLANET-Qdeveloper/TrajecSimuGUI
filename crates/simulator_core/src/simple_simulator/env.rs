@@ -3,7 +3,6 @@
 //! These were originally private to `LaunchRailStage` but are needed by
 //! `ParachuteStage` too, so they live here as `pub(crate)` primitives.
 
-
 pub(crate) const EARTH_RADIUS_M: f64 = 6_378_137.0;
 pub(crate) const G0_MPS2: f64 = 9.806_65;
 

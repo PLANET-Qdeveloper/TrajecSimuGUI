@@ -6,15 +6,14 @@
 mod context;
 pub use context::XmlContext;
 
-use std::fs;
-use minijinja::{Environment, value::Value};
-use crate::{Result, SimulatorError};
 use crate::workspace::SimWorkspace;
+use crate::{Result, SimulatorError};
+use minijinja::{value::Value, Environment};
+use std::fs;
 
 // ── Embedded templates ──────────────────────────────────────────────────────
 
-const TMPL_SIMULATION: &str =
-    include_str!("../../../param-xml-template/pq_simulation.xml.j2");
+const TMPL_SIMULATION: &str = include_str!("../../../param-xml-template/pq_simulation.xml.j2");
 
 const TMPL_AIRCRAFT: &str =
     include_str!("../../../param-xml-template/aircraft/PQ_ROCKET/pq_rocket.xml.j2");
@@ -23,8 +22,7 @@ const TMPL_LIFTOFF: &str =
     include_str!("../../../param-xml-template/aircraft/PQ_ROCKET/liftoff.xml.j2");
 
 /// Static file copied verbatim (unit-conversion definitions for CSV output).
-const UNIT_CONVERSIONS_XML: &str =
-    include_str!("../../../param-xml-template/unitconversions.xml");
+const UNIT_CONVERSIONS_XML: &str = include_str!("../../../param-xml-template/unitconversions.xml");
 
 // ── Generator ──────────────────────────────────────────────────────────────
 
@@ -73,13 +71,13 @@ impl XmlGenerator {
                 .map_err(|e| SimulatorError::XmlRenderError(e.to_string()))
         };
 
-        fs::write(ws.script_path(),                          render("simulation")?)?;
+        fs::write(ws.script_path(), render("simulation")?)?;
         // JSBSim's `<use aircraft="PQ_ROCKET"/>` loads `PQ_ROCKET.xml` (case-
         // sensitive match to the aircraft name) on filesystems that don't
         // fold case, so write with the uppercase name rather than `pq_rocket`.
-        fs::write(ws.aircraft_dir().join("PQ_ROCKET.xml"),   render("aircraft")?)?;
-        fs::write(ws.aircraft_dir().join("liftoff.xml"),     render("liftoff")?)?;
-        fs::write(ws.root().join("unitconversions.xml"),     UNIT_CONVERSIONS_XML)?;
+        fs::write(ws.aircraft_dir().join("PQ_ROCKET.xml"), render("aircraft")?)?;
+        fs::write(ws.aircraft_dir().join("liftoff.xml"), render("liftoff")?)?;
+        fs::write(ws.root().join("unitconversions.xml"), UNIT_CONVERSIONS_XML)?;
 
         Ok(())
     }

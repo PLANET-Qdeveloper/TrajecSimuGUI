@@ -103,8 +103,6 @@ fn sample_params() -> RocketParams {
             flight_duration: 5.0,
             time_step: 0.01,
             apogee_mode: 0,
-            csv_sample_interval: 1,
-            kml_sample_interval: 10,
             start_sim_time_sec: 0.0,
         },
         parachute: Default::default(),
@@ -158,11 +156,7 @@ fn jsbsim_initialize_step_get_state() {
         if i % 20 == 0 {
             println!(
                 "iter={i:>3} t={:6.3}s alt={:7.3}m u={:7.3}m/s thrust={:8.2}N mach={:.3}",
-                st.time_sec,
-                st.position.alt_agl_m,
-                st.velocity.u_mps,
-                st.thrust_n,
-                st.mach,
+                st.time_sec, st.position.alt_agl_m, st.velocity.u_mps, st.thrust_n, st.mach,
             );
         }
 
@@ -170,7 +164,10 @@ fn jsbsim_initialize_step_get_state() {
         max_alt = max_alt.max(st.position.alt_agl_m);
 
         if !running {
-            println!("JSBSim signalled termination at iter {i}, t={:.3}s", st.time_sec);
+            println!(
+                "JSBSim signalled termination at iter {i}, t={:.3}s",
+                st.time_sec
+            );
             break;
         }
     }

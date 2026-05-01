@@ -83,7 +83,10 @@ fn detect_derived_events(traj: &[SimulationState]) -> Vec<EventStamp> {
         mk(EventKind::MaxAxialAcceleration, max_axial.0),
         mk(EventKind::MaxThrust, max_thrust.0),
         mk(EventKind::MaxAirspeed, max_airspeed.0),
-        mk(EventKind::MaxDynamicPressureAlpha, max_dynamic_pressure_alpha.0),
+        mk(
+            EventKind::MaxDynamicPressureAlpha,
+            max_dynamic_pressure_alpha.0,
+        ),
         mk(EventKind::MaxLateralAcceleration, max_lateral.0),
         mk(EventKind::MaxAngularRate, max_rate.0),
     ]
@@ -94,8 +97,8 @@ mod tests {
     use super::*;
     use crate::output::SimulationOutput;
     use crate::params::{
-        AeroParams, BodyMassParams, Cd0AlphaMachTable, EngineParams, FuelParams,
-        LaunchEnvParams, ParachuteParams, RocketParams, SimControl, TankParams,
+        AeroParams, BodyMassParams, Cd0AlphaMachTable, EngineParams, FuelParams, LaunchEnvParams,
+        ParachuteParams, RocketParams, SimControl, TankParams,
     };
 
     fn make_state(t: f64, qbar: f64, ax: f64, ay: f64, az: f64) -> SimulationState {
@@ -128,9 +131,7 @@ mod tests {
             .find(|e| e.kind == EventKind::MaxQ)
             .expect("MaxQ");
         assert!((max_q.sim_time_sec - 1.0).abs() < 1e-9);
-        assert!(
-            (max_q.state.as_ref().unwrap().aero.qbar_pa - 500.0).abs() < 1e-9
-        );
+        assert!((max_q.state.as_ref().unwrap().aero.qbar_pa - 500.0).abs() < 1e-9);
         assert_eq!(max_q.source, EventSource::Analysis);
     }
 

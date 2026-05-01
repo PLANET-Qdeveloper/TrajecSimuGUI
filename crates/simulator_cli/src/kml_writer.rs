@@ -40,11 +40,10 @@ pub fn write_trajectory_kml(
     path: &Path,
     output: &UnifiedSimulationOutput,
     params: &RocketParams,
-    interval: u32,
+    interval: usize,
 ) -> Result<()> {
-    let interval = interval.max(1) as usize;
-    let mut f = fs::File::create(path)
-        .with_context(|| format!("creating {}", path.display()))?;
+    let interval = interval.max(1);
+    let mut f = fs::File::create(path).with_context(|| format!("creating {}", path.display()))?;
     f.write_all(KML_HEADER.as_bytes())?;
 
     write_linestring(
@@ -109,7 +108,9 @@ fn write_event_placemarks(
     for e in events {
         // Skip events with no spatial state (e.g. Start at t=0 before
         // the first physics step).
-        let Some(state) = e.state.as_ref() else { continue };
+        let Some(state) = e.state.as_ref() else {
+            continue;
+        };
         let alt_msl = state.position.alt_agl_m;
         let kind = e.kind;
         let label = event_label(kind);
@@ -150,14 +151,13 @@ fn event_label(kind: EventKind) -> &'static str {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use simulator_core::SimulationState;
     use simulator_core::analysis::AnalysisOutput;
     use simulator_core::output::SimulationOutput;
     use simulator_core::progress::{EventSource, EventStamp};
+    use simulator_core::SimulationState;
 
     fn make_state(t: f64, lat: f64, lon: f64, alt_agl: f64) -> SimulationState {
         SimulationState {

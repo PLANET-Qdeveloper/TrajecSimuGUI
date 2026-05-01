@@ -18,3 +18,8 @@ lto = true
 
 [profile.dev]
 opt-level = 0
+
+
+[profile.profiling]
+inherits = "release"
+debug = true

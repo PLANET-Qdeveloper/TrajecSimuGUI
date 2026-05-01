@@ -517,7 +517,7 @@
       "position": {
         "lat_deg": 40.247267706022484,
         "lon_deg": 139.98609690844768,
-        "alt_agl_m": 0.0
+        "alt_agl_m": -0.1836240064150041
       },
       "velocity": {
         "true_airspeed_mps": 0.0,

@@ -24,32 +24,27 @@
 //! }
 //! ```
 
-
 pub mod analysis;
+pub mod arc_serde;
 pub mod error;
 pub mod jsbsim;
-pub mod arc_serde;
-pub mod output;
 pub mod orchestrator;
+pub mod output;
 pub mod params;
 pub mod progress;
+pub mod simple_simulator;
 pub mod workspace;
 pub mod xml_gen;
-pub mod simple_simulator;
 
 pub use error::{Result, SimulatorError};
 pub use jsbsim::JsbSimSimulator;
-pub use output::SimulationState;
 pub use orchestrator::{Phase, SimulationOrchestrator, UnifiedSimulationOutput};
+pub use output::SimulationState;
 pub use params::RocketParams;
-pub use progress::{
-    EventKind,
-    EventSource,
-    EventStamp,
-};
+pub use progress::{EventKind, EventSource, EventStamp};
 
-use params::RocketParams as Params;
 use output::SimulationState as State;
+use params::RocketParams as Params;
 
 /// Common interface implemented by all simulator backends.
 ///
@@ -103,4 +98,6 @@ pub trait Simulator: Send + Sync {
 
 fn assert_send_sync<T: Send + Sync>() {}
 
-const _ : () =  {let _ = assert_send_sync::<JsbSimSimulator>;};
+const _: () = {
+    let _ = assert_send_sync::<JsbSimSimulator>;
+};
