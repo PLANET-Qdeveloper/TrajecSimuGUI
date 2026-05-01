@@ -1,16 +1,15 @@
 //! Convert user-facing `Config` + CSV tables into a `RocketParams`.
 
+use anyhow::{bail, Result};
 
-use anyhow::{Result, bail};
-
-use simulator_core::EventKind;
 use simulator_core::params::{
     AeroParams, BodyMassParams, EngineParams, FuelParams, LaunchEnvParams, ParachuteParams,
     RocketParams, SimControl, TankParams,
 };
 use simulator_core::progress::DelayedBranchTrigger;
+use simulator_core::EventKind;
 
-use crate::config::{Config};
+use crate::config::Config;
 use crate::csv_loader;
 
 /// Sentinel upper altitude for the 2-point constant-wind table. JSBSim's
@@ -27,7 +26,11 @@ pub fn assemble(cfg: &Config) -> Result<RocketParams> {
 
     // Single scalar wind expanded to a 2-point winds-aloft table.
     let winds_table = vec![
-        [0.0, cfg.launch.wind_speed_mps, cfg.launch.wind_direction_deg],
+        [
+            0.0,
+            cfg.launch.wind_speed_mps,
+            cfg.launch.wind_direction_deg,
+        ],
         [
             WINDS_TABLE_TOP_M,
             cfg.launch.wind_speed_mps,
@@ -107,8 +110,6 @@ pub fn assemble(cfg: &Config) -> Result<RocketParams> {
             flight_duration: cfg.sim.flight_duration,
             time_step: cfg.sim.time_step,
             apogee_mode: cfg.sim.apogee_mode,
-            csv_sample_interval: cfg.sim.csv_sample_interval,
-            kml_sample_interval: cfg.sim.kml_sample_interval,
             start_sim_time_sec: 0.0,
         },
         parachute,
@@ -116,7 +117,6 @@ pub fn assemble(cfg: &Config) -> Result<RocketParams> {
     params.validate()?;
     Ok(params)
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -142,11 +142,7 @@ mod tests {
             "cd2d.csv",
             "alpha_deg,0.0,2.0\n0.0,0.4,0.4\n10.0,0.5,0.5\n",
         );
-        write_file(
-            dir,
-            "vterm.csv",
-            "t,v\n0.0,20.0\n60.0,20.0\n",
-        );
+        write_file(dir, "vterm.csv", "t,v\n0.0,20.0\n60.0,20.0\n");
     }
 
     fn base_cfg(dir: &std::path::Path, with_chute: bool) -> Config {

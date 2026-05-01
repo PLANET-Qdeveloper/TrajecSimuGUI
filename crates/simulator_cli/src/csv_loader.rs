@@ -7,7 +7,7 @@
 use std::fs;
 use std::path::Path;
 
-use anyhow::{Context, Result, anyhow, bail};
+use anyhow::{anyhow, bail, Context, Result};
 use simulator_core::params::Cd0AlphaMachTable;
 
 /// Split a line into cells, trying `,`, then `\t`, then whitespace.
@@ -27,16 +27,13 @@ fn split_cells(line: &str) -> Vec<String> {
             .filter(|c| !c.is_empty())
             .collect();
     }
-    trimmed
-        .split_whitespace()
-        .map(|c| c.to_string())
-        .collect()
+    trimmed.split_whitespace().map(|c| c.to_string()).collect()
 }
 
 /// Read content, strip empty and `#`-comment lines, return cell vectors.
 fn tokenize(path: &Path) -> Result<Vec<Vec<String>>> {
-    let raw = fs::read_to_string(path)
-        .with_context(|| format!("reading CSV file {}", path.display()))?;
+    let raw =
+        fs::read_to_string(path).with_context(|| format!("reading CSV file {}", path.display()))?;
     let mut rows: Vec<Vec<String>> = Vec::new();
     for line in raw.lines() {
         let t = line.trim();
@@ -91,10 +88,7 @@ pub fn load_1d(path: &Path) -> Result<Vec<[f64; 2]>> {
     }
 
     if data.is_empty() {
-        bail!(
-            "CSV file {} had a header but no data rows",
-            path.display()
-        );
+        bail!("CSV file {} had a header but no data rows", path.display());
     }
     Ok(data)
 }
@@ -175,9 +169,9 @@ pub fn load_cd_table_deg(path: &Path) -> Result<Cd0AlphaMachTable> {
         let mut out_row = Vec::with_capacity(ncols + 1);
         out_row.push(alpha_deg.to_radians());
         for cell in &row[1..] {
-            let v: f64 = cell.parse().map_err(|_| {
-                anyhow!("Cd cell {:?} in {} is not a number", cell, path.display())
-            })?;
+            let v: f64 = cell
+                .parse()
+                .map_err(|_| anyhow!("Cd cell {:?} in {} is not a number", cell, path.display()))?;
             out_row.push(v);
         }
         rows_out.push(out_row);
@@ -204,10 +198,7 @@ mod tests {
 
     #[test]
     fn load_1d_with_header() {
-        let p = tmpfile(
-            "with_header.csv",
-            "time,thrust\n0.0,10.0\n1.0,20.0\n",
-        );
+        let p = tmpfile("with_header.csv", "time,thrust\n0.0,10.0\n1.0,20.0\n");
         let data = load_1d(&p).unwrap();
         assert_eq!(data, vec![[0.0, 10.0], [1.0, 20.0]]);
     }
@@ -246,10 +237,7 @@ mod tests {
 
     #[test]
     fn load_cd_table_deg_converts_to_rad() {
-        let p = tmpfile(
-            "cd2d.csv",
-            "alpha_deg,0.0,1.0\n0.0,0.5,0.8\n90.0,0.6,0.9\n",
-        );
+        let p = tmpfile("cd2d.csv", "alpha_deg,0.0,1.0\n0.0,0.5,0.8\n90.0,0.6,0.9\n");
         let t = load_cd_table_deg(&p).unwrap();
         assert_eq!(&*t.mach_keys, &[0.0, 1.0][..]);
         assert_eq!(t.rows.len(), 2);
@@ -265,10 +253,7 @@ mod tests {
 
     #[test]
     fn load_cd_table_rejects_ragged_rows() {
-        let p = tmpfile(
-            "ragged.csv",
-            "alpha_deg,0.0,1.0\n0.0,0.5,0.8\n10.0,0.6\n",
-        );
+        let p = tmpfile("ragged.csv", "alpha_deg,0.0,1.0\n0.0,0.5,0.8\n10.0,0.6\n");
         let err = load_cd_table_deg(&p).unwrap_err();
         assert!(
             err.to_string().contains("cells"),

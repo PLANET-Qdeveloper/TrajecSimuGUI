@@ -6,10 +6,10 @@
 //!
 //! The directory is deleted automatically when `SimWorkspace` is dropped.
 
+use crate::error::Result;
 use std::path::{Path, PathBuf};
 use tempfile::TempDir;
 use uuid::Uuid;
-use crate::error::Result;
 
 pub struct SimWorkspace {
     dir: TempDir,
@@ -20,10 +20,11 @@ pub struct SimWorkspace {
 impl SimWorkspace {
     /// Create a fresh workspace under the OS temp directory.
     pub fn new() -> Result<Self> {
-        let dir = tempfile::Builder::new()
-            .prefix("trajec-")
-            .tempdir()?;
-        Ok(Self { dir, id: Uuid::new_v4() })
+        let dir = tempfile::Builder::new().prefix("trajec-").tempdir()?;
+        Ok(Self {
+            dir,
+            id: Uuid::new_v4(),
+        })
     }
 
     /// Root directory (JSBSim `SetRootDir` target).

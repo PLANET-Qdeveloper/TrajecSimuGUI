@@ -45,7 +45,6 @@ impl JsbSimStage {
             apogee: ApogeeTracker::default(),
         }
     }
-
 }
 
 impl Default for JsbSimStage {
@@ -83,9 +82,7 @@ impl StageRunner for JsbSimStage {
             events.push(EventKind::Apogee);
         }
 
-        if !self.terrain_terminated
-            && state.position.alt_agl_m <= 0.0
-        {
+        if !self.terrain_terminated && state.position.alt_agl_m <= 0.0 {
             self.sim.set_property("simulation/terminate", 1.0)?;
             self.terrain_terminated = true;
             completed = true;
@@ -95,7 +92,7 @@ impl StageRunner for JsbSimStage {
         Ok(StageStepOutput {
             state,
             events,
-            completed
+            completed,
         })
     }
 }

@@ -1,7 +1,7 @@
 pub mod aero;
+pub mod body_mass;
 pub mod engine;
 pub mod launch_env;
-pub mod body_mass;
 pub mod parachute;
 pub mod sim_control;
 
@@ -12,8 +12,8 @@ pub use launch_env::{InitialPosition, LaunchEnvParams};
 pub use parachute::ParachuteParams;
 pub use sim_control::SimControl;
 
-use serde::{Deserialize, Serialize};
 use crate::error::{Result, SimulatorError};
+use serde::{Deserialize, Serialize};
 
 /// Complete rocket simulation parameters.
 ///
@@ -22,10 +22,10 @@ use crate::error::{Result, SimulatorError};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RocketParams {
     pub body_mass: BodyMassParams,
-    pub engine:  EngineParams,
-    pub aero:    AeroParams,
+    pub engine: EngineParams,
+    pub aero: AeroParams,
     pub launch_env: LaunchEnvParams,
-    pub sim:     SimControl,
+    pub sim: SimControl,
     #[serde(default)]
     pub parachute: ParachuteParams,
 }

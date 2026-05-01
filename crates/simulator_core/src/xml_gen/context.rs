@@ -114,7 +114,9 @@ impl From<&RocketParams> for XmlContext {
         winds.sort_by(|a, b| a[0].total_cmp(&b[0]));
         let winds_table = winds
             .into_iter()
-            .map(|[alt_m, speed_mps, dir_deg]| [alt_m, dir_deg * DEG_TO_RAD, speed_mps * MPS_TO_FPS])
+            .map(|[alt_m, speed_mps, dir_deg]| {
+                [alt_m, dir_deg * DEG_TO_RAD, speed_mps * MPS_TO_FPS]
+            })
             .collect();
 
         let mut thrust_table: Vec<_> = p
@@ -132,11 +134,7 @@ impl From<&RocketParams> for XmlContext {
             thrust_table.extend([[0.0, 0.0], [0.1, 0.0]]);
         }
 
-        let sum_thrust_lbf_num: f64 = thrust_table
-            .iter()
-            .map(|[_, thrust_lbf]|  thrust_lbf)
-            .sum();
-
+        let sum_thrust_lbf_num: f64 = thrust_table.iter().map(|[_, thrust_lbf]| thrust_lbf).sum();
 
         let fuel_remaining_table = thrust_table
             .iter()
@@ -147,23 +145,22 @@ impl From<&RocketParams> for XmlContext {
             })
             .collect();
 
-
         let body_radius = p.body_mass.diameter / 2.0;
 
-        let mut cd0_alpha_mach_table = Vec::with_capacity(1 + p.aero.cd0_alpha_mach_table.rows.len());
+        let mut cd0_alpha_mach_table =
+            Vec::with_capacity(1 + p.aero.cd0_alpha_mach_table.rows.len());
         cd0_alpha_mach_table.push(p.aero.cd0_alpha_mach_table.mach_keys.to_vec());
         cd0_alpha_mach_table.extend(p.aero.cd0_alpha_mach_table.rows.iter().cloned());
 
         // Position: rail-exit handoff overrides pad coordinates.
-        let (latitude, longitude, altitude_agl_m) =
-            match p.launch_env.initial_position_override {
-                Some(ip) => (ip.latitude_deg, ip.longitude_deg, ip.altitude_agl_m),
-                None => (
-                    p.launch_env.latitude,
-                    p.launch_env.longitude,
-                    p.launch_env.elevation,
-                ),
-            };
+        let (latitude, longitude, altitude_agl_m) = match p.launch_env.initial_position_override {
+            Some(ip) => (ip.latitude_deg, ip.longitude_deg, ip.altitude_agl_m),
+            None => (
+                p.launch_env.latitude,
+                p.launch_env.longitude,
+                p.launch_env.elevation,
+            ),
+        };
 
         Self {
             // SimControl
@@ -345,12 +342,11 @@ mod tests {
         params.launch_env.latitude = 35.5;
         params.launch_env.longitude = 139.7;
         params.launch_env.elevation = 12.0;
-        params.launch_env.initial_position_override =
-            Some(crate::params::InitialPosition {
-                latitude_deg: 36.0,
-                longitude_deg: 140.1,
-                altitude_agl_m: 5.0,
-            });
+        params.launch_env.initial_position_override = Some(crate::params::InitialPosition {
+            latitude_deg: 36.0,
+            longitude_deg: 140.1,
+            altitude_agl_m: 5.0,
+        });
         let ctx = XmlContext::from(&params);
         assert_eq!(ctx.latitude, 36.0);
         assert_eq!(ctx.longitude, 140.1);

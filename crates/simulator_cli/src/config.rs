@@ -61,7 +61,6 @@ pub struct LaunchConfig {
     pub wind_direction_deg: f64,
 }
 
-
 #[derive(Debug, Deserialize)]
 pub struct BodyConfig {
     pub diameter: f64,

@@ -21,14 +21,14 @@
 mod ffi;
 mod state;
 
-use std::pin::Pin;
 use cxx::UniquePtr;
+use std::pin::Pin;
 
-use crate::{Result, SimulatorError, Simulator};
 use crate::output::SimulationState;
 use crate::params::RocketParams;
 use crate::workspace::SimWorkspace;
 use crate::xml_gen::{XmlContext, XmlGenerator};
+use crate::{Result, Simulator, SimulatorError};
 
 use ffi::ffi::FDMWrapper;
 
@@ -94,9 +94,7 @@ impl Simulator for JsbSimSimulator {
         // 3. Load the runscript.
         let script = ws.script_path();
         let script_str = script.to_str().ok_or_else(|| {
-            SimulatorError::InitializationError(
-                "script path contains non-UTF-8 characters".into(),
-            )
+            SimulatorError::InitializationError("script path contains non-UTF-8 characters".into())
         })?;
         if !self.fdm_mut().load_script(script_str) {
             return Err(SimulatorError::JsbSimError(

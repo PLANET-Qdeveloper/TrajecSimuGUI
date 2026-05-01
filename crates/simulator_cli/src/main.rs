@@ -45,7 +45,12 @@ fn main() -> Result<()> {
         Cmd::Run { config, out_dir } => {
             let cfg = config::Config::load(&config)?;
             let params = assemble::assemble(&cfg)?;
-            let paths = runner::run(&params, &out_dir)?;
+            let paths = runner::run(
+                &params,
+                &out_dir,
+                cfg.sim.csv_sample_interval as usize,
+                cfg.sim.kml_sample_interval as usize,
+            )?;
             eprintln!("wrote {}", paths.summary.display());
             eprintln!("       {}", paths.mainline.display());
             eprintln!("       {}", paths.parachute.display());

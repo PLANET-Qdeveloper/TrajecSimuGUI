@@ -4,7 +4,7 @@ use std::fs;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result, bail};
+use anyhow::{bail, Context, Result};
 use serde::Serialize;
 
 use simulator_core::analysis;
@@ -22,7 +22,12 @@ pub struct RunPaths {
     pub kml: PathBuf,
 }
 
-pub fn run(params: &RocketParams, out_dir: &Path) -> Result<RunPaths> {
+pub fn run(
+    params: &RocketParams,
+    out_dir: &Path,
+    csv_interval: usize,
+    kml_interval: usize,
+) -> Result<RunPaths> {
     fs::create_dir_all(out_dir)
         .with_context(|| format!("creating output dir {}", out_dir.display()))?;
 
@@ -64,7 +69,6 @@ pub fn run(params: &RocketParams, out_dir: &Path) -> Result<RunPaths> {
         kml: out_dir.join("trajectory.kml"),
     };
 
-    let csv_interval = params.sim.csv_sample_interval.max(1) as usize;
     write_trajectory_csv(&paths.mainline, &out.mainline.trajectory, csv_interval)?;
     write_trajectory_csv(
         &paths.parachute,
@@ -73,12 +77,7 @@ pub fn run(params: &RocketParams, out_dir: &Path) -> Result<RunPaths> {
     )?;
     write_events_json(&paths.events, out)?;
     write_summary_json(&paths.summary, out)?;
-    crate::kml_writer::write_trajectory_kml(
-        &paths.kml,
-        out,
-        params,
-        params.sim.kml_sample_interval,
-    )?;
+    crate::kml_writer::write_trajectory_kml(&paths.kml, out, params, kml_interval)?;
 
     Ok(paths)
 }
@@ -100,13 +99,8 @@ ax_mps2,ay_mps2,az_mps2,\
 alpha_deg,beta_deg,qbar_pa,\
 thrust_n,mach";
 
-fn write_trajectory_csv(
-    path: &Path,
-    traj: &[SimulationState],
-    interval: usize,
-) -> Result<()> {
-    let mut f = fs::File::create(path)
-        .with_context(|| format!("creating {}", path.display()))?;
+fn write_trajectory_csv(path: &Path, traj: &[SimulationState], interval: usize) -> Result<()> {
+    let mut f = fs::File::create(path).with_context(|| format!("creating {}", path.display()))?;
     writeln!(f, "{CSV_HEADER}")?;
     let len = traj.len();
     for (i, s) in traj.iter().enumerate() {
@@ -151,8 +145,7 @@ fn write_trajectory_csv(
 }
 
 fn write_events_json(path: &Path, out: &UnifiedSimulationOutput) -> Result<()> {
-    let f = fs::File::create(path)
-        .with_context(|| format!("creating {}", path.display()))?;
+    let f = fs::File::create(path).with_context(|| format!("creating {}", path.display()))?;
     serde_json::to_writer_pretty(f, &out.events)?;
     Ok(())
 }
@@ -220,8 +213,7 @@ fn write_summary_json(path: &Path, out: &UnifiedSimulationOutput) -> Result<()> 
         phase_final: "Completed",
     };
 
-    let f = fs::File::create(path)
-        .with_context(|| format!("creating {}", path.display()))?;
+    let f = fs::File::create(path).with_context(|| format!("creating {}", path.display()))?;
     serde_json::to_writer_pretty(f, &summary)?;
     Ok(())
 }

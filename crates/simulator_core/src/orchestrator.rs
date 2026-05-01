@@ -173,9 +173,7 @@ impl SimulationOrchestrator {
 
                 // Latch the deployment origin event the first time it fires.
                 if let Some(trig) = params.parachute.deploy_trigger.as_ref() {
-                    if self.deploy_origin_time_sec.is_none()
-                        && out.events.contains(&trig.origin)
-                    {
+                    if self.deploy_origin_time_sec.is_none() && out.events.contains(&trig.origin) {
                         self.deploy_origin_time_sec = Some(out_time_sec);
                     }
                 }
@@ -190,9 +188,7 @@ impl SimulationOrchestrator {
                         .deploy_trigger
                         .as_ref()
                         .zip(self.deploy_origin_time_sec)
-                        .is_some_and(|(trig, t0)| {
-                            out_time_sec - t0 >= trig.delay_sec
-                        });
+                        .is_some_and(|(trig, t0)| out_time_sec - t0 >= trig.delay_sec);
 
                 if should_deploy {
                     parachute_handoff = Some(ParachuteHandoff {
@@ -270,11 +266,13 @@ impl SimulationOrchestrator {
         // unmutated for the ballistic-arm read above; both handoffs only
         // touch `self`, so order here is independent.
         if let Some(h) = parachute_handoff {
-            self.parachute.initialize(
-                self.params.as_ref().expect("params present"),
-            )?;
             self.parachute
-                .seed_from_ballistic_handoff(h.deploy_sim_time_sec, &h.position, h.vel_enu_down_mps);
+                .initialize(self.params.as_ref().expect("params present"))?;
+            self.parachute.seed_from_ballistic_handoff(
+                h.deploy_sim_time_sec,
+                &h.position,
+                h.vel_enu_down_mps,
+            );
             self.parachute_deployed = true;
             // Snapshot the last ballistic state we just pushed — that's the
             // vehicle state at the instant the chute deployed.
@@ -289,11 +287,7 @@ impl SimulationOrchestrator {
 
         // Apply handoff IC after the match so we can mutate `self.params`.
         if let Some(h) = rail_handoff {
-            let mut handoff = self
-                .params
-                .as_ref()
-                .expect("params present")
-                .clone();
+            let mut handoff = self.params.as_ref().expect("params present").clone();
             handoff.launch_env.initial_body_velocity_mps = h.body_velocity_mps;
             handoff.launch_env.initial_position_override = Some(InitialPosition {
                 latitude_deg: h.lat_deg,
@@ -374,7 +368,11 @@ mod tests {
         // Pure-forward (body x) → north.
         let enu = body_velocity_to_enu_down([10.0, 0.0, 0.0], 0.0, 0.0, 0.0);
         assert!(enu[0].abs() < 1e-9, "east should be 0, got {}", enu[0]);
-        assert!((enu[1] - 10.0).abs() < 1e-9, "north should be 10, got {}", enu[1]);
+        assert!(
+            (enu[1] - 10.0).abs() < 1e-9,
+            "north should be 10, got {}",
+            enu[1]
+        );
         assert!(enu[2].abs() < 1e-9, "down should be 0, got {}", enu[2]);
     }
 
@@ -393,6 +391,10 @@ mod tests {
         let enu = body_velocity_to_enu_down([10.0, 0.0, 0.0], 0.0, 90.0, 0.0);
         assert!(enu[0].abs() < 1e-9);
         assert!(enu[1].abs() < 1e-9);
-        assert!((enu[2] - (-10.0)).abs() < 1e-9, "down should be -10, got {}", enu[2]);
+        assert!(
+            (enu[2] - (-10.0)).abs() < 1e-9,
+            "down should be -10, got {}",
+            enu[2]
+        );
     }
 }
