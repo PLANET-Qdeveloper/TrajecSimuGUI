@@ -27,81 +27,74 @@ use crate::output::{
 pub fn extract_state(fdm: &FDMWrapper) -> SimulationState {
     // ── Position ────────────────────────────────────────────────────────
     let alt_agl_m =
-        Length::new::<foot>(fdm.get_property("position/h-agl-ft")).get::<uom::si::length::meter>();
+        Length::new::<foot>(fdm.get_h_agl_ft()).get::<uom::si::length::meter>();
 
     // ── Velocity ────────────────────────────────────────────────────────
     let true_airspeed_mps =
-        Velocity::new::<foot_per_second>(fdm.get_property("velocities/vtrue-fps"))
+        Velocity::new::<foot_per_second>(fdm.get_vtrue_fps())
             .get::<uom::si::velocity::meter_per_second>();
 
-    let ground_speed_mps = Velocity::new::<foot_per_second>(fdm.get_property("velocities/vg-fps"))
+    let ground_speed_mps = Velocity::new::<foot_per_second>(fdm.get_vg_fps())
         .get::<uom::si::velocity::meter_per_second>();
 
     // Body-axis velocity components (u/v/w).
-    let u_mps = Velocity::new::<foot_per_second>(fdm.get_property("velocities/u-fps"))
+    let u_mps = Velocity::new::<foot_per_second>(fdm.get_u_fps())
         .get::<uom::si::velocity::meter_per_second>();
 
-    let v_mps = Velocity::new::<foot_per_second>(fdm.get_property("velocities/v-fps"))
+    let v_mps = Velocity::new::<foot_per_second>(fdm.get_v_fps())
         .get::<uom::si::velocity::meter_per_second>();
 
-    let w_mps = Velocity::new::<foot_per_second>(fdm.get_property("velocities/w-fps"))
+    let w_mps = Velocity::new::<foot_per_second>(fdm.get_w_fps())
         .get::<uom::si::velocity::meter_per_second>();
 
     // ── Attitude ────────────────────────────────────────────────────────
-    let pitch_deg = Angle::new::<radian>(fdm.get_property("attitude/theta-rad"))
+    let pitch_deg = Angle::new::<radian>(fdm.get_theta_rad())
         .get::<uom::si::angle::degree>();
 
     let roll_deg =
-        Angle::new::<radian>(fdm.get_property("attitude/phi-rad")).get::<uom::si::angle::degree>();
+        Angle::new::<radian>(fdm.get_phi_rad()).get::<uom::si::angle::degree>();
 
     let yaw_deg =
-        Angle::new::<radian>(fdm.get_property("attitude/psi-rad")).get::<uom::si::angle::degree>();
+        Angle::new::<radian>(fdm.get_psi_rad()).get::<uom::si::angle::degree>();
 
     // ── Angular rates ───────────────────────────────────────────────────
-    let p = AngularVelocity::new::<radian_per_second>(fdm.get_property("velocities/p-rad_sec"))
+    let p = AngularVelocity::new::<radian_per_second>(fdm.get_p_rad_sec())
         .get::<radian_per_second>();
 
-    let q = AngularVelocity::new::<radian_per_second>(fdm.get_property("velocities/q-rad_sec"))
+    let q = AngularVelocity::new::<radian_per_second>(fdm.get_q_rad_sec())
         .get::<radian_per_second>();
 
-    let r = AngularVelocity::new::<radian_per_second>(fdm.get_property("velocities/r-rad_sec"))
+    let r = AngularVelocity::new::<radian_per_second>(fdm.get_r_rad_sec())
         .get::<radian_per_second>();
 
     // ── Acceleration (body frame) ───────────────────────────────────────
-    let ax = Acceleration::new::<foot_per_second_squared>(
-        fdm.get_property("accelerations/udot-ft_sec2"),
-    )
-    .get::<uom::si::acceleration::meter_per_second_squared>();
+    let ax = Acceleration::new::<foot_per_second_squared>(fdm.get_udot_ft_sec2())
+        .get::<uom::si::acceleration::meter_per_second_squared>();
 
-    let ay = Acceleration::new::<foot_per_second_squared>(
-        fdm.get_property("accelerations/vdot-ft_sec2"),
-    )
-    .get::<uom::si::acceleration::meter_per_second_squared>();
+    let ay = Acceleration::new::<foot_per_second_squared>(fdm.get_vdot_ft_sec2())
+        .get::<uom::si::acceleration::meter_per_second_squared>();
 
-    let az = Acceleration::new::<foot_per_second_squared>(
-        fdm.get_property("accelerations/wdot-ft_sec2"),
-    )
-    .get::<uom::si::acceleration::meter_per_second_squared>();
+    let az = Acceleration::new::<foot_per_second_squared>(fdm.get_wdot_ft_sec2())
+        .get::<uom::si::acceleration::meter_per_second_squared>();
 
     // ── Aerodynamics ────────────────────────────────────────────────────
     let alpha_deg =
-        Angle::new::<radian>(fdm.get_property("aero/alpha-rad")).get::<uom::si::angle::degree>();
+        Angle::new::<radian>(fdm.get_alpha_rad()).get::<uom::si::angle::degree>();
 
     let beta_deg =
-        Angle::new::<radian>(fdm.get_property("aero/beta-rad")).get::<uom::si::angle::degree>();
+        Angle::new::<radian>(fdm.get_beta_rad()).get::<uom::si::angle::degree>();
 
-    let qbar_pa = Pressure::new::<pound_force_per_square_foot>(fdm.get_property("aero/qbar-psf"))
+    let qbar_pa = Pressure::new::<pound_force_per_square_foot>(fdm.get_qbar_psf())
         .get::<uom::si::pressure::pascal>();
 
     // ── Thrust ──────────────────────────────────────────────────────────
-    // JSBSim stores thrust magnitude in lbf.
-    let thrust_n = fdm.get_property("external_reactions/thrust/magnitude") * 4.448_221_6; // lbf → N
+    let thrust_n = fdm.get_thrust_magnitude_lbf() * 4.448_221_6; // lbf → N
 
     SimulationState {
-        time_sec: fdm.get_property("simulation/sim-time-sec"),
+        time_sec: fdm.get_sim_time_sec(),
         position: Position {
-            lat_deg: fdm.get_property("position/lat-gc-deg"),
-            lon_deg: fdm.get_property("position/long-gc-deg"),
+            lat_deg: fdm.get_lat_gc_deg(),
+            lon_deg: fdm.get_lon_gc_deg(),
             alt_agl_m,
         },
         velocity: VelOut {
@@ -132,6 +125,6 @@ pub fn extract_state(fdm: &FDMWrapper) -> SimulationState {
             qbar_pa,
         },
         thrust_n,
-        mach: fdm.get_property("velocities/mach"),
+        mach: fdm.get_mach(),
     }
 }

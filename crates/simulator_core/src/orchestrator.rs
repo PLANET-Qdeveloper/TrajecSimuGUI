@@ -78,6 +78,8 @@ pub struct SimulationOrchestrator {
     /// first observed. `None` until the origin event fires.
     deploy_origin_time_sec: Option<f64>,
     parachute_deployed: bool,
+
+    decimation_counter: usize,
 }
 
 impl SimulationOrchestrator {
@@ -91,6 +93,7 @@ impl SimulationOrchestrator {
             parachute: ParachuteStage::new(),
             deploy_origin_time_sec: None,
             parachute_deployed: false,
+            decimation_counter: 0,
         }
     }
 

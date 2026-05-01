@@ -1,7 +1,7 @@
 //! Drive the `SimulationOrchestrator` end-to-end and write outputs.
 
 use std::fs;
-use std::io::Write;
+use std::io::{BufWriter, Write};
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
@@ -68,6 +68,7 @@ pub fn run(
         summary: out_dir.join("summary.json"),
         kml: out_dir.join("trajectory.kml"),
     };
+    
 
     write_trajectory_csv(&paths.mainline, &out.mainline.trajectory, csv_interval)?;
     write_trajectory_csv(
@@ -100,15 +101,16 @@ alpha_deg,beta_deg,qbar_pa,\
 thrust_n,mach";
 
 fn write_trajectory_csv(path: &Path, traj: &[SimulationState], interval: usize) -> Result<()> {
-    let mut f = fs::File::create(path).with_context(|| format!("creating {}", path.display()))?;
-    writeln!(f, "{CSV_HEADER}")?;
+    let f = fs::File::create(path).with_context(|| format!("creating {}", path.display()))?;
+    let mut writer = BufWriter::new(f);
+    writeln!(writer, "{CSV_HEADER}")?;
     let len = traj.len();
     for (i, s) in traj.iter().enumerate() {
         if !keep_step(i, len, interval) {
             continue;
         }
         writeln!(
-            f,
+            writer,
             "{:.9},{:.9},{:.9},{:.6},\
              {:.6},{:.6},{:.6},{:.6},{:.6},\
              {:.6},{:.6},{:.6},\
@@ -141,12 +143,14 @@ fn write_trajectory_csv(path: &Path, traj: &[SimulationState], interval: usize) 
             s.mach,
         )?;
     }
+    writer.flush()?;
     Ok(())
 }
 
 fn write_events_json(path: &Path, out: &UnifiedSimulationOutput) -> Result<()> {
     let f = fs::File::create(path).with_context(|| format!("creating {}", path.display()))?;
-    serde_json::to_writer_pretty(f, &out.events)?;
+    let writer = BufWriter::new(f);
+    serde_json::to_writer_pretty(writer, &out.events)?;
     Ok(())
 }
 
@@ -214,6 +218,7 @@ fn write_summary_json(path: &Path, out: &UnifiedSimulationOutput) -> Result<()> 
     };
 
     let f = fs::File::create(path).with_context(|| format!("creating {}", path.display()))?;
-    serde_json::to_writer_pretty(f, &summary)?;
+    let writer = BufWriter::new(f);
+    serde_json::to_writer_pretty(writer, &summary)?;
     Ok(())
 }

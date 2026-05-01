@@ -47,6 +47,50 @@ public:
     /// integration from a non-zero time (e.g. a launch-rail-exit handoff).
     void set_sim_time(double value);
 
+    // -----------------------------------------------------------------------
+    // Direct state accessors — bypass FGPropertyManager string lookup.
+    // All values are in JSBSim internal units (ft, fps, rad, psf, lbf …).
+    // -----------------------------------------------------------------------
+
+    // Simulation time
+    double get_sim_time_sec() const;
+
+    // Position  (FGPropagate)
+    double get_lat_gc_deg() const;
+    double get_lon_gc_deg() const;
+    double get_h_agl_ft()   const;
+
+    // Velocity  (FGAuxiliary / FGPropagate)
+    double get_vtrue_fps()  const;
+    double get_vg_fps()     const;
+    double get_u_fps()      const;
+    double get_v_fps()      const;
+    double get_w_fps()      const;
+
+    // Attitude  (FGPropagate)
+    double get_phi_rad()    const;
+    double get_theta_rad()  const;
+    double get_psi_rad()    const;
+
+    // Angular rates  (FGPropagate)
+    double get_p_rad_sec()  const;
+    double get_q_rad_sec()  const;
+    double get_r_rad_sec()  const;
+
+    // Acceleration body-frame  (FGAccelerations)
+    double get_udot_ft_sec2() const;
+    double get_vdot_ft_sec2() const;
+    double get_wdot_ft_sec2() const;
+
+    // Aerodynamics  (FGAuxiliary)
+    double get_alpha_rad()  const;
+    double get_beta_rad()   const;
+    double get_qbar_psf()   const;
+    double get_mach()       const;
+
+    // Propulsion  (FGExternalReactions)
+    double get_thrust_magnitude_lbf() const;
+
 private:
     std::unique_ptr<JSBSim::FGFDMExec> fdm_;
 };

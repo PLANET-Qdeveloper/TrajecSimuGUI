@@ -18,7 +18,6 @@ fn main() {
     //   OPT_LEVEL>=1,  DEBUG  -> RelWithDebInfo       (matches `profiling`)
     //   OPT_LEVEL=s|z         -> MinSizeRel
     let dst = cmake::Config::new(&jsbsim)
-        // Dynamic link → LGPL-clean (consumer can swap libJSBSim).
         .define("BUILD_SHARED_LIBS", "OFF")
         // Disable everything we don't consume from Rust.
         .define("BUILD_PYTHON_MODULE", "OFF")
