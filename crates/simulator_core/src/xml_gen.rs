@@ -1,6 +1,6 @@
 //! XML file generator for JSBSim input.
 //!
-//! Templates are embedded at compile time via `include_str!`, so no
+//! Templates are embedded at compile time via askama, so no
 //! file-system access is required at runtime and parallel runs are safe.
 
 mod context;
@@ -8,44 +8,44 @@ pub use context::XmlContext;
 
 use crate::workspace::SimWorkspace;
 use crate::{Result, SimulatorError};
-use minijinja::{value::Value, Environment};
+use askama::Template;
 use std::fs;
 
-// ── Embedded templates ──────────────────────────────────────────────────────
+// ── Static file ────────────────────────────────────────────────────────────
 
-const TMPL_SIMULATION: &str = include_str!("../../../param-xml-template/pq_simulation.xml.j2");
-
-const TMPL_AIRCRAFT: &str =
-    include_str!("../../../param-xml-template/aircraft/PQ_ROCKET/pq_rocket.xml.j2");
-
-const TMPL_LIFTOFF: &str =
-    include_str!("../../../param-xml-template/aircraft/PQ_ROCKET/liftoff.xml.j2");
-
-/// Static file copied verbatim (unit-conversion definitions for CSV output).
+/// Unit-conversion definitions for CSV output — copied verbatim.
 const UNIT_CONVERSIONS_XML: &str = include_str!("../../../param-xml-template/unitconversions.xml");
+
+// ── Template structs ───────────────────────────────────────────────────────
+
+#[derive(Template)]
+#[template(path = "pq_simulation.xml.j2", escape = "none")]
+struct SimulationTmpl<'a> {
+    ctx: &'a XmlContext,
+}
+
+#[derive(Template)]
+#[template(path = "aircraft/PQ_ROCKET/pq_rocket.xml.j2", escape = "none")]
+struct AircraftTmpl<'a> {
+    ctx: &'a XmlContext,
+}
+
+#[derive(Template)]
+#[template(path = "aircraft/PQ_ROCKET/liftoff.xml.j2", escape = "none")]
+struct LiftoffTmpl<'a> {
+    ctx: &'a XmlContext,
+}
 
 // ── Generator ──────────────────────────────────────────────────────────────
 
 /// Renders all JSBSim input XML files into a `SimWorkspace`.
 ///
-/// One `XmlGenerator` instance can be shared across threads because
-/// `Environment` is immutable after construction.
-pub struct XmlGenerator {
-    env: Environment<'static>,
-}
+/// Stateless — templates are resolved at compile time by askama.
+pub struct XmlGenerator;
 
 impl XmlGenerator {
     pub fn new() -> Self {
-        let mut env = Environment::new();
-
-        env.add_template("simulation", TMPL_SIMULATION)
-            .expect("pq_simulation.xml.j2 is invalid");
-        env.add_template("aircraft", TMPL_AIRCRAFT)
-            .expect("pq_rocket.xml.j2 is invalid");
-        env.add_template("liftoff", TMPL_LIFTOFF)
-            .expect("liftoff.xml.j2 is invalid");
-
-        Self { env }
+        Self
     }
 
     /// Render all templates and write files into `ws`.
@@ -60,23 +60,20 @@ impl XmlGenerator {
     ///     liftoff.xml
     /// ```
     pub fn render_into(&self, ctx: &XmlContext, ws: &SimWorkspace) -> Result<()> {
-        let val = Value::from_serialize(ctx);
-
         fs::create_dir_all(ws.aircraft_dir())?;
 
-        let render = |name: &str| -> Result<String> {
-            self.env
-                .get_template(name)
-                .and_then(|t| t.render(&val))
-                .map_err(|e| SimulatorError::XmlRenderError(e.to_string()))
-        };
+        let render_err = |e: askama::Error| SimulatorError::XmlRenderError(e.to_string());
 
-        fs::write(ws.script_path(), render("simulation")?)?;
+        let simulation = SimulationTmpl { ctx }.render().map_err(render_err)?;
+        let aircraft = AircraftTmpl { ctx }.render().map_err(render_err)?;
+        let liftoff = LiftoffTmpl { ctx }.render().map_err(render_err)?;
+
+        fs::write(ws.script_path(), simulation)?;
         // JSBSim's `<use aircraft="PQ_ROCKET"/>` loads `PQ_ROCKET.xml` (case-
         // sensitive match to the aircraft name) on filesystems that don't
         // fold case, so write with the uppercase name rather than `pq_rocket`.
-        fs::write(ws.aircraft_dir().join("PQ_ROCKET.xml"), render("aircraft")?)?;
-        fs::write(ws.aircraft_dir().join("liftoff.xml"), render("liftoff")?)?;
+        fs::write(ws.aircraft_dir().join("PQ_ROCKET.xml"), aircraft)?;
+        fs::write(ws.aircraft_dir().join("liftoff.xml"), liftoff)?;
         fs::write(ws.root().join("unitconversions.xml"), UNIT_CONVERSIONS_XML)?;
 
         Ok(())

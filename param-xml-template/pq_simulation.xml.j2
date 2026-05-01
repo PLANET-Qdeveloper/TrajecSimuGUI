@@ -12,7 +12,7 @@
 
   <use aircraft="PQ_ROCKET" initialize="liftoff"/>
 
-  <run start="0" end="{{ flight_duration }}" dt="{{ time_step }}">
+  <run start="0" end="{{ ctx.flight_duration }}" dt="{{ ctx.time_step }}">
 
     <!-- Motor Burnout: oxidizer depleted -->
     <event name="Motor Burnout">
@@ -22,7 +22,7 @@
     <!-- Apogee: downward velocity begins -->
     <event name="Apogee">
       <condition>velocities/v-down-fps gt 1</condition>
-      {% if apogee_mode == 1 %}
+      {% if ctx.apogee_mode == 1 %}
       <set name="simulation/terminate" value="1"/>
       {% endif %}
     </event>
@@ -35,7 +35,7 @@
 
     <!-- Winds aloft: apply wind profile above launcher -->
     <event name="Winds aloft" continuous="true">
-      <condition>position/h-sl-meters gt {{ launcher_height }}</condition>
+      <condition>position/h-sl-meters gt {{ ctx.launcher_height }}</condition>
 
       <!-- Direction in rad (pre-converted from deg in Rust) -->
       <set name="atmosphere/psiw-rad">
@@ -43,7 +43,7 @@
           <table>
             <independentVar lookup="row"> position/h-sl-meters </independentVar>
             <tableData>
-              {% for wind in winds_table -%}
+              {% for wind in ctx.winds_table -%}
               {{ wind[0] }} {{ wind[1] }}
               {% endfor %}
             </tableData>
@@ -57,7 +57,7 @@
           <table>
             <independentVar lookup="row"> position/h-sl-meters </independentVar>
             <tableData>
-              {% for wind in winds_table -%}
+              {% for wind in ctx.winds_table -%}
               {{ wind[0] }} {{ wind[2] }}
               {% endfor %}
             </tableData>

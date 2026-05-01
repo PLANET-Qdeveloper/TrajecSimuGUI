@@ -35,17 +35,17 @@
 
   <!-- ── Airframe metrics ──────────────────────────────────────────────── -->
   <metrics>
-    <wingarea  unit="M2"> {{ frontal_area_m2 }} </wingarea>
-    <wingspan  unit="M" > {{ diameter }}        </wingspan>
-    <chord     unit="M" > {{ diameter }}           </chord>
+    <wingarea  unit="M2"> {{ ctx.frontal_area_m2 }} </wingarea>
+    <wingspan  unit="M" > {{ ctx.diameter }}        </wingspan>
+    <chord     unit="M" > {{ ctx.diameter }}           </chord>
     <htailarea unit="M2">  0 </htailarea>
     <htailarm  unit="M" >  0 </htailarm>
     <vtailarea unit="M2">  0 </vtailarea>
     <vtailarm  unit="M" >  0 </vtailarm>
     <location name="AERORP" unit="M">
-      <x> {{ cp_x }} </x>
-      <y> {{ cp_y }} </y>
-      <z> {{ cp_z }} </z>
+      <x> {{ ctx.cp_x }} </x>
+      <y> {{ ctx.cp_y }} </y>
+      <z> {{ ctx.cp_z }} </z>
     </location>
     <location name="EYEPOINT" unit="M">
       <x> 0.0 </x><y> 0.0 </y><z> 0.0 </z>
@@ -57,17 +57,17 @@
 
   <!-- ── Mass and inertia ──────────────────────────────────────────────── -->
   <mass_balance>
-    <ixx unit="KG*M2"> {{ inertia_xx }} </ixx>
-    <iyy unit="KG*M2"> {{ inertia_yy }} </iyy>
-    <izz unit="KG*M2"> {{ inertia_zz }} </izz>
-    <ixy unit="KG*M2"> {{ inertia_xy }} </ixy>
-    <ixz unit="KG*M2"> {{ inertia_xz }} </ixz>
-    <iyz unit="KG*M2"> {{ inertia_yz }} </iyz>
-    <emptywt unit="KG"> {{ emptywt_kg }} </emptywt>
+    <ixx unit="KG*M2"> {{ ctx.inertia_xx }} </ixx>
+    <iyy unit="KG*M2"> {{ ctx.inertia_yy }} </iyy>
+    <izz unit="KG*M2"> {{ ctx.inertia_zz }} </izz>
+    <ixy unit="KG*M2"> {{ ctx.inertia_xy }} </ixy>
+    <ixz unit="KG*M2"> {{ ctx.inertia_xz }} </ixz>
+    <iyz unit="KG*M2"> {{ ctx.inertia_yz }} </iyz>
+    <emptywt unit="KG"> {{ ctx.emptywt_kg }} </emptywt>
     <location name="CG" unit="M">
-      <x> {{ cg_x }} </x>
-      <y> {{ cg_y }} </y>
-      <z> {{ cg_z }} </z>
+      <x> {{ ctx.cg_x }} </x>
+      <y> {{ ctx.cg_y }} </y>
+      <z> {{ ctx.cg_z }} </z>
     </location>
   </mass_balance>
 
@@ -81,30 +81,30 @@
     <!-- tank[0]: oxidizer — contents tracked by fcs/fuel_remaining -->
     <tank type="FUEL" number="0">
       <location unit="M">
-        <x> {{ oxidizer_x }} </x>
-        <y> {{ oxidizer_y }} </y>
-        <z> {{ oxidizer_z }} </z>
+        <x> {{ ctx.oxidizer_x }} </x>
+        <y> {{ ctx.oxidizer_y }} </y>
+        <z> {{ ctx.oxidizer_z }} </z>
       </location>
       <drain_location unit="M">
-        <x> {{ oxidizer_drain_x }} </x>
-        <y> {{ oxidizer_drain_y }} </y>
-        <z> {{ oxidizer_drain_z }} </z>
+        <x> {{ ctx.oxidizer_drain_x }} </x>
+        <y> {{ ctx.oxidizer_drain_y }} </y>
+        <z> {{ ctx.oxidizer_drain_z }} </z>
       </drain_location>
-      <radius   unit="M">    {{ body_radius }}      </radius>
-      <capacity unit="KG">   {{ oxidizer_contents }} </capacity>
-      <contents unit="KG">   {{ oxidizer_contents }} </contents>
+      <radius   unit="M">    {{ ctx.body_radius }}      </radius>
+      <capacity unit="KG">   {{ ctx.oxidizer_contents }} </capacity>
+      <contents unit="KG">   {{ ctx.oxidizer_contents }} </contents>
     </tank>
 
     <!-- tank[1]: fuel grain — no drain, no grain geometry -->
     <tank type="FUEL" number="1">
       <location unit="M">
-        <x> {{ fuel_x }} </x>
-        <y> {{ fuel_y }} </y>
-        <z> {{ fuel_z }} </z>
+        <x> {{ ctx.fuel_x }} </x>
+        <y> {{ ctx.fuel_y }} </y>
+        <z> {{ ctx.fuel_z }} </z>
       </location>
-      <radius   unit="M">  {{ body_radius }}   </radius>
-      <capacity unit="KG"> {{ fuel_contents_kg }} </capacity>
-      <contents unit="KG"> {{ fuel_contents_kg }} </contents>
+      <radius   unit="M">  {{ ctx.body_radius }}   </radius>
+      <capacity unit="KG"> {{ ctx.fuel_contents_kg }} </capacity>
+      <contents unit="KG"> {{ ctx.fuel_contents_kg }} </contents>
     </tank>
 
   </propulsion>
@@ -119,7 +119,7 @@
           <table>
             <independentVar>velocities/mach</independentVar>
             <tableData>
-              {% for cp in cp_mach_table -%}
+              {% for cp in ctx.cp_mach_table -%}
               {{ cp[0] }} {{ cp[1] }}
               {% endfor %}
             </tableData>
@@ -139,7 +139,7 @@
           <table>
             <independentVar>simulation/sim-time-sec</independentVar>
             <tableData>
-              {% for fr in fuel_remaining_table -%}
+              {% for fr in ctx.fuel_remaining_table -%}
               {{ fr[0] }} {{ fr[1] }}
               {% endfor %}
             </tableData>
@@ -149,11 +149,11 @@
       </fcs_function>
       <pure_gain name="propulsion/tank[0]/contents-lbs">
         <input>fcs/fuel_remaining</input>
-        <gain> {{ oxidizer_contents_lbs }} </gain>
+        <gain> {{ ctx.oxidizer_contents_lbs }} </gain>
       </pure_gain>
       <pure_gain name="propulsion/tank[1]/contents-lbs">
         <input>fcs/fuel_remaining</input>
-        <gain> {{ fuel_drain_lbs }} </gain>
+        <gain> {{ ctx.fuel_drain_lbs }} </gain>
       </pure_gain>
     </channel>
 
@@ -164,7 +164,7 @@
           <table>
             <independentVar>simulation/sim-time-sec</independentVar>
             <tableData>
-              {% for t in thrust_table -%}
+              {% for t in ctx.thrust_table -%}
               {{ t[0] }} {{ t[1] }}
               {% endfor %}
             </tableData>
@@ -185,9 +185,9 @@
         <property>external_reactions/thrust/magnitude</property>
       </function>
       <location unit="M">
-        <x> {{ thruster_rel_x }} </x>
-        <y> {{ thruster_rel_y }} </y>
-        <z> {{ thruster_rel_z }} </z>
+        <x> {{ ctx.thruster_rel_x }} </x>
+        <y> {{ ctx.thruster_rel_y }} </y>
+        <z> {{ ctx.thruster_rel_z }} </z>
       </location>
       <direction>
         <x> 1 </x><y> 0 </y><z> 0 </z>
@@ -206,9 +206,9 @@
           <property>metrics/Sw-sqft</property>
           <table>
             <independentVar lookup="row">aero/alpha-rad</independentVar>
-            <independentVar lookup="column">velocities/mach</independentVar> 
+            <independentVar lookup="column">velocities/mach</independentVar>
             <tableData>
-              {% for row in cd0_alpha_mach_table -%}
+              {% for row in ctx.cd0_alpha_mach_table -%}
               {% for v in row -%}{{ v }} {% endfor %}
               {% endfor %}
             </tableData>
@@ -227,7 +227,7 @@
           <table>
             <independentVar>velocities/mach</independentVar>
             <tableData>
-              {% for row in cn_table -%}
+              {% for row in ctx.cn_table -%}
               {{ row[0] }} {{ row[1] }}
               {% endfor %}
             </tableData>
@@ -246,7 +246,7 @@
           <table>
             <independentVar>velocities/mach</independentVar>
             <tableData>
-              {% for row in cs_table -%}
+              {% for row in ctx.cs_table -%}
               {{ row[0] }} {{ row[1] }}
               {% endfor %}
             </tableData>
@@ -264,7 +264,7 @@
           <property>metrics/bw-ft</property>
           <property>aero/bi2vel</property>
           <property>velocities/p-aero-rad_sec</property>
-          <value> {{ roll_damping_coefficient }} </value>
+          <value> {{ ctx.roll_damping_coefficient }} </value>
         </product>
       </function>
     </axis>
@@ -278,7 +278,7 @@
           <property>metrics/cbarw-ft</property>
           <property>aero/ci2vel</property>
           <property>velocities/q-aero-rad_sec</property>
-          <value> {{ pitch_damping_coefficient }} </value>
+          <value> {{ ctx.pitch_damping_coefficient }} </value>
         </product>
       </function>
     </axis>
@@ -292,7 +292,7 @@
           <property>metrics/bw-ft</property>
           <property>aero/bi2vel</property>
           <property>velocities/r-aero-rad_sec</property>
-          <value> {{ yaw_damping_coefficient }} </value>
+          <value> {{ ctx.yaw_damping_coefficient }} </value>
         </product>
       </function>
     </axis>
