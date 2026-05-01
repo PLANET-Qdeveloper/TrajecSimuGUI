@@ -225,11 +225,10 @@ impl SimulationOrchestrator {
 
                 // Prefer parachute transition over any transition JSBSim
                 // itself requested (e.g. Landed from simulation/terminate).
-                if next_phase.is_none() {
-                    if out.completed {
+                if next_phase.is_none()
+                    && out.completed {
                         next_phase = Some(Phase::Parachute);
                     }
-                }
             }
             Phase::Parachute => {
                 let params = self.params.as_ref().expect("params present");

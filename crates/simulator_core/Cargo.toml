@@ -14,19 +14,17 @@ uuid      = { version = "1", features = ["v4"] }
 
 serde      = { version = "1", features = ["derive"] }
 serde_json = "1"
-tokio      = { version = "1", features = ["sync"] }
 
 uom = { version = "0.36", features = ["f64"] }
 
 thiserror  = "2"
-log        = "0.4"
-env_logger = "0.11"
-insta = "1.47.2"
+
+
 
 [build-dependencies]
 cxx-build = "1"
 cmake     = "0.1"
 
 [dev-dependencies]
-static_assertions = "1.1.0"
+insta = "1.47.2"
 

@@ -1,7 +1,7 @@
 //! cxx bridge: Rust ↔ C++ (FDMWrapper / FGFDMExec).
 
 #[cxx::bridge]
-pub mod ffi {
+pub mod bridge {
     unsafe extern "C++" {
         include!("jsbsim_bridge.h");
 

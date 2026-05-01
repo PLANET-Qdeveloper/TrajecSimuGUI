@@ -12,7 +12,7 @@ use uom::si::{
     length::foot, pressure::pound_force_per_square_foot, velocity::foot_per_second,
 };
 
-use super::ffi::ffi::FDMWrapper;
+use super::ffi::bridge::FDMWrapper;
 use crate::output::{
     Acceleration as AccOut, AeroState, AngularRates, Attitude, Position, SimulationState,
     Velocity as VelOut,
