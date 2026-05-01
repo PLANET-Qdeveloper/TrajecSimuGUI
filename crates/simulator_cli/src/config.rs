@@ -18,10 +18,6 @@ fn default_roll() -> f64 {
     0.0
 }
 
-fn default_apogee_mode() -> u8 {
-    0
-}
-
 fn default_csv_sample_interval() -> u32 {
     1
 }
@@ -120,8 +116,6 @@ pub struct ParachuteConfig {
 pub struct SimConfig {
     pub flight_duration: f64,
     pub time_step: f64,
-    #[serde(default = "default_apogee_mode")]
-    pub apogee_mode: u8,
     /// CSV writer decimation. Default `1` (every step).
     #[serde(default = "default_csv_sample_interval")]
     pub csv_sample_interval: u32,

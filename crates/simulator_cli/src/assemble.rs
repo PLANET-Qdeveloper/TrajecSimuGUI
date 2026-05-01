@@ -202,7 +202,6 @@ mod tests {
             sim: SimConfig {
                 flight_duration: 60.0,
                 time_step: 0.01,
-                apogee_mode: 0,
                 csv_sample_interval: 1,
                 kml_sample_interval: 10,
             },
