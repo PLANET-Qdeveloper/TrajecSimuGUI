@@ -16,19 +16,21 @@ use crate::csv_loader;
 /// endpoints, so any value well above expected apogee is fine.
 const WINDS_TABLE_TOP_M: f64 = 30_000.0;
 
-/// Power-law table: fixed 5 m steps from 0 to 10 000 m.
-const POWER_LAW_STEP_M: f64 = 5.0;
-const POWER_LAW_MAX_M: f64 = 10_000.0;
+/// Power-law table uses variable altitude steps:
+/// - 0..=200 m: 5 m steps
+/// - 210..=1000 m: 10 m steps
+/// - 1100..=10 000 m: 100 m steps
+const POWER_LAW_MAX_M: u32 = 10_000;
 
 /// Build the winds-aloft table (`[[alt_m, speed_mps, dir_deg], …]`).
 ///
-/// Exactly one of two sources must be configured:
+/// Wind source precedence:
 /// - `launch.wind_table`: path to a 3-column CSV (alt, speed, direction)
 /// - `launch.wind_speed_mps` + `launch.wind_direction_deg`: power-law
-///   profile generated from 0 to 10 000 m at 5 m steps.
+///   profile generated with variable altitude steps.
 ///
+/// If both are given, the CSV table is preferred.
 /// If neither is given the table defaults to calm (zero wind).
-/// Providing both is an error.
 fn build_winds_table(cfg: &Config) -> Result<Vec<[f64; 3]>> {
     match (
         &cfg.launch.wind_table,
@@ -36,7 +38,7 @@ fn build_winds_table(cfg: &Config) -> Result<Vec<[f64; 3]>> {
         cfg.launch.wind_direction_deg,
     ) {
         // ── CSV table ────────────────────────────────────────────────────
-        (Some(path), None, None) => csv_loader::load_wind_table(path),
+        (Some(path), _, _) => csv_loader::load_wind_table(path),
 
         // ── Power law ────────────────────────────────────────────────────
         (None, Some(speed), Some(direction)) => {
@@ -48,13 +50,17 @@ fn build_winds_table(cfg: &Config) -> Result<Vec<[f64; 3]>> {
                 .max(10.0);
             let alpha = cfg.launch.wind_power_exponent;
 
-            let n = (POWER_LAW_MAX_M / POWER_LAW_STEP_M) as usize + 1;
-            let table = (0..n)
-                .map(|i| {
-                    let h = i as f64 * POWER_LAW_STEP_M;
+            let altitudes = (0u32..=200)
+                .step_by(5)
+                .chain((210u32..=1000).step_by(10))
+                .chain((1100u32..=POWER_LAW_MAX_M).step_by(100));
+
+            let table = altitudes
+                .map(|h_m| {
+                    let h = h_m as f64;
                     // At ground level the surface-layer model gives zero
                     // wind; the rocket clears h_ref within the first steps.
-                    let v = if h == 0.0 {
+                    let v = if h_m == 0 {
                         0.0
                     } else {
                         speed * (h / h_ref).powf(alpha)
@@ -63,11 +69,6 @@ fn build_winds_table(cfg: &Config) -> Result<Vec<[f64; 3]>> {
                 })
                 .collect();
             Ok(table)
-        }
-
-        // ── Conflict ─────────────────────────────────────────────────────
-        (Some(_), Some(_), _) | (Some(_), _, Some(_)) => {
-            bail!("specify either wind_table or (wind_speed_mps + wind_direction_deg), not both")
         }
 
         // ── Incomplete scalar pair ────────────────────────────────────────
@@ -280,20 +281,24 @@ mod tests {
     }
 
     #[test]
-    fn power_law_wind_generates_2001_points() {
+    fn power_law_wind_generates_variable_step_points() {
         let dir = tmpdir("wind_power_law");
         make_fixtures(&dir);
         let cfg = base_cfg(&dir, false);
         let params = assemble(&cfg).unwrap();
         let w = &params.launch_env.winds_table;
-        // 0, 5, 10, …, 10 000 m → 2001 points
-        assert_eq!(w.len(), 2001);
+        // 0..=200 by 5 (41) + 210..=1000 by 10 (80) + 1100..=10000 by 100 (90)
+        assert_eq!(w.len(), 211);
         assert!((w[0][0] - 0.0).abs() < 1e-9, "first alt = 0 m");
-        assert!((w[2000][0] - POWER_LAW_MAX_M).abs() < 1e-9, "last alt = 10 000 m");
+        assert!((w[w.len() - 1][0] - POWER_LAW_MAX_M as f64).abs() < 1e-9, "last alt = 10 000 m");
+        assert!(w.iter().any(|row| (row[0] - 200.0).abs() < 1e-9), "contains 200 m");
+        assert!(w.iter().any(|row| (row[0] - 210.0).abs() < 1e-9), "contains 210 m");
+        assert!(w.iter().any(|row| (row[0] - 1000.0).abs() < 1e-9), "contains 1000 m");
+        assert!(w.iter().any(|row| (row[0] - 1100.0).abs() < 1e-9), "contains 1100 m");
         // Surface wind is zero
         assert!((w[0][1] - 0.0).abs() < 1e-9, "surface speed = 0");
         // Direction is constant
-        assert!((w[500][2] - 270.0).abs() < 1e-9);
+        assert!((w[100][2] - 270.0).abs() < 1e-9);
     }
 
     #[test]
@@ -304,8 +309,14 @@ mod tests {
         let params = assemble(&cfg).unwrap();
         let w = &params.launch_env.winds_table;
         // Speed at 100 m should be lower than at 1000 m
-        let v100 = w[20][1]; // index 20 → 100 m
-        let v1000 = w[200][1]; // index 200 → 1000 m
+        let v100 = w
+            .iter()
+            .find(|row| (row[0] - 100.0).abs() < 1e-9)
+            .expect("100 m point exists")[1];
+        let v1000 = w
+            .iter()
+            .find(|row| (row[0] - 1000.0).abs() < 1e-9)
+            .expect("1000 m point exists")[1];
         assert!(v1000 > v100, "power-law speed should increase with altitude");
     }
 
@@ -339,17 +350,19 @@ mod tests {
     }
 
     #[test]
-    fn rejects_wind_table_and_scalar_together() {
+    fn prefers_wind_table_when_scalar_is_also_set() {
         let dir = tmpdir("wind_conflict");
         make_fixtures(&dir);
         let mut cfg = base_cfg(&dir, false);
         cfg.launch.wind_table = Some(dir.join("wind_table.csv"));
-        // wind_speed_mps is already Some(3.0) in base_cfg
-        let err = assemble(&cfg).unwrap_err();
-        assert!(
-            err.to_string().contains("not both"),
-            "expected conflict error, got: {err}"
-        );
+        // wind_speed_mps / wind_direction_deg are already set in base_cfg.
+        // CSV should take precedence over the scalar power-law inputs.
+        let params = assemble(&cfg).unwrap();
+        let w = &params.launch_env.winds_table;
+        assert_eq!(w.len(), 3);
+        assert!((w[0][0] - 0.0).abs() < 1e-9);
+        assert!((w[1][0] - 500.0).abs() < 1e-9);
+        assert!((w[1][1] - 5.0).abs() < 1e-9);
     }
 
     #[test]
