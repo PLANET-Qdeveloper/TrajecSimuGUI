@@ -18,6 +18,8 @@ fn default_roll() -> f64 {
     0.0
 }
 
+fn default_wind_power_exponent() -> f64 { 0.166666666 }
+
 fn default_csv_sample_interval() -> u32 {
     1
 }
@@ -53,8 +55,16 @@ pub struct LaunchConfig {
     #[serde(default = "default_roll")]
     pub roll: f64,
     pub yaw: f64,
-    pub wind_speed_mps: f64,
-    pub wind_direction_deg: f64,
+    #[serde(default)]
+    pub wind_speed_mps: Option<f64>,
+    #[serde(default)]
+    pub wind_reference_alt: Option<f64>,
+    #[serde(default="default_wind_power_exponent")]
+    pub wind_power_exponent: f64,
+    #[serde(default)]
+    pub wind_direction_deg: Option<f64>,
+    #[serde(default)]
+    pub wind_table: Option<PathBuf>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -134,6 +144,8 @@ impl Config {
             .parent()
             .map(Path::to_path_buf)
             .unwrap_or_else(|| PathBuf::from("."));
+
+
         cfg.resolve_paths(&base);
         Ok(cfg)
     }
@@ -151,6 +163,9 @@ impl Config {
         fix(&mut self.aero.cs_table);
         if let Some(p) = self.parachute.as_mut() {
             fix(&mut p.terminal_velocity_table);
+        }
+        if let Some(w) = self.launch.wind_table.as_mut() {
+            fix(w);
         }
     }
 }

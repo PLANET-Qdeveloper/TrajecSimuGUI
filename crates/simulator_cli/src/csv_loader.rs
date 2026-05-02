@@ -106,6 +106,49 @@ fn push_2cols(out: &mut Vec<[f64; 2]>, row: &[f64], path: &Path) -> Result<()> {
     Ok(())
 }
 
+/// Load a winds-aloft table `[[alt_m, speed_mps, dir_deg], …]` from CSV.
+///
+/// The first row is dropped when it contains any non-numeric cell (header).
+/// Each data row must have at least 3 columns; extra columns are ignored.
+pub fn load_wind_table(path: &Path) -> Result<Vec<[f64; 3]>> {
+    let rows = tokenize(path)?;
+    let mut iter = rows.into_iter();
+    let first = iter.next().expect("tokenize guarantees ≥1 row");
+
+    let mut data: Vec<[f64; 3]> = Vec::new();
+    if let Some(nums) = parse_row_as_f64(&first) {
+        push_3cols(&mut data, &nums, path)?;
+    }
+
+    for row in iter {
+        let nums = parse_row_as_f64(&row).ok_or_else(|| {
+            anyhow!(
+                "non-numeric cell in {} (row: {:?})",
+                path.display(),
+                row
+            )
+        })?;
+        push_3cols(&mut data, &nums, path)?;
+    }
+
+    if data.is_empty() {
+        bail!("CSV file {} had a header but no data rows", path.display());
+    }
+    Ok(data)
+}
+
+fn push_3cols(out: &mut Vec<[f64; 3]>, row: &[f64], path: &Path) -> Result<()> {
+    if row.len() < 3 {
+        bail!(
+            "expected at least 3 columns (alt_m, speed_mps, dir_deg) in {}, got {}",
+            path.display(),
+            row.len(),
+        );
+    }
+    out.push([row[0], row[1], row[2]]);
+    Ok(())
+}
+
 /// Load a 2-D Cd table `α[deg] × Mach` and convert to `Cd0AlphaMachTable`.
 ///
 /// Layout:

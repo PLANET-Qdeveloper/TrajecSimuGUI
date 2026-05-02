@@ -8,9 +8,8 @@ launch:
   rail_length: 5.0
   pitch: 75.0
   roll: 0.0
-  yaw: 283.0
-  wind_speed_mps: 0.0
-  wind_direction_deg: 13.0
+  yaw: 279.0
+  wind_table: tables/wind_table.csv
 
 body:
   diameter: 0.145
@@ -48,7 +47,6 @@ parachute:
 sim:
   flight_duration: 4000.0
   time_step: 0.001
-  apogee_mode: 0
   csv_sample_interval: 10
   kml_sample_interval: 50
 
