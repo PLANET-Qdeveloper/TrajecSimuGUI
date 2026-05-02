@@ -12,10 +12,79 @@ use simulator_core::EventKind;
 use crate::config::Config;
 use crate::csv_loader;
 
-/// Sentinel upper altitude for the 2-point constant-wind table. JSBSim's
-/// wind lookup clamps at the table endpoints so any value comfortably
-/// above expected flight apogee works.
+/// Top altitude for the calm-wind sentinel table.  JSBSim clamps at
+/// endpoints, so any value well above expected apogee is fine.
 const WINDS_TABLE_TOP_M: f64 = 30_000.0;
+
+/// Power-law table: fixed 5 m steps from 0 to 10 000 m.
+const POWER_LAW_STEP_M: f64 = 5.0;
+const POWER_LAW_MAX_M: f64 = 10_000.0;
+
+/// Build the winds-aloft table (`[[alt_m, speed_mps, dir_deg], …]`).
+///
+/// Exactly one of two sources must be configured:
+/// - `launch.wind_table`: path to a 3-column CSV (alt, speed, direction)
+/// - `launch.wind_speed_mps` + `launch.wind_direction_deg`: power-law
+///   profile generated from 0 to 10 000 m at 5 m steps.
+///
+/// If neither is given the table defaults to calm (zero wind).
+/// Providing both is an error.
+fn build_winds_table(cfg: &Config) -> Result<Vec<[f64; 3]>> {
+    match (
+        &cfg.launch.wind_table,
+        cfg.launch.wind_speed_mps,
+        cfg.launch.wind_direction_deg,
+    ) {
+        // ── CSV table ────────────────────────────────────────────────────
+        (Some(path), None, None) => csv_loader::load_wind_table(path),
+
+        // ── Power law ────────────────────────────────────────────────────
+        (None, Some(speed), Some(direction)) => {
+            // Reference height: explicit override > launch elevation > 10 m floor.
+            let h_ref = cfg
+                .launch
+                .wind_reference_alt
+                .unwrap_or(cfg.launch.elevation)
+                .max(10.0);
+            let alpha = cfg.launch.wind_power_exponent;
+
+            let n = (POWER_LAW_MAX_M / POWER_LAW_STEP_M) as usize + 1;
+            let table = (0..n)
+                .map(|i| {
+                    let h = i as f64 * POWER_LAW_STEP_M;
+                    // At ground level the surface-layer model gives zero
+                    // wind; the rocket clears h_ref within the first steps.
+                    let v = if h == 0.0 {
+                        0.0
+                    } else {
+                        speed * (h / h_ref).powf(alpha)
+                    };
+                    [h, v, direction]
+                })
+                .collect();
+            Ok(table)
+        }
+
+        // ── Conflict ─────────────────────────────────────────────────────
+        (Some(_), Some(_), _) | (Some(_), _, Some(_)) => {
+            bail!("specify either wind_table or (wind_speed_mps + wind_direction_deg), not both")
+        }
+
+        // ── Incomplete scalar pair ────────────────────────────────────────
+        (None, Some(_), None) => {
+            bail!("wind_direction_deg is required when wind_speed_mps is set")
+        }
+        (None, None, Some(_)) => {
+            bail!("wind_speed_mps is required when wind_direction_deg is set")
+        }
+
+        // ── No wind configured ───────────────────────────────────────────
+        (None, None, None) => Ok(vec![
+            [0.0, 0.0, 0.0],
+            [WINDS_TABLE_TOP_M, 0.0, 0.0],
+        ]),
+    }
+}
 
 pub fn assemble(cfg: &Config) -> Result<RocketParams> {
     let thrust_table = csv_loader::load_1d(&cfg.engine.thrust_table)?;
@@ -24,19 +93,7 @@ pub fn assemble(cfg: &Config) -> Result<RocketParams> {
     let cs_table = csv_loader::load_1d(&cfg.aero.cs_table)?;
     let cd0_alpha_mach_table = csv_loader::load_cd_table_deg(&cfg.aero.cd0_alpha_mach_table)?;
 
-    // Single scalar wind expanded to a 2-point winds-aloft table.
-    let winds_table = vec![
-        [
-            0.0,
-            cfg.launch.wind_speed_mps,
-            cfg.launch.wind_direction_deg,
-        ],
-        [
-            WINDS_TABLE_TOP_M,
-            cfg.launch.wind_speed_mps,
-            cfg.launch.wind_direction_deg,
-        ],
-    ];
+    let winds_table = build_winds_table(cfg)?;
 
     let parachute = match &cfg.parachute {
         None => ParachuteParams::default(),
@@ -143,6 +200,11 @@ mod tests {
             "alpha_deg,0.0,2.0\n0.0,0.4,0.4\n10.0,0.5,0.5\n",
         );
         write_file(dir, "vterm.csv", "t,v\n0.0,20.0\n60.0,20.0\n");
+        write_file(
+            dir,
+            "wind_table.csv",
+            "alt_m,speed_mps,dir_deg\n0.0,0.0,270.0\n500.0,5.0,270.0\n10000.0,10.0,270.0\n",
+        );
     }
 
     fn base_cfg(dir: &std::path::Path, with_chute: bool) -> Config {
@@ -157,8 +219,11 @@ mod tests {
                 pitch: 89.0,
                 roll: 0.0,
                 yaw: 0.0,
-                wind_speed_mps: 3.0,
-                wind_direction_deg: 270.0,
+                wind_speed_mps: Some(3.0),
+                wind_direction_deg: Some(270.0),
+                wind_reference_alt: None,
+                wind_power_exponent: 1.0 / 6.0,
+                wind_table: None,
             },
             body: BodyConfig {
                 diameter: 0.15,
@@ -215,18 +280,89 @@ mod tests {
     }
 
     #[test]
-    fn scalar_wind_expands_to_two_point_table() {
-        let dir = tmpdir("wind");
+    fn power_law_wind_generates_2001_points() {
+        let dir = tmpdir("wind_power_law");
         make_fixtures(&dir);
         let cfg = base_cfg(&dir, false);
         let params = assemble(&cfg).unwrap();
         let w = &params.launch_env.winds_table;
+        // 0, 5, 10, …, 10 000 m → 2001 points
+        assert_eq!(w.len(), 2001);
+        assert!((w[0][0] - 0.0).abs() < 1e-9, "first alt = 0 m");
+        assert!((w[2000][0] - POWER_LAW_MAX_M).abs() < 1e-9, "last alt = 10 000 m");
+        // Surface wind is zero
+        assert!((w[0][1] - 0.0).abs() < 1e-9, "surface speed = 0");
+        // Direction is constant
+        assert!((w[500][2] - 270.0).abs() < 1e-9);
+    }
+
+    #[test]
+    fn power_law_speed_increases_with_altitude() {
+        let dir = tmpdir("wind_power_law_mono");
+        make_fixtures(&dir);
+        let cfg = base_cfg(&dir, false);
+        let params = assemble(&cfg).unwrap();
+        let w = &params.launch_env.winds_table;
+        // Speed at 100 m should be lower than at 1000 m
+        let v100 = w[20][1]; // index 20 → 100 m
+        let v1000 = w[200][1]; // index 200 → 1000 m
+        assert!(v1000 > v100, "power-law speed should increase with altitude");
+    }
+
+    #[test]
+    fn wind_table_loaded_from_csv() {
+        let dir = tmpdir("wind_csv");
+        make_fixtures(&dir);
+        let mut cfg = base_cfg(&dir, false);
+        cfg.launch.wind_speed_mps = None;
+        cfg.launch.wind_direction_deg = None;
+        cfg.launch.wind_table = Some(dir.join("wind_table.csv"));
+        let params = assemble(&cfg).unwrap();
+        let w = &params.launch_env.winds_table;
+        assert_eq!(w.len(), 3);
+        assert!((w[1][0] - 500.0).abs() < 1e-9);
+        assert!((w[1][1] - 5.0).abs() < 1e-9);
+    }
+
+    #[test]
+    fn calm_wind_when_nothing_configured() {
+        let dir = tmpdir("wind_calm");
+        make_fixtures(&dir);
+        let mut cfg = base_cfg(&dir, false);
+        cfg.launch.wind_speed_mps = None;
+        cfg.launch.wind_direction_deg = None;
+        let params = assemble(&cfg).unwrap();
+        let w = &params.launch_env.winds_table;
         assert_eq!(w.len(), 2);
-        assert!((w[0][0] - 0.0).abs() < 1e-9);
-        assert!((w[1][0] - WINDS_TABLE_TOP_M).abs() < 1e-9);
-        assert!((w[0][1] - 3.0).abs() < 1e-9);
-        assert!((w[1][1] - 3.0).abs() < 1e-9);
-        assert!((w[0][2] - 270.0).abs() < 1e-9);
+        assert!((w[0][1] - 0.0).abs() < 1e-9);
+        assert!((w[1][1] - 0.0).abs() < 1e-9);
+    }
+
+    #[test]
+    fn rejects_wind_table_and_scalar_together() {
+        let dir = tmpdir("wind_conflict");
+        make_fixtures(&dir);
+        let mut cfg = base_cfg(&dir, false);
+        cfg.launch.wind_table = Some(dir.join("wind_table.csv"));
+        // wind_speed_mps is already Some(3.0) in base_cfg
+        let err = assemble(&cfg).unwrap_err();
+        assert!(
+            err.to_string().contains("not both"),
+            "expected conflict error, got: {err}"
+        );
+    }
+
+    #[test]
+    fn rejects_speed_without_direction() {
+        let dir = tmpdir("wind_no_dir");
+        make_fixtures(&dir);
+        let mut cfg = base_cfg(&dir, false);
+        cfg.launch.wind_direction_deg = None;
+        let err = assemble(&cfg).unwrap_err();
+        assert!(
+            err.to_string().contains("wind_direction_deg"),
+            "expected direction-missing error, got: {err}"
+        );
     }
 
     #[test]
