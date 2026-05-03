@@ -6,8 +6,10 @@ use clap::{Parser, Subcommand};
 mod assemble;
 mod config;
 mod csv_loader;
+mod dem;
 mod kml_writer;
 mod landing_area;
+mod refine_landing;
 mod runner;
 
 #[derive(Parser, Debug)]
@@ -25,6 +27,9 @@ enum Cmd {
         config: PathBuf,
         #[arg(long, default_value = "out")]
         out_dir: PathBuf,
+        /// Disable GSI DEM landing-point refinement.
+        #[arg(long)]
+        no_dem: bool,
     },
     /// Parse + assemble + validate only. No simulation step.
     Validate {
@@ -58,22 +63,47 @@ enum Cmd {
         /// Maximum parallel jobs (default: all available cores).
         #[arg(long)]
         jobs: Option<usize>,
+        /// Disable GSI DEM landing-point refinement.
+        #[arg(long)]
+        no_dem: bool,
     },
 }
 
 fn main() -> Result<()> {
     env_logger::init();
+    std::env::set_var("JSBSIM_DEBUG", "0");
     let cli = Cli::parse();
 
     match cli.cmd {
-        Cmd::Run { config, out_dir } => {
+        Cmd::Run { config, out_dir, no_dem } => {
             let cfg = config::Config::load(&config)?;
             let params = assemble::assemble(&cfg)?;
-            let paths = runner::run(
-                &params,
+
+            let mut output = runner::simulate(&params)?;
+
+            if !no_dem {
+                match dem::DemCache::new() {
+                    Ok(cache) => {
+                        let coords = refine_landing::collect_positions(&output);
+                        cache.prefetch(&coords)?;
+                        if let Err(e) = refine_landing::refine_one(
+                            &mut output,
+                            params.launch_env.elevation,
+                            &cache,
+                        ) {
+                            eprintln!("warn: DEM refinement failed, using original landing: {e:#}");
+                        }
+                    }
+                    Err(e) => eprintln!("warn: DEM cache init failed: {e:#}"),
+                }
+            }
+
+            let paths = runner::write_outputs(
+                &output,
                 &out_dir,
                 cfg.sim.csv_sample_interval as usize,
                 cfg.sim.kml_sample_interval as usize,
+                &params,
             )?;
             eprintln!("wrote {}", paths.summary.display());
             eprintln!("       {}", paths.mainline.display());
@@ -98,6 +128,7 @@ fn main() -> Result<()> {
             speed_max,
             speed_steps,
             jobs,
+            no_dem,
         } => {
             let cfg = config::Config::load(&config)?;
             let params = assemble::assemble(&cfg)?;
@@ -109,6 +140,7 @@ fn main() -> Result<()> {
                 jobs,
                 csv_interval: cfg.sim.csv_sample_interval as usize,
                 kml_interval: cfg.sim.kml_sample_interval as usize,
+                no_dem,
             };
             landing_area::run(&cfg, &params, &args)?;
         }
