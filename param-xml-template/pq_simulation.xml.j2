@@ -20,12 +20,6 @@
     </event>
 
 
-    <!-- Landing: terminate simulation -->
-    <event name="Landed">
-      <condition>position/h-agl-ft lt 0.01</condition>
-      <set name="simulation/terminate" value="1"/>
-    </event>
-
     <!-- Winds aloft: apply wind profile above launcher -->
     <event name="Winds aloft" continuous="true">
       <condition>position/h-sl-meters gt {{ ctx.launcher_height }}</condition>

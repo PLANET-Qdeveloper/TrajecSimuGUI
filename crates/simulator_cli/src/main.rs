@@ -7,6 +7,7 @@ mod assemble;
 mod config;
 mod csv_loader;
 mod kml_writer;
+mod landing_area;
 mod runner;
 
 #[derive(Parser, Debug)]
@@ -34,6 +35,29 @@ enum Cmd {
     Inspect {
         #[arg(short, long)]
         config: PathBuf,
+    },
+    /// Sweep wind speed × direction with power-law profile (rayon-parallel).
+    ///
+    /// Outputs one subdirectory per condition under <out-dir>:
+    ///   <out-dir>/spd{speed:.1}_dir{dir:03.0}/
+    LandingArea {
+        #[arg(short, long)]
+        config: PathBuf,
+        /// Root output directory.
+        #[arg(long, default_value = "landing_area")]
+        out_dir: PathBuf,
+        /// Number of equally-spaced compass directions.
+        #[arg(long, default_value = "8")]
+        directions: u32,
+        /// Maximum wind speed [m/s].
+        #[arg(long, default_value = "8.0")]
+        speed_max: f64,
+        /// Number of speed steps (0 to speed-max inclusive).
+        #[arg(long, default_value = "9")]
+        speed_steps: u32,
+        /// Maximum parallel jobs (default: all available cores).
+        #[arg(long)]
+        jobs: Option<usize>,
     },
 }
 
@@ -66,6 +90,27 @@ fn main() -> Result<()> {
             let cfg = config::Config::load(&config)?;
             let params = assemble::assemble(&cfg)?;
             println!("{}", serde_json::to_string_pretty(&params)?);
+        }
+        Cmd::LandingArea {
+            config,
+            out_dir,
+            directions,
+            speed_max,
+            speed_steps,
+            jobs,
+        } => {
+            let cfg = config::Config::load(&config)?;
+            let params = assemble::assemble(&cfg)?;
+            let args = landing_area::LandingAreaArgs {
+                out_dir,
+                directions,
+                speed_max,
+                speed_steps,
+                jobs,
+                csv_interval: cfg.sim.csv_sample_interval as usize,
+                kml_interval: cfg.sim.kml_sample_interval as usize,
+            };
+            landing_area::run(&cfg, &params, &args)?;
         }
     }
 

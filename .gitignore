@@ -49,3 +49,4 @@ pnpm-debug.log*
 # OS
 Thumbs.db
 /out/
+/crates/simulator_cli/examples/noshiri_2025/out/landing_range/

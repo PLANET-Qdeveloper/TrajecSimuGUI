@@ -1,5 +1,6 @@
 //! Convert user-facing `Config` + CSV tables into a `RocketParams`.
 
+use std::cmp::min;
 use anyhow::{bail, Result};
 
 use simulator_core::params::{
@@ -16,21 +17,48 @@ use crate::csv_loader;
 /// endpoints, so any value well above expected apogee is fine.
 const WINDS_TABLE_TOP_M: f64 = 30_000.0;
 
-/// Power-law table uses variable altitude steps:
-/// - 0..=200 m: 5 m steps
-/// - 210..=1000 m: 10 m steps
-/// - 1100..=10 000 m: 100 m steps
+/// Altitude grid for power-law tables:
+///   0..=200 m   →  5 m steps
+///   210..=1000 m → 10 m steps
+///   1100..=10000 m → 100 m steps
 const POWER_LAW_MAX_M: u32 = 10_000;
 
-/// Build the winds-aloft table (`[[alt_m, speed_mps, dir_deg], …]`).
+/// Build a power-law winds-aloft table `[[alt_m, speed_mps, dir_deg], …]`.
 ///
-/// Wind source precedence:
-/// - `launch.wind_table`: path to a 3-column CSV (alt, speed, direction)
-/// - `launch.wind_speed_mps` + `launch.wind_direction_deg`: power-law
-///   profile generated with variable altitude steps.
+/// - `speed_mps`    — reference wind speed at `h_ref_m`
+/// - `direction_deg`— meteorological "from" direction (constant with altitude)
+/// - `h_ref_m`      — reference height (≥ 10 m; caller must clamp)
+/// - `alpha`        — power-law exponent (1/6 ≈ open terrain)
+pub fn power_law_winds_table(
+    speed_mps: f64,
+    direction_deg: f64,
+    h_ref_m: f64,
+    alpha: f64,
+) -> Vec<[f64; 3]> {
+    let altitudes = (0u32..=200)
+        .step_by(5)
+        .chain((210u32..=1000).step_by(10))
+        .chain((1100u32..=POWER_LAW_MAX_M).step_by(100));
+
+    altitudes
+        .map(|h_m| {
+            let h = h_m as f64;
+            let v = if h_m == 0 {
+                0.0
+            } else {
+                speed_mps * (h / h_ref_m).powf(alpha)
+            };
+            [h, v, direction_deg]
+        })
+        .collect()
+}
+
+/// Build the winds-aloft table from config.
 ///
-/// If both are given, the CSV table is preferred.
-/// If neither is given the table defaults to calm (zero wind).
+/// Source precedence:
+/// - `launch.wind_table` CSV (preferred when present)
+/// - `wind_speed_mps` + `wind_direction_deg` → power-law
+/// - neither → calm (2-point zero table)
 fn build_winds_table(cfg: &Config) -> Result<Vec<[f64; 3]>> {
     match (
         &cfg.launch.wind_table,
@@ -42,33 +70,13 @@ fn build_winds_table(cfg: &Config) -> Result<Vec<[f64; 3]>> {
 
         // ── Power law ────────────────────────────────────────────────────
         (None, Some(speed), Some(direction)) => {
-            // Reference height: explicit override > launch elevation > 10 m floor.
             let h_ref = cfg
                 .launch
                 .wind_reference_alt
                 .unwrap_or(cfg.launch.elevation)
                 .max(10.0);
             let alpha = cfg.launch.wind_power_exponent;
-
-            let altitudes = (0u32..=200)
-                .step_by(5)
-                .chain((210u32..=1000).step_by(10))
-                .chain((1100u32..=POWER_LAW_MAX_M).step_by(100));
-
-            let table = altitudes
-                .map(|h_m| {
-                    let h = h_m as f64;
-                    // At ground level the surface-layer model gives zero
-                    // wind; the rocket clears h_ref within the first steps.
-                    let v = if h_m == 0 {
-                        0.0
-                    } else {
-                        speed * (h / h_ref).powf(alpha)
-                    };
-                    [h, v, direction]
-                })
-                .collect();
-            Ok(table)
+            Ok(power_law_winds_table(speed, direction, h_ref, alpha))
         }
 
         // ── Incomplete scalar pair ────────────────────────────────────────
@@ -167,7 +175,7 @@ pub fn assemble(cfg: &Config) -> Result<RocketParams> {
         sim: SimControl {
             flight_duration: cfg.sim.flight_duration,
             time_step: cfg.sim.time_step,
-            output_decimation_rate: 1,
+            output_decimation_rate: min(cfg.sim.csv_sample_interval, cfg.sim.kml_sample_interval) as usize,
             start_sim_time_sec: 0.0,
         },
         parachute,

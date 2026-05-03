@@ -37,9 +37,13 @@ void FDMWrapper::set_root_dir(rust::Str path) {
 }
 
 bool FDMWrapper::load_script(rust::Str path) {
+    return fdm_->LoadScript(SGPath(std::string(path)));
+}
+
+void FDMWrapper::disable_output()
+{
     fdm_->SetDebugLevel(0);  // Suppress JSBSim's verbose stdout by default.
     fdm_->DisableOutput();
-    return fdm_->LoadScript(SGPath(std::string(path)));
 }
 
 bool FDMWrapper::run_ic() {

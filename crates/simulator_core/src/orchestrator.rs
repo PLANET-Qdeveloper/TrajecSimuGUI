@@ -148,12 +148,21 @@ impl SimulationOrchestrator {
                     lon_deg: out.state.position.lon_deg,
                     alt_agl_m: out.state.position.alt_agl_m,
                 };
-                let snapshot = if out.events.is_empty() {
-                    None
-                } else {
+                // Decide whether to push this OnRail state. Previously OnRail
+                // always pushed; now we decimate similarly to other phases.
+                let events_present = !out.events.is_empty();
+                let completed = out.completed;
+                let push_now = events_present || completed || (self.decimation_counter == 0);
+
+                let snapshot = if events_present || push_now {
                     Some(out.state.clone())
+                } else {
+                    None
                 };
-                self.output.push_mainline(out.state);
+
+                if push_now {
+                    self.output.push_mainline(out.state);
+                }
 
                 for kind in out.events {
                     self.output.push_event(EventStamp {
@@ -167,6 +176,7 @@ impl SimulationOrchestrator {
                 if out.completed {
                     next_phase = Some(Phase::Ballistic);
                     rail_handoff = Some(exit_handoff);
+                    self.decimation_counter = 0;
                 }
             }
             Phase::Ballistic => {
@@ -193,8 +203,11 @@ impl SimulationOrchestrator {
                         .zip(self.deploy_origin_time_sec)
                         .is_some_and(|(trig, t0)| out_time_sec - t0 >= trig.delay_sec);
 
+                // Local parachute handoff for this step — staged into the
+                // outer `parachute_handoff` after the match to satisfy borrows.
+                let mut parachute_handoff_this_step: Option<ParachuteHandoff> = None;
                 if should_deploy {
-                    parachute_handoff = Some(ParachuteHandoff {
+                    parachute_handoff_this_step = Some(ParachuteHandoff {
                         deploy_sim_time_sec: out_time_sec,
                         position: out.state.position.clone(),
                         vel_enu_down_mps: body_velocity_to_enu_down(
@@ -210,12 +223,28 @@ impl SimulationOrchestrator {
                     });
                 }
 
-                let snapshot = if out.events.is_empty() {
-                    None
-                } else {
+                // Decide whether to push this state's trajectory point.
+                // Push if:
+                //  - events occurred this step (must record event state)
+                //  - or step completed (phase transition)
+                //  - or decimation counter == 0
+                //  - or we just detected a parachute handoff (deploy)
+                let events_present = !out.events.is_empty();
+                let completed = out.completed;
+                let push_now = events_present
+                    || completed
+                    || (self.decimation_counter == 0)
+                    || parachute_handoff_this_step.is_some();
+
+                let snapshot = if events_present || push_now {
                     Some(out.state.clone())
+                } else {
+                    None
                 };
-                self.output.push_mainline(out.state);
+
+                if push_now {
+                    self.output.push_mainline(out.state);
+                }
 
                 for kind in out.events {
                     self.output.push_event(EventStamp {
@@ -226,23 +255,37 @@ impl SimulationOrchestrator {
                     });
                 }
 
-                // Prefer parachute transition over any transition JSBSim
-                // itself requested (e.g. Landed from simulation/terminate).
-                if next_phase.is_none()
-                    && out.completed {
-                        next_phase = Some(Phase::Parachute);
-                    }
+                // Stage parachute handoff for application after the match
+                // (keeps borrow rules satisfied).
+                if parachute_handoff_this_step.is_some() {
+                    parachute_handoff = parachute_handoff_this_step;
+                }
+
+                if next_phase.is_none() && out.completed {
+                    next_phase = Some(Phase::Parachute);
+                    self.decimation_counter = 0;
+                }
             }
             Phase::Parachute => {
                 let params = self.params.as_ref().expect("params present");
                 let out = self.parachute.step(params, StageStepInput::default())?;
                 let out_time_sec = out.state.time_sec;
-                let snapshot = if out.events.is_empty() {
-                    None
-                } else {
+
+                let events_present = !out.events.is_empty();
+                let completed = out.completed;
+
+                // Push if: events this step, phase completed, or decimation == 0
+                let push_now = events_present || completed || (self.decimation_counter == 0);
+
+                let snapshot = if events_present || push_now {
                     Some(out.state.clone())
+                } else {
+                    None
                 };
-                self.output.push_parachute(out.state);
+
+                if push_now {
+                    self.output.push_parachute(out.state);
+                }
 
                 for kind in out.events {
                     self.output.push_event(EventStamp {
@@ -309,6 +352,12 @@ impl SimulationOrchestrator {
         }
 
         let running = !matches!(self.phase, Phase::Completed);
+
+        self.decimation_counter += 1;
+        if self.decimation_counter > self.params.as_ref().expect("params present?").sim.output_decimation_rate {
+            self.decimation_counter = 0;
+        }
+
         Ok(running)
     }
 

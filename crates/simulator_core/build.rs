@@ -33,7 +33,12 @@ fn main() {
         .define("CMAKE_DISABLE_FIND_PACKAGE_Python3", "ON")
         .build();
 
-    let lib_dir = dst.join("lib");
+    let profile = std::env::var("PROFILE").unwrap_or_else(|_| "debug".into());
+    let lib_dir = {
+        let base = dst.join("lib");
+        let sub = base.join(&profile); // lib/debug, lib/release
+        if sub.exists() { sub } else { base }
+    };
     let header_dir = jsbsim.join("src");
 
     cxx_build::bridge("src/jsbsim/ffi.rs")
@@ -59,10 +64,18 @@ fn main() {
             println!("cargo:rustc-link-lib=dylib=stdc++");
         }
         // Windows: no rpath; ship JSBSim.dll next to the .exe at packaging time.
-        _ => {}
+        _ => {
+            if std::env::var("CARGO_CFG_TARGET_ENV").as_deref() == Ok("gnu") {
+                println!("cargo:rustc-link-lib=dylib=stdc++");
+            }
+        }
     }
 
     println!("cargo:rerun-if-changed=cpp/jsbsim_bridge.h");
     println!("cargo:rerun-if-changed=cpp/jsbsim_bridge.cpp");
     println!("cargo:rerun-if-changed=src/jsbsim/ffi.rs");
+    println!(
+        "cargo:rerun-if-changed={}",
+        manifest.join("../../.git/modules/jsbsim/HEAD").display()
+    );
 }

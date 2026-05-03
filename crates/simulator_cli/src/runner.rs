@@ -1,5 +1,6 @@
 //! Drive the `SimulationOrchestrator` end-to-end and write outputs.
 
+use std::cmp::min;
 use std::fs;
 use std::io::{BufWriter, Write};
 use std::path::{Path, PathBuf};
@@ -68,6 +69,9 @@ pub fn run(
         summary: out_dir.join("summary.json"),
         kml: out_dir.join("trajectory.kml"),
     };
+    
+    let csv_interval = csv_interval / min(csv_interval, kml_interval);
+    let kml_interval = kml_interval / min(csv_interval, kml_interval);
     
 
     write_trajectory_csv(&paths.mainline, &out.mainline.trajectory, csv_interval)?;
