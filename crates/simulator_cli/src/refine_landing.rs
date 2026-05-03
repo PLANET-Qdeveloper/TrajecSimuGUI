@@ -152,7 +152,7 @@ fn interpolate_state(a: &SimulationState, b: &SimulationState, t: f64) -> Simula
 }
 
 fn update_event(
-    events: &mut Vec<simulator_core::progress::EventStamp>,
+    events: &mut [simulator_core::progress::EventStamp],
     kind: EventKind,
     state: SimulationState,
 ) {
