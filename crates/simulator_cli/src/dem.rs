@@ -188,7 +188,7 @@ impl DemCache {
     /// - `Err`            — network or decode error
     fn download(&self, tx: u32, ty: u32) -> Result<Option<TileGrid>> {
         let agent = ureq::AgentBuilder::new()
-            .timeout_connect(std::time::Duration::from_secs(10))
+            .timeout_connect(std::time::Duration::from_secs(1))
             .timeout(std::time::Duration::from_secs(30))
             .build();
 
@@ -244,49 +244,11 @@ impl DemCache {
             Err(e) => {
                 eprintln!("warn: DEM download {tx},{ty}: {e:#} — storing as 0 m");
                 let g = Box::new([0f32; GRID_SIZE]);
-                let path = self.tile_path(tx, ty);
-                let _ = save_tile_gz(&path, &g);
                 Arc::new(g)
             }
         }
     }
-
-    /// Serially download/cache all unique tiles needed for the given positions.
-    pub fn prefetch(&self, coords: &[(f64, f64)]) -> Result<()> {
-        let mut needed: Vec<(u32, u32)> = coords
-            .iter()
-            .map(|&(lat, lon)| lat_lon_to_tile(lat, lon))
-            .collect();
-        needed.sort_unstable();
-        needed.dedup();
-
-        for (tx, ty) in needed {
-            // Read lock for the fast already-cached check.
-            if self.mem.read().unwrap().contains_key(&(tx, ty)) {
-                continue;
-            }
-
-            // I/O outside the lock.
-            let arc = if self.tile_path(tx, ty).exists() {
-                match load_tile_gz(&self.tile_path(tx, ty)) {
-                    Ok(g) => Arc::new(g),
-                    Err(e) => {
-                        eprintln!("warn: DEM cache read {tx},{ty}: {e:#} — re-downloading");
-                        eprintln!("DEM: downloading tile {tx},{ty}…");
-                        self.fetch_or_zero(tx, ty)
-                    }
-                }
-            } else {
-                eprintln!("DEM: downloading tile {tx},{ty}…");
-                self.fetch_or_zero(tx, ty)
-            };
-
-            // Write lock — or_insert is safe even if prefetch is called
-            // concurrently (e.g. from multiple rayon threads).
-            self.mem.write().unwrap().entry((tx, ty)).or_insert(arc);
-        }
-        Ok(())
-    }
+    
 
     /// Terrain elevation in metres ASL at the given position.
     /// Returns `None` if the tile pixel carries no data or the tile

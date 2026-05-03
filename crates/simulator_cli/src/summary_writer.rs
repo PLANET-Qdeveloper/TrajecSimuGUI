@@ -132,7 +132,7 @@ where
         let pts: Vec<(f64, f64)> = results
             .iter()
             .filter(|r| (r.speed_mps - spd).abs() < 1e-9)
-            .filter_map(|r| get_pt(r))
+            .filter_map(&get_pt)
             .collect();
 
         let hull = convex_hull(pts);

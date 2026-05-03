@@ -86,7 +86,6 @@ fn main() -> Result<()> {
                 match dem::DemCache::new() {
                     Ok(cache) => {
                         let coords = refine_landing::collect_positions(&output);
-                        cache.prefetch(&coords)?;
                         if let Err(e) = refine_landing::refine_one(
                             &mut output,
                             params.launch_env.elevation,
