@@ -77,6 +77,8 @@ impl Simulator for JsbSimSimulator {
     fn initialize(&mut self, params: &RocketParams) -> Result<()> {
         params.validate()?;
 
+        std::env::set_var("JSBSIM_DEBUG", "0");
+
         // 1. Write XML files to an isolated temp directory.
         let ws = SimWorkspace::new()?;
         let ctx = XmlContext::from(params);
@@ -116,7 +118,10 @@ impl Simulator for JsbSimSimulator {
             self.fdm_mut().set_sim_time(params.sim.start_sim_time_sec);
         }
 
-        // 6. Keep the workspace alive for the duration of the run.
+        // 6. Disable jsbsim normal output
+        self.fdm_mut().disable_output();
+
+        // 7. Keep the workspace alive for the duration of the run.
         self._workspace = Some(ws);
         self.running = true;
         Ok(())

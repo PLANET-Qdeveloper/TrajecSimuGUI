@@ -6,13 +6,13 @@
 //! velocity `v_term(t)`, where `t` is measured from the deployment instant.
 //! At terminal velocity the drag magnitude balances gravity:
 //!
-//!     m g = ½ ρ Cd A · v_term²  ⇒  (ρ Cd A) / (2 m) = g / v_term²
+//! m g = 1/2 rho Cd A * v_term^2 => (rho Cd A) / (2 m) = g / v_term^2
 //!
 //! Using this, the drag acceleration on a point mass moving at ground-frame
 //! velocity `v` through still-air-equivalent wind `w` is
 //!
-//!     a_drag = −(g / v_term²) · |v − w| · (v − w)              [ENU]
-//!     a_grav = (0, 0, +g)   (ENU; +z is down in the body-down frame,
+//! a_drag = -(g / v_term^2) * |v - w| * (v - w) [ENU]
+//! a_grav = (0, 0, +g)   (ENU; +z is down in the body-down frame,
 //!                             here expressed with down-positive)
 //!
 //! ENU convention

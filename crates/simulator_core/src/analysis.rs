@@ -6,6 +6,7 @@
 //! `MaxLateralAcceleration`, `MaxAngularRate`. Each carries the full
 //! `SimulationState` snapshot on its `EventStamp.state` field so downstream
 //! consumers can read the vehicle state at the peak.
+//! TODO: Event detection should be implemented inside simulation loop
 
 use serde::{Deserialize, Serialize};
 

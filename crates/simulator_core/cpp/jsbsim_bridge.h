@@ -34,6 +34,7 @@ public:
     /// Returns true while running, false when the simulation has ended.
     bool run();
 
+    void disable_output();
     /// Read a named JSBSim property.
     /// Values are in JSBSim's internal units (fps, lbs, psf, rad …).
     double get_property(rust::Str name) const;
