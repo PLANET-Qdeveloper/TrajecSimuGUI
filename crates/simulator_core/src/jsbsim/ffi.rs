@@ -26,8 +26,8 @@ pub mod bridge {
         /// Returns `true` while running, `false` when the script signals
         /// termination (landed, apogee, or `<run end=…>` reached).
         fn run(self: Pin<&mut FDMWrapper>) -> bool;
-        
-        
+
+
         fn disable_output(self: Pin<&mut FDMWrapper>);
 
         /// Read a named JSBSim property (JSBSim internal units).

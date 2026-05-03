@@ -23,15 +23,8 @@ pub struct RunPaths {
     pub kml: PathBuf,
 }
 
-pub fn run(
-    params: &RocketParams,
-    out_dir: &Path,
-    csv_interval: usize,
-    kml_interval: usize,
-) -> Result<RunPaths> {
-    fs::create_dir_all(out_dir)
-        .with_context(|| format!("creating output dir {}", out_dir.display()))?;
-
+/// Run the simulation and post-analysis pass. No file I/O.
+pub fn simulate(params: &RocketParams) -> Result<UnifiedSimulationOutput> {
     let mut orch = SimulationOrchestrator::new();
     orch.initialize(params)?;
 
@@ -56,11 +49,21 @@ pub fn run(
         );
     }
 
-    // Run post-simulation analysis: per-step diagnostics + derived events
-    // (MaxQ, MaxAxialAcceleration, MaxLateralAcceleration, MaxAngularRate).
     let mut output = orch.into_output();
     analysis::analyze(&mut output, params);
-    let out = &output;
+    Ok(output)
+}
+
+/// Write all output files from a finished (and optionally refined) output.
+pub fn write_outputs(
+    out: &UnifiedSimulationOutput,
+    out_dir: &Path,
+    csv_interval: usize,
+    kml_interval: usize,
+    params: &RocketParams,
+) -> Result<RunPaths> {
+    fs::create_dir_all(out_dir)
+        .with_context(|| format!("creating output dir {}", out_dir.display()))?;
 
     let paths = RunPaths {
         mainline: out_dir.join("mainline.csv"),
@@ -69,22 +72,29 @@ pub fn run(
         summary: out_dir.join("summary.json"),
         kml: out_dir.join("trajectory.kml"),
     };
-    
-    let csv_interval = csv_interval / min(csv_interval, kml_interval);
-    let kml_interval = kml_interval / min(csv_interval, kml_interval);
-    
 
-    write_trajectory_csv(&paths.mainline, &out.mainline.trajectory, csv_interval)?;
-    write_trajectory_csv(
-        &paths.parachute,
-        &out.parachute_branch.trajectory,
-        csv_interval,
-    )?;
+    let norm_csv = csv_interval / min(csv_interval, kml_interval);
+    let norm_kml = kml_interval / min(csv_interval, kml_interval);
+
+    write_trajectory_csv(&paths.mainline, &out.mainline.trajectory, norm_csv)?;
+    write_trajectory_csv(&paths.parachute, &out.parachute_branch.trajectory, norm_csv)?;
     write_events_json(&paths.events, out)?;
     write_summary_json(&paths.summary, out)?;
-    crate::kml_writer::write_trajectory_kml(&paths.kml, out, params, kml_interval)?;
+    crate::kml_writer::write_trajectory_kml(&paths.kml, out, params, norm_kml)?;
 
     Ok(paths)
+}
+
+/// Convenience wrapper: simulate + write outputs (no DEM refinement).
+#[allow(dead_code)]
+pub fn run(
+    params: &RocketParams,
+    out_dir: &Path,
+    csv_interval: usize,
+    kml_interval: usize,
+) -> Result<RunPaths> {
+    let output = simulate(params)?;
+    write_outputs(&output, out_dir, csv_interval, kml_interval, params)
 }
 
 /// `i` is the trajectory step index, `len` the trajectory length. Keep
