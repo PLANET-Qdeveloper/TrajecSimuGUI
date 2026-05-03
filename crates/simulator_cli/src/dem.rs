@@ -18,6 +18,11 @@ const GRID_SIZE: usize = TILE_PIXELS * TILE_PIXELS; // 65536
 // No-data sentinel in the decoded grid.
 const NO_DATA: f32 = f32::NAN;
 
+// Cache type aliases for readability.
+type TileKey = (u32, u32);
+type TileGrid = Box<[f32; GRID_SIZE]>;
+type TileArc = Arc<TileGrid>;
+
 // ── Tile coordinate math ─────────────────────────────────────────────────────
 
 /// Returns (tile_x, tile_y) for a lat/lon at zoom z.
@@ -60,7 +65,7 @@ fn decode_elevation(r: u8, g: u8, b: u8) -> f32 {
     }
 }
 
-fn decode_dem_png(bytes: &[u8]) -> Result<Box<[f32; GRID_SIZE]>> {
+fn decode_dem_png(bytes: &[u8]) -> Result<TileGrid> {
     let decoder = png::Decoder::new(std::io::Cursor::new(bytes));
     let mut reader = decoder.read_info().context("PNG read_info failed")?;
     let mut buf = vec![0u8; reader.output_buffer_size()];
@@ -105,7 +110,7 @@ fn save_tile_gz(path: &Path, grid: &[f32; GRID_SIZE]) -> Result<()> {
     Ok(())
 }
 
-fn load_tile_gz(path: &Path) -> Result<Box<[f32; GRID_SIZE]>> {
+fn load_tile_gz(path: &Path) -> Result<TileGrid> {
     let f = std::fs::File::open(path)
         .with_context(|| format!("opening cache file {}", path.display()))?;
     let mut gz = flate2::read::GzDecoder::new(f);
@@ -124,7 +129,7 @@ fn load_tile_gz(path: &Path) -> Result<Box<[f32; GRID_SIZE]>> {
 
 pub struct DemCache {
     cache_dir: PathBuf,
-    mem: RwLock<HashMap<(u32, u32), Arc<Box<[f32; GRID_SIZE]>>>>,
+    mem: RwLock<HashMap<TileKey, TileArc>>,
 }
 
 impl DemCache {
@@ -151,7 +156,7 @@ impl DemCache {
     /// - Write lock uses `entry().or_insert()` to safely handle the race where
     ///   two threads both reach the slow path for the same tile; only one copy
     ///   is kept and the other is dropped (both contain identical data).
-    fn load_tile(&self, tx: u32, ty: u32) -> Result<Arc<Box<[f32; GRID_SIZE]>>> {
+    fn load_tile(&self, tx: u32, ty: u32) -> Result<TileArc> {
         // Fast path — read lock, no exclusive access needed.
         if let Some(arc) = self.mem.read().unwrap().get(&(tx, ty)) {
             return Ok(arc.clone());
@@ -181,7 +186,7 @@ impl DemCache {
     /// - `Ok(Some(grid))` — tile data successfully downloaded
     /// - `Ok(None)`       — tile does not exist on the server (all URLs 404)
     /// - `Err`            — network or decode error
-    fn download(&self, tx: u32, ty: u32) -> Result<Option<Box<[f32; GRID_SIZE]>>> {
+    fn download(&self, tx: u32, ty: u32) -> Result<Option<TileGrid>> {
         let agent = ureq::AgentBuilder::new()
             .timeout_connect(std::time::Duration::from_secs(10))
             .timeout(std::time::Duration::from_secs(30))
@@ -218,7 +223,7 @@ impl DemCache {
 
     /// Load or create a tile grid. On 404, saves a zero-filled grid to disk so
     /// the tile is not re-requested on the next run.
-    fn fetch_or_zero(&self, tx: u32, ty: u32) -> Arc<Box<[f32; GRID_SIZE]>> {
+    fn fetch_or_zero(&self, tx: u32, ty: u32) -> TileArc {
         match self.download(tx, ty) {
             Ok(Some(g)) => {
                 let path = self.tile_path(tx, ty);
