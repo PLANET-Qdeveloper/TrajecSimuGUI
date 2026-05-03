@@ -188,13 +188,12 @@ impl DemCache {
     /// - `Err`            — network or decode error
     fn download(&self, tx: u32, ty: u32) -> Result<Option<TileGrid>> {
         let agent = ureq::AgentBuilder::new()
-            .timeout_connect(std::time::Duration::from_secs(1))
+            .timeout_connect(std::time::Duration::from_secs(5))
             .timeout(std::time::Duration::from_secs(30))
             .build();
 
         let urls = [
             format!("https://cyberjapandata.gsi.go.jp/xyz/dem5a_png/{ZOOM}/{tx}/{ty}.png"),
-            format!("https://cyberjapandata.gsi.go.jp/xyz/dem_png/{ZOOM}/{tx}/{ty}.png"),
         ];
 
         for url in &urls {
