@@ -11,6 +11,7 @@ mod kml_writer;
 mod landing_area;
 mod refine_landing;
 mod runner;
+mod summary_writer;
 
 #[derive(Parser, Debug)]
 #[command(name = "simulator_cli", about = "TrajecSimuGUI core driver")]
