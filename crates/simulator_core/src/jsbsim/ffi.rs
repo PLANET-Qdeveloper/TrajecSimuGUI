@@ -31,6 +31,7 @@ pub mod bridge {
         fn disable_output(self: Pin<&mut FDMWrapper>);
 
         /// Read a named JSBSim property (JSBSim internal units).
+        #[allow(unused)]
         fn get_property(self: &FDMWrapper, name: &str) -> f64;
 
         /// Write a named JSBSim property.
