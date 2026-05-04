@@ -12,7 +12,7 @@ use simulator_core::analysis;
 
 use simulator_core::{
     EventKind, EventStamp, Phase, RocketParams, SimulationOrchestrator, SimulationState,
-    UnifiedSimulationOutput,
+    Trajectory, UnifiedSimulationOutput,
 };
 
 #[derive(Debug, Clone)]
@@ -200,16 +200,16 @@ impl From<&SimulationState> for SimStateCsvRow {
     }
 }
 
-fn write_trajectory_csv(path: &Path, traj: &[SimulationState], interval: usize) -> Result<()> {
+fn write_trajectory_csv(path: &Path, traj: &Trajectory, interval: usize) -> Result<()> {
     let f = fs::File::create(path).with_context(|| format!("creating {}", path.display()))?;
     let mut writer = csv::Writer::from_writer(BufWriter::new(f));
     let len = traj.len();
-    for (i, s) in traj.iter().enumerate() {
+    for (i, s) in traj.row_iter().enumerate() {
         if !keep_step(i, len, interval) {
             continue;
         }
         writer
-            .serialize(SimStateCsvRow::from(s))
+            .serialize(SimStateCsvRow::from(&s))
             .with_context(|| format!("writing CSV row {i}"))?;
     }
     writer.flush()?;
@@ -362,7 +362,7 @@ fn write_summary_json(path: &Path, out: &UnifiedSimulationOutput) -> Result<()> 
     let landing = if has_parachute_landed {
         out.parachute_branch
             .trajectory
-            .last()
+            .last_state()
             .map(|s| LandingPoint {
                 lat_deg: s.position.lat_deg,
                 lon_deg: s.position.lon_deg,
@@ -370,7 +370,7 @@ fn write_summary_json(path: &Path, out: &UnifiedSimulationOutput) -> Result<()> 
                 source: "parachute",
             })
     } else {
-        out.mainline.trajectory.last().map(|s| LandingPoint {
+        out.mainline.trajectory.last_state().map(|s| LandingPoint {
             lat_deg: s.position.lat_deg,
             lon_deg: s.position.lon_deg,
             alt_agl_m: s.position.alt_agl_m,

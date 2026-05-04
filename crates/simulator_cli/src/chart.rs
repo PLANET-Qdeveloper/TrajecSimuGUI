@@ -2,7 +2,7 @@ use plotters::prelude::*;
 use std::error::Error;
 use std::path::PathBuf;
 
-use simulator_core::{EventKind, EventStamp, SimulationState, UnifiedSimulationOutput};
+use simulator_core::{UnifiedSimulationOutput};
 
 // 岡部・伊藤のカラーパレット指定 (Vermilion -> Orange -> Blue)
 const COLOR_VERMILION: RGBColor = RGBColor(213, 94, 0);
@@ -11,9 +11,9 @@ const COLOR_BLUE: RGBColor = RGBColor(0, 114, 178);
 const PALETTE: [RGBColor; 3] = [COLOR_VERMILION, COLOR_ORANGE, COLOR_BLUE];
 
 /// グラフに描画するデータシリーズ
-pub struct SeriesData {
-    pub label: String,
-    pub data: Vec<(f64, f64)>,
+pub struct SeriesData<'a> {
+    pub x_axis: &'a Vec<f64>,
+    pub y_axis: Vec<(Option<String>, &'a Vec<f64>)>,
 }
 
 /// 特定の点に追加するアノテーション（文字付きポイント）
@@ -36,7 +36,7 @@ pub struct PlotConfig {
 }
 
 fn validate_and_bounds(
-    series_list: &[SeriesData],
+    data: &SeriesData,
     is_x_log: bool,
     is_y_log: bool,
 ) -> Result<((f64, f64), (f64, f64)), Box<dyn Error>> {
@@ -45,25 +45,29 @@ fn validate_and_bounds(
     let mut y_min = f64::INFINITY;
     let mut y_max = f64::NEG_INFINITY;
 
-    for series in series_list {
-        for &(x, y) in &series.data {
-            if x < x_min {
-                x_min = x;
+    for x in data.x_axis.iter() {
+        if *x < x_min {
+            x_min = *x;
+        }
+        if *x > x_max {
+            x_max = *x;
+        }
+    }
+
+    for y_axis in data.y_axis.iter() {
+        for y in y_axis.1.iter() {
+            if *y < y_min {
+                y_min = *y;
             }
-            if x > x_max {
-                x_max = x;
-            }
-            if y < y_min {
-                y_min = y;
-            }
-            if y > y_max {
-                y_max = y;
+            if *y > y_max {
+                y_max = *y;
             }
         }
     }
 
+
     if !x_min.is_finite() || !y_min.is_finite() {
-        return Err("series_list has no data points".into());
+        return Err("data has no data points".into());
     }
     if x_min == x_max || y_min == y_max {
         return Err("data points collapse to a single point".into());
@@ -80,7 +84,7 @@ fn validate_and_bounds(
 
 pub fn draw_result_plot(path: &std::path::Path,
                         output: &UnifiedSimulationOutput,) -> Result<(), Box<dyn Error>> {
-    let mut qbar_plot_config = PlotConfig{
+    let qbar_plot_config = PlotConfig{
         output_path: PathBuf::from(path.join("qbar.plot.bmp")),
         x_label: "Time (s)".to_string(),
         y_label: "Dynamic Pressure (Pa)".to_string(),
@@ -90,17 +94,114 @@ pub fn draw_result_plot(path: &std::path::Path,
         is_y_log: false,
         annotations: vec![],
     };
+
+    draw_academic_plot(qbar_plot_config, SeriesData {
+        x_axis: &output.mainline.trajectory.time_sec,
+        y_axis: vec![(None, &output.mainline.trajectory.qbar_pa)]
+    }).expect("failed to draw qbar plot");
+
+    let mach_plot_config = PlotConfig{
+        output_path: PathBuf::from(path.join("mach.plot.bmp")),
+        x_label: "Time (s)".to_string(),
+        y_label: "Mach".to_string(),
+        x_range: None,
+        y_range: None,
+        is_x_log: false,
+        is_y_log: false,
+        annotations: vec![],
+    };
+
+    draw_academic_plot(mach_plot_config, SeriesData {
+        x_axis: &output.mainline.trajectory.time_sec,
+        y_axis: vec![(None, &output.mainline.trajectory.mach)]
+    }).expect("failed to draw mach plot");
+
+    let altitude_plot_config = PlotConfig{
+        output_path: PathBuf::from(path.join("altitude.plot.bmp")),
+        x_label: "Time (s)".to_string(),
+        y_label: "Altitude (m)".to_string(),
+        x_range: None,
+        y_range: None,
+        is_x_log: false,
+        is_y_log: false,
+        annotations: vec![],
+    };
+
+    draw_academic_plot(altitude_plot_config, SeriesData {
+        x_axis: &output.mainline.trajectory.time_sec,
+        y_axis: vec![(None, &output.mainline.trajectory.alt_agl_m)]
+    }).expect("failed to draw mach plot");
+
+    let velocity_plot_config = PlotConfig{
+        output_path: PathBuf::from(path.join("velocity.plot.bmp")),
+        x_label: "Time (s)".to_string(),
+        y_label: "Velocity (m/s)".to_string(),
+        x_range: None,
+        y_range: None,
+        is_x_log: false,
+        is_y_log: false,
+        annotations: vec![],
+    };
+
+    draw_academic_plot(velocity_plot_config, SeriesData {
+        x_axis: &output.mainline.trajectory.time_sec,
+        y_axis: vec![
+            (Some("x".to_string()), &output.mainline.trajectory.u_mps),
+            (Some("y".to_string()), &output.mainline.trajectory.v_mps),
+            (Some("z".to_string()), &output.mainline.trajectory.w_mps),
+        ]
+    }).expect("failed to draw mach plot");
+
+    let trajectory_plot_config = PlotConfig{
+        output_path: PathBuf::from(path.join("trajectory.plot.bmp")),
+        x_label: "Time (s)".to_string(),
+        y_label: "xyz (m)".to_string(),
+        x_range: None,
+        y_range: None,
+        is_x_log: false,
+        is_y_log: false,
+        annotations: vec![],
+    };
+    draw_academic_plot(trajectory_plot_config, SeriesData {
+        x_axis: &output.mainline.trajectory.time_sec,
+        y_axis: vec![
+            (Some("x".to_string()), &output.mainline.trajectory.local_x_m),
+            (Some("y".to_string()), &output.mainline.trajectory.local_y_m),
+            (Some("altitude".to_string()), &output.mainline.trajectory.alt_agl_m),
+        ]
+    }).expect("failed to draw mach plot");
+
+    let acceleration_plot_config = PlotConfig{
+        output_path: PathBuf::from(path.join("acceleration.plot.bmp")),
+        x_label: "Time (s)".to_string(),
+        y_label: "xyz (m/s²)".to_string(),
+        x_range: None,
+        y_range: None,
+        is_x_log: false,
+        is_y_log: false,
+        annotations: vec![],
+    };
+
+    draw_academic_plot(acceleration_plot_config, SeriesData {
+        x_axis: &output.mainline.trajectory.time_sec,
+        y_axis: vec![
+            (Some("x".to_string()), &output.mainline.trajectory.ax_mps2),
+            (Some("y".to_string()), &output.mainline.trajectory.ay_mps2),
+            (Some("z".to_string()), &output.mainline.trajectory.az_mps2),
+        ]
+    }).expect("failed to draw mach plot");
+
     Ok(())
 
 }
 
 /// 学術的なグラフを生成する関数
-pub fn draw_academic_plot(config: PlotConfig, series_list: Vec<SeriesData>) -> Result<(), Box<dyn Error>> {
-    let root = BitMapBackend::new(&config.output_path, (800, 600)).into_drawing_area();
+pub fn draw_academic_plot(config: PlotConfig, data: SeriesData) -> Result<(), Box<dyn Error>> {
+    let root = BitMapBackend::new(&config.output_path, (2000, 1500)).into_drawing_area();
     root.fill(&WHITE)?;
 
     let ((data_x_min, data_x_max), (data_y_min, data_y_max)) =
-        validate_and_bounds(&series_list, config.is_x_log, config.is_y_log)?;
+        validate_and_bounds(&data, config.is_x_log, config.is_y_log)?;
 
     let (x_min, x_max) = config.x_range.unwrap_or((data_x_min, data_x_max));
     let (y_min, y_max) = if let Some(range) = config.y_range {
@@ -141,19 +242,28 @@ pub fn draw_academic_plot(config: PlotConfig, series_list: Vec<SeriesData>) -> R
                 .draw()?;
 
             // データのプロット (1〜3個のシリーズを想定)
-            for (i, series) in series_list.iter().enumerate() {
-                // 色を順番に適用 (3つを超過した場合はループ)
+            for (i, (label, y_values)) in data.y_axis.iter().enumerate() {
                 let color = PALETTE[i % PALETTE.len()];
+                if let Some(label) = label {
+                    chart
+                        .draw_series(LineSeries::new(
+                            // 共通の times と、個別の y_values を zip して結合
+                            data.x_axis.iter().zip(y_values.iter()).map(|(&x, &y)| (x, y)),
+                            color.stroke_width(2),
+                        ))?
+                        .label(label)
+                        .legend(move |(x, y)| {
+                            PathElement::new(vec![(x, y), (x + 20, y)], color.stroke_width(2))
+                        });
+                }else{
+                    chart
+                        .draw_series(LineSeries::new(
+                            // 共通の times と、個別の y_values を zip して結合
+                            data.x_axis.iter().zip(y_values.iter()).map(|(&x, &y)| (x, y)),
+                            color.stroke_width(2),
+                        ))?;
+                }
 
-                chart
-                    .draw_series(LineSeries::new(
-                        series.data.clone(),
-                        color.stroke_width(2),
-                    ))?
-                    .label(&series.label)
-                    .legend(move |(x, y)| {
-                        PathElement::new(vec![(x, y), (x + 20, y)], color.stroke_width(2))
-                    });
             }
 
             // アノテーション(特定の点への文字付きポイント)の描画

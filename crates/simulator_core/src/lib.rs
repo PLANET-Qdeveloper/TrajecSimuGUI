@@ -39,7 +39,7 @@ pub mod xml_gen;
 pub use error::{Result, SimulatorError};
 pub use jsbsim::JsbSimSimulator;
 pub use orchestrator::{Phase, SimulationOrchestrator, UnifiedSimulationOutput};
-pub use output::SimulationState;
+pub use output::{SimulationState, Trajectory};
 pub use params::RocketParams;
 pub use progress::{EventKind, EventSource, EventStamp};
 

@@ -11,7 +11,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::orchestrator::UnifiedSimulationOutput;
-use crate::output::SimulationState;
+use crate::output::Trajectory;
 use crate::params::RocketParams;
 use crate::progress::{EventKind, EventSource, EventStamp};
 
@@ -30,7 +30,7 @@ pub fn analyze(output: &mut UnifiedSimulationOutput, _params: &RocketParams) {
         .sort_by(|a, b| a.sim_time_sec.total_cmp(&b.sim_time_sec));
 }
 
-fn detect_derived_events(traj: &[SimulationState]) -> Vec<EventStamp> {
+fn detect_derived_events(traj: &Trajectory) -> Vec<EventStamp> {
     if traj.is_empty() {
         return Vec::new();
     }
@@ -44,7 +44,7 @@ fn detect_derived_events(traj: &[SimulationState]) -> Vec<EventStamp> {
     let mut max_lateral = (0usize, f64::NEG_INFINITY);
     let mut max_rate = (0usize, f64::NEG_INFINITY);
 
-    for (i, s) in traj.iter().enumerate() {
+    for (i, s) in traj.row_iter().enumerate() {
         if s.aero.qbar_pa > max_q.1 {
             max_q = (i, s.aero.qbar_pa);
         }
@@ -73,11 +73,14 @@ fn detect_derived_events(traj: &[SimulationState]) -> Vec<EventStamp> {
         }
     }
 
-    let mk = |kind, idx: usize| EventStamp {
-        kind,
-        sim_time_sec: traj[idx].time_sec,
-        source: EventSource::Analysis,
-        state: Some(traj[idx].clone()),
+    let mk = |kind, idx: usize| {
+        let s = traj.get_state(idx);
+        EventStamp {
+            kind,
+            sim_time_sec: s.time_sec,
+            source: EventSource::Analysis,
+            state: Some(s),
+        }
     };
     vec![
         mk(EventKind::MaxQ, max_q.0),
@@ -96,7 +99,7 @@ fn detect_derived_events(traj: &[SimulationState]) -> Vec<EventStamp> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::output::SimulationOutput;
+    use crate::output::{SimulationOutput, SimulationState, Trajectory};
     use crate::params::{
         AeroParams, BodyMassParams, Cd0AlphaMachTable, EngineParams, FuelParams, LaunchEnvParams,
         ParachuteParams, RocketParams, SimControl, TankParams,
@@ -122,11 +125,10 @@ mod tests {
 
     #[test]
     fn detect_max_q_finds_peak() {
-        let traj = vec![
-            make_state(0.0, 100.0, 0.0, 0.0, 0.0),
-            make_state(1.0, 500.0, 0.0, 0.0, 0.0), // peak
-            make_state(2.0, 200.0, 0.0, 0.0, 0.0),
-        ];
+        let mut traj = Trajectory::default();
+        traj.push(&make_state(0.0, 100.0, 0.0, 0.0, 0.0));
+        traj.push(&make_state(1.0, 500.0, 0.0, 0.0, 0.0)); // peak
+        traj.push(&make_state(2.0, 200.0, 0.0, 0.0, 0.0));
         let events = detect_derived_events(&traj);
         let max_q = events
             .iter()
@@ -139,12 +141,11 @@ mod tests {
 
     #[test]
     fn detect_max_lateral_uses_yz_norm() {
-        let traj = vec![
-            // Lateral magnitude = sqrt(3² + 4²) = 5 at t=1
-            make_state(0.0, 0.0, 0.0, 1.0, 1.0),
-            make_state(1.0, 0.0, 0.0, 3.0, 4.0),
-            make_state(2.0, 0.0, 0.0, 2.0, 2.0),
-        ];
+        let mut traj = Trajectory::default();
+        // Lateral magnitude = sqrt(3² + 4²) = 5 at t=1
+        traj.push(&make_state(0.0, 0.0, 0.0, 1.0, 1.0));
+        traj.push(&make_state(1.0, 0.0, 0.0, 3.0, 4.0));
+        traj.push(&make_state(2.0, 0.0, 0.0, 2.0, 2.0));
         let events = detect_derived_events(&traj);
         let lat = events
             .iter()
@@ -174,8 +175,10 @@ mod tests {
             },
             ..Default::default()
         };
-        let traj = vec![s0, s1, s2];
-
+        let mut traj = Trajectory::default();
+        traj.push(&s0);
+        traj.push(&s1);
+        traj.push(&s2);
         let events = detect_derived_events(&traj);
         let rate = events
             .iter()
@@ -188,11 +191,13 @@ mod tests {
     fn analyze_appends_derived_events_in_time_order() {
         let mut output = UnifiedSimulationOutput::default();
         output.mainline = SimulationOutput::new();
-        output.mainline.trajectory = vec![
+        for s in [
             make_state(0.0, 50.0, 0.0, 0.0, 0.0),
             make_state(1.0, 500.0, 10.0, 1.0, 1.0),
             make_state(2.0, 300.0, 5.0, 0.0, 0.0),
-        ];
+        ] {
+            output.mainline.push(s);
+        }
         output.events.push(EventStamp {
             kind: EventKind::Apogee,
             sim_time_sec: 2.0,

@@ -9,7 +9,7 @@
 
 use anyhow::Result;
 
-use simulator_core::output::{Position, SimulationState, Velocity};
+use simulator_core::output::{Position, SimulationState, Trajectory, Velocity};
 use simulator_core::progress::EventKind;
 use simulator_core::UnifiedSimulationOutput;
 
@@ -47,7 +47,7 @@ pub fn refine_one(
 /// terrain. Returns an interpolated `SimulationState` at the exact crossing,
 /// or `None` if no suitable crossing is found (e.g. no DEM data available).
 fn find_terrain_crossing(
-    traj: &[SimulationState],
+    traj: &Trajectory,
     dem: &DemCache,
 ) -> Result<Option<SimulationState>> {
     if traj.len() < 2 {
@@ -58,7 +58,8 @@ fn find_terrain_crossing(
     let mut idx_above: Option<usize> = None;
 
     for i in (0..len - 1).rev() {
-        match compute_true_agl(&traj[i], dem)? {
+        let s = traj.get_state(i);
+        match compute_true_agl(&s, dem)? {
             Some(agl) if agl > 0.0 => {
                 idx_above = Some(i);
                 break;
@@ -77,24 +78,24 @@ fn find_terrain_crossing(
         return Ok(None);
     }
 
-    let a = &traj[idx_above];
-    let b = &traj[idx_below];
+    let a = traj.get_state(idx_above);
+    let b = traj.get_state(idx_below);
 
-    let agl_a = match compute_true_agl(a, dem)? {
+    let agl_a = match compute_true_agl(&a, dem)? {
         Some(v) => v,
         None => return Ok(None),
     };
-    let agl_b = match compute_true_agl(b, dem)? {
+    let agl_b = match compute_true_agl(&b, dem)? {
         Some(v) => v,
         None => return Ok(None),
     };
 
     if agl_a <= 0.0 || agl_b >= 0.0 {
-        return Ok(Some(b.clone()));
+        return Ok(Some(b));
     }
 
     let t = agl_a / (agl_a - agl_b);
-    Ok(Some(interpolate_state(a, b, t)))
+    Ok(Some(interpolate_state(&a, &b, t)))
 }
 
 fn compute_true_agl(
