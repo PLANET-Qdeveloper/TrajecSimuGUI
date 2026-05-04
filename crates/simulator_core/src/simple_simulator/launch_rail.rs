@@ -133,7 +133,7 @@ impl LaunchRailStage {
         let yaw = launch.yaw.to_radians();
 
         let horizontal_m = self.distance_m * pitch.cos();
-        let up_m = self.distance_m * pitch.sin();
+        let up_m = params.launch_env.elevation + self.distance_m * pitch.sin();
 
         let north_m = horizontal_m * yaw.cos();
         let east_m = horizontal_m * yaw.sin();

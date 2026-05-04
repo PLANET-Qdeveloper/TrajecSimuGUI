@@ -6,7 +6,7 @@
 //! 3) parachute branch
 
 use crate::analysis::AnalysisOutput;
-use crate::output::{SimulationOutput, SimulationState};
+use crate::output::{Attitude, Position, SimulationOutput, SimulationState};
 use crate::params::InitialPosition;
 use crate::progress::{EventKind, EventSource, EventStamp};
 use crate::simple_simulator::{
@@ -108,11 +108,28 @@ impl SimulationOrchestrator {
         self.parachute_deployed = false;
 
         self.phase = Phase::OnRail;
+        let initial_state = SimulationState {
+            time_sec: 0.0,
+            position: Position {
+                lat_deg: params.launch_env.latitude,
+                lon_deg: params.launch_env.longitude,
+                alt_agl_m: params.launch_env.elevation,
+                down_range_m: 0.0,
+                local_x_m: 0.0,
+                local_y_m: 0.0,
+            },
+            attitude: Attitude {
+                pitch_deg: params.launch_env.pitch,
+                roll_deg: params.launch_env.roll,
+                yaw_deg: params.launch_env.yaw,
+            },
+            ..SimulationState::default()
+        };
         self.output.push_event(EventStamp {
             kind: EventKind::Start,
             sim_time_sec: 0.0,
             source: EventSource::Orchestrator,
-            state: None,
+            state: Some(initial_state),
         });
         Ok(())
     }
