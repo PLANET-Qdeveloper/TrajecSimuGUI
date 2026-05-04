@@ -89,7 +89,7 @@ fn make_conditions(
 
     // 1. 風速0.0のデータを作成（speedsに含まれている場合のみ）
     // 風速0のときは方向は意味を持たないため、代表して `base_yaw_deg` (または 0.0) を設定して1つだけ追加します。
-    if speeds.iter().any(|&spd| spd == 0.0) {
+    if speeds.contains(&0.0) {
         conditions.push(Condition {
             speed_mps: 0.0,
             dir_deg: base_yaw_deg,

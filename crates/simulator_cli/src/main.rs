@@ -85,7 +85,6 @@ fn main() -> Result<()> {
             if !no_dem {
                 match dem::DemCache::new() {
                     Ok(cache) => {
-                        let coords = refine_landing::collect_positions(&output);
                         if let Err(e) = refine_landing::refine_one(
                             &mut output,
                             params.launch_env.elevation,

@@ -15,22 +15,6 @@ use simulator_core::UnifiedSimulationOutput;
 
 use crate::dem::DemCache;
 
-/// Collect (lat, lon) of all Landed, ParachuteLanded, and Apogee events.
-/// Used to prefetch DEM tiles before refinement.
-pub fn collect_positions(output: &UnifiedSimulationOutput) -> Vec<(f64, f64)> {
-    output
-        .events
-        .iter()
-        .filter(|e| {
-            matches!(
-                e.kind,
-                EventKind::Landed | EventKind::ParachuteLanded | EventKind::Apogee
-            )
-        })
-        .filter_map(|e| e.state.as_ref())
-        .map(|s| (s.position.lat_deg, s.position.lon_deg))
-        .collect()
-}
 
 /// Refine the Landed and ParachuteLanded events in `output` using DEM terrain
 /// data. Modifies the matching event states in-place.
