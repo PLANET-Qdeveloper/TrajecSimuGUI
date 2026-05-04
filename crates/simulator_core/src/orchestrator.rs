@@ -338,7 +338,7 @@ impl SimulationOrchestrator {
             self.parachute_deployed = true;
             // Snapshot the last ballistic state we just pushed — that's the
             // vehicle state at the instant the chute deployed.
-            let deploy_state = self.output.mainline.trajectory.last().cloned();
+            let deploy_state = self.output.mainline.trajectory.last_state();
             self.output.push_event(EventStamp {
                 kind: EventKind::ParachuteOpen,
                 sim_time_sec: h.deploy_sim_time_sec,

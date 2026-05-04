@@ -14,7 +14,7 @@ use anyhow::{Context, Result};
 
 use simulator_core::params::RocketParams;
 use simulator_core::progress::EventStamp;
-use simulator_core::{EventKind, SimulationState, UnifiedSimulationOutput};
+use simulator_core::{EventKind, Trajectory, UnifiedSimulationOutput};
 
 const KML_HEADER: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
@@ -72,7 +72,7 @@ fn write_linestring(
     f: &mut fs::File,
     style_id: &str,
     name: &str,
-    traj: &[SimulationState],
+    traj: &Trajectory,
     _params: &RocketParams,
     interval: usize,
 ) -> Result<()> {
@@ -85,7 +85,7 @@ fn write_linestring(
          <LineString>\n      <altitudeMode>absolute</altitudeMode>\n      <coordinates>"
     )?;
     let len = traj.len();
-    for (i, s) in traj.iter().enumerate() {
+    for (i, s) in traj.row_iter().enumerate() {
         if interval > 1 && i % interval != 0 && i + 1 != len {
             continue;
         }
@@ -247,10 +247,9 @@ mod tests {
     #[test]
     fn omits_empty_branches() {
         let mut out = empty_output();
-        out.mainline.trajectory = vec![
-            make_state(0.0, 35.0, 139.0, 0.0),
-            make_state(1.0, 35.0, 139.0, 100.0),
-        ];
+        for s in [make_state(0.0, 35.0, 139.0, 0.0), make_state(1.0, 35.0, 139.0, 100.0)] {
+            out.mainline.trajectory.push(&s);
+        }
         // parachute branch left empty
         let p = flat_params();
         let path = std::env::temp_dir().join("kml_omits_empty.kml");
@@ -263,9 +262,10 @@ mod tests {
     #[test]
     fn respects_interval_and_keeps_last() {
         let mut out = empty_output();
-        out.mainline.trajectory = (0..10)
-            .map(|i| make_state(i as f64, 35.0 + i as f64 * 0.001, 139.0, 100.0 * i as f64))
-            .collect();
+        for i in 0..10 {
+            let s = make_state(i as f64, 35.0 + i as f64 * 0.001, 139.0, 100.0 * i as f64);
+            out.mainline.trajectory.push(&s);
+        }
         let p = flat_params();
         let path = std::env::temp_dir().join("kml_interval.kml");
         write_trajectory_kml(&path, &out, &p, 5).unwrap();
@@ -282,10 +282,9 @@ mod tests {
     #[test]
     fn emits_well_formed_xml() {
         let mut out = empty_output();
-        out.mainline.trajectory = vec![
-            make_state(0.0, 35.0, 139.0, 5.0),
-            make_state(1.0, 35.001, 139.0, 50.0),
-        ];
+        for s in [make_state(0.0, 35.0, 139.0, 5.0), make_state(1.0, 35.001, 139.0, 50.0)] {
+            out.mainline.trajectory.push(&s);
+        }
         out.events.push(EventStamp {
             kind: EventKind::Apogee,
             sim_time_sec: 1.0,

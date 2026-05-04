@@ -32,6 +32,9 @@ enum Cmd {
         /// Disable GSI DEM landing-point refinement.
         #[arg(long)]
         no_dem: bool,
+
+        #[arg(long)]
+        no_chart: bool,
     },
     /// Parse + assemble + validate only. No simulation step.
     Validate {
@@ -77,7 +80,7 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match cli.cmd {
-        Cmd::Run { config, out_dir, no_dem } => {
+        Cmd::Run { config, out_dir, no_dem , no_chart} => {
             let cfg = config::Config::load(&config)?;
             let params = assemble::assemble(&cfg)?;
 
@@ -104,6 +107,13 @@ fn main() -> Result<()> {
                 cfg.sim.kml_sample_interval as usize,
                 &params,
             )?;
+            
+            if !no_chart{
+                if let Err(e) = chart::draw_result_plot(&*out_dir, &output){
+                  eprintln!("warn: chart generation) failed: {e:#}");
+                };
+            }
+            
             eprintln!("wrote {}", paths.summary.display());
             eprintln!("       {}", paths.mainline.display());
             eprintln!("       {}", paths.parachute.display());

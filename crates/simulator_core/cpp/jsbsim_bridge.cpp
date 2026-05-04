@@ -100,15 +100,15 @@ double FDMWrapper::get_vg_fps() const {
 }
 
 double FDMWrapper::get_u_fps() const {
-    return fdm_->GetPropagate()->GetUVW(JSBSim::FGJSBBase::eU);
+    return fdm_->GetAuxiliary()->GetAeroUVW(JSBSim::FGJSBBase::eU);
 }
 
 double FDMWrapper::get_v_fps() const {
-    return fdm_->GetPropagate()->GetUVW(JSBSim::FGJSBBase::eV);
+    return fdm_->GetAuxiliary()->GetAeroUVW(JSBSim::FGJSBBase::eV);
 }
 
 double FDMWrapper::get_w_fps() const {
-    return fdm_->GetPropagate()->GetUVW(JSBSim::FGJSBBase::eW);
+    return fdm_->GetAuxiliary()->GetAeroUVW(JSBSim::FGJSBBase::eW);
 }
 
 // ---- Attitude --------------------------------------------------------------
