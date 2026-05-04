@@ -38,6 +38,10 @@ pub struct JsbSimSimulator {
     _workspace: Option<SimWorkspace>,
     running: bool,
     generator: XmlGenerator,
+    /// Launch site position — stored at `initialize` for local-coordinate computation.
+    launch_lat_deg: f64,
+    launch_lon_deg: f64,
+    launch_yaw_deg: f64,
 }
 
 // ── Thread safety ───────────────────────────────────────────────────────────
@@ -59,6 +63,9 @@ impl JsbSimSimulator {
             _workspace: None,
             running: false,
             generator: XmlGenerator::new(),
+            launch_lat_deg: 0.0,
+            launch_lon_deg: 0.0,
+            launch_yaw_deg: 0.0,
         }
     }
 
@@ -75,6 +82,9 @@ impl Default for JsbSimSimulator {
 
 impl Simulator for JsbSimSimulator {
     fn initialize(&mut self, params: &RocketParams) -> Result<()> {
+        self.launch_lat_deg = params.launch_env.latitude;
+        self.launch_lon_deg = params.launch_env.longitude;
+        self.launch_yaw_deg = params.launch_env.yaw;
         params.validate()?;
 
         std::env::set_var("JSBSIM_DEBUG", "0");
@@ -150,7 +160,12 @@ impl Simulator for JsbSimSimulator {
     /// Designed to be called after every `step()` call (or every N steps).
     /// All values are converted from JSBSim's fps/lbs/psf system to SI.
     fn get_state(&self) -> Result<SimulationState> {
-        Ok(state::extract_state(&self.fdm))
+        Ok(state::extract_state(
+            &self.fdm,
+            self.launch_lat_deg,
+            self.launch_lon_deg,
+            self.launch_yaw_deg,
+        ))
     }
 
     /// Inject a JSBSim property value between steps.

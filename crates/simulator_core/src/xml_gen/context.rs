@@ -33,8 +33,7 @@ pub struct XmlContext {
     pub velocity_v: f64,
     pub velocity_w: f64,
 
-    // ── Environment / simulation.xml ──────────────────────────────────────
-    pub launcher_height: f64,
+
     /// [[alt_m, dir_rad, speed_fps], …]
     pub winds_table: Vec<[f64; 3]>,
 
@@ -177,7 +176,6 @@ impl From<&RocketParams> for XmlContext {
             velocity_w: p.launch_env.initial_body_velocity_mps[2],
 
             // Environment
-            launcher_height: p.launch_env.launcher_height,
             winds_table,
 
             // Body
@@ -284,7 +282,6 @@ mod tests {
                 latitude: 35.0,
                 longitude: 139.0,
                 elevation: 0.0,
-                launcher_height: 5.0,
                 rail_length_m: 5.0,
                 pitch: 90.0,
                 roll: 0.0,

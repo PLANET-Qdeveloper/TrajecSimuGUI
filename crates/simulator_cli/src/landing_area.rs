@@ -138,7 +138,6 @@ pub fn run(base_cfg: &Config, base_params: &RocketParams, args: &LandingAreaArgs
         .unwrap_or(base_cfg.launch.elevation)
         .max(10.0);
     let alpha = base_cfg.launch.wind_power_exponent;
-    let h_launch = base_params.launch_env.elevation;
 
     // Initialise DEM cache once; shared across all rayon workers via reference.
     // DemCache is Send + Sync (RwLock interior), so this is safe.
@@ -173,7 +172,7 @@ pub fn run(base_cfg: &Config, base_params: &RocketParams, args: &LandingAreaArgs
                 let mut output = runner::simulate(&params)?;
 
                 if let Some(dem) = dem_ref {
-                    if let Err(e) = refine_landing::refine_one(&mut output, h_launch, dem) {
+                    if let Err(e) = refine_landing::refine_one(&mut output, dem) {
                         eprintln!("warn: DEM refine {}: {e:#}", cond.dir_name());
                     }
                 }

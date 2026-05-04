@@ -33,7 +33,7 @@ use crate::output::{
     Acceleration, AeroState, AngularRates, Attitude, Position, SimulationState, Velocity,
 };
 use crate::progress::EventKind;
-use crate::simple_simulator::env::{self, G0_MPS2};
+use crate::simple_simulator::env::{self, latlon_to_local, G0_MPS2};
 use crate::simple_simulator::{StageRunner, StageStepInput, StageStepOutput};
 use crate::{Result, RocketParams};
 
@@ -102,7 +102,7 @@ impl ParachuteStage {
     }
 
     fn wind_enu_at_current_alt(&self, params: &RocketParams) -> [f64; 3] {
-        let alt_msl_m = params.launch_env.elevation + self.alt_agl_m;
+        let alt_msl_m = self.alt_agl_m;
         env::wind_enu_at_alt(&params.launch_env.winds_table, alt_msl_m)
     }
 
@@ -111,7 +111,14 @@ impl ParachuteStage {
         lookup_terminal_mps(&params.parachute.terminal_velocity_table, t_since)
     }
 
-    fn build_state(&self, wind_enu: [f64; 3], accel_enu_down: [f64; 3]) -> SimulationState {
+    fn build_state(
+        &self,
+        wind_enu: [f64; 3],
+        accel_enu_down: [f64; 3],
+        launch_lat_deg: f64,
+        launch_lon_deg: f64,
+        launch_yaw_deg: f64,
+    ) -> SimulationState {
         let v_h = (self.v_east_mps.powi(2) + self.v_north_mps.powi(2)).sqrt();
         let v_rel_e = self.v_east_mps - wind_enu[0];
         let v_rel_n = self.v_north_mps - wind_enu[1];
@@ -140,12 +147,23 @@ impl ParachuteStage {
         let ax_body = accel_enu_down[0] * heading_e + accel_enu_down[1] * heading_n;
         let az_body = accel_enu_down[2];
 
+        let (down_range_m, local_x_m, local_y_m) = latlon_to_local(
+            self.lat_deg,
+            self.lon_deg,
+            launch_lat_deg,
+            launch_lon_deg,
+            launch_yaw_deg,
+        );
+
         SimulationState {
             time_sec: self.sim_time_sec,
             position: Position {
                 lat_deg: self.lat_deg,
                 lon_deg: self.lon_deg,
                 alt_agl_m: self.alt_agl_m,
+                down_range_m,
+                local_x_m,
+                local_y_m,
             },
             velocity: Velocity {
                 true_airspeed_mps: airspeed,
@@ -256,7 +274,13 @@ impl StageRunner for ParachuteStage {
             events.push(EventKind::ParachuteLanded);
         }
 
-        let state = self.build_state(wind_enu, accel_enu_down);
+        let state = self.build_state(
+            wind_enu,
+            accel_enu_down,
+            params.launch_env.latitude,
+            params.launch_env.longitude,
+            params.launch_env.yaw,
+        );
 
         Ok(StageStepOutput {
             state,
@@ -379,7 +403,6 @@ mod tests {
                 latitude: 35.0,
                 longitude: 139.0,
                 elevation: 0.0,
-                launcher_height: 5.0,
                 rail_length_m: 5.0,
                 pitch: 90.0,
                 roll: 0.0,
@@ -416,6 +439,7 @@ mod tests {
                 lat_deg: params.launch_env.latitude,
                 lon_deg: params.launch_env.longitude,
                 alt_agl_m,
+                ..Default::default()
             },
             vel_enu_down,
         );

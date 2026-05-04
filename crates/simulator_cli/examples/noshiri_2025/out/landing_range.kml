@@ -1,0 +1,1390 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document>
+  <name>Landing area</name>
+  <Style id="ballistic_hull">
+    <LineStyle><color>ff00ffff</color><width>2</width></LineStyle>
+    <PolyStyle><color>3300ffff</color></PolyStyle>
+  </Style>
+  <Style id="parachute_hull">
+    <LineStyle><color>ff0000ff</color><width>2</width></LineStyle>
+    <PolyStyle><color>330000ff</color></PolyStyle>
+  </Style>
+  <Style id="ballistic_pt">
+    <IconStyle><color>ff00ffff</color><scale>0.7</scale>
+      <Icon><href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href></Icon>
+    </IconStyle>
+  </Style>
+  <Style id="parachute_pt">
+    <IconStyle><color>ff0000ff</color><scale>0.7</scale>
+      <Icon><href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href></Icon>
+    </IconStyle>
+  </Style>
+  <Folder>
+    <name>Ballistic landing</name>
+    <Placemark>
+      <name>Ballistic landing 1.0 m/s</name>
+      <styleUrl>#ballistic_hull</styleUrl>
+      <Polygon>
+        <outerBoundaryIs><LinearRing>
+          <altitudeMode>clampToGround</altitudeMode>
+          <coordinates>
+            139.9697157,40.2478380,0
+            139.9697848,40.2469305,0
+            139.9703276,40.2464684,0
+            139.9710446,40.2467426,0
+            139.9715077,40.2476192,0
+            139.9714267,40.2485624,0
+            139.9708581,40.2489935,0
+            139.9701530,40.2486838,0
+            139.9697157,40.2478380,0
+          </coordinates>
+        </LinearRing></outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>Ballistic landing 2.0 m/s</name>
+      <styleUrl>#ballistic_hull</styleUrl>
+      <Polygon>
+        <outerBoundaryIs><LinearRing>
+          <altitudeMode>clampToGround</altitudeMode>
+          <coordinates>
+            139.9689738,40.2479285,0
+            139.9691018,40.2461514,0
+            139.9701643,40.2452018,0
+            139.9716115,40.2457095,0
+            139.9725663,40.2474899,0
+            139.9723886,40.2494086,0
+            139.9712215,40.2502356,0
+            139.9698229,40.2495864,0
+            139.9689738,40.2479285,0
+          </coordinates>
+        </LinearRing></outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>Ballistic landing 3.0 m/s</name>
+      <styleUrl>#ballistic_hull</styleUrl>
+      <Polygon>
+        <outerBoundaryIs><LinearRing>
+          <altitudeMode>clampToGround</altitudeMode>
+          <coordinates>
+            139.9683279,40.2480072,0
+            139.9685075,40.2453999,0
+            139.9700696,40.2439434,0
+            139.9722623,40.2446399,0
+            139.9737387,40.2473465,0
+            139.9734452,40.2502693,0
+            139.9716467,40.2514534,0
+            139.9695658,40.2504415,0
+            139.9683279,40.2480072,0
+          </coordinates>
+        </LinearRing></outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>Ballistic landing 4.0 m/s</name>
+      <styleUrl>#ballistic_hull</styleUrl>
+      <Polygon>
+        <outerBoundaryIs><LinearRing>
+          <altitudeMode>clampToGround</altitudeMode>
+          <coordinates>
+            139.9677737,40.2480746,0
+            139.9679992,40.2446778,0
+            139.9700424,40.2427010,0
+            139.9729975,40.2435395,0
+            139.9750280,40.2471887,0
+            139.9745943,40.2511391,0
+            139.9721294,40.2526399,0
+            139.9693780,40.2512482,0
+            139.9677737,40.2480746,0
+          </coordinates>
+        </LinearRing></outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>Ballistic landing 5.0 m/s</name>
+      <styleUrl>#ballistic_hull</styleUrl>
+      <Polygon>
+        <outerBoundaryIs><LinearRing>
+          <altitudeMode>clampToGround</altitudeMode>
+          <coordinates>
+            139.9673055,40.2481314,0
+            139.9675725,40.2439862,0
+            139.9700812,40.2414817,0
+            139.9738164,40.2424149,0
+            139.9764360,40.2470163,0
+            139.9758331,40.2520118,0
+            139.9726656,40.2537886,0
+            139.9692555,40.2520064,0
+            139.9673055,40.2481314,0
+          </coordinates>
+        </LinearRing></outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>Ballistic landing 6.0 m/s</name>
+      <styleUrl>#ballistic_hull</styleUrl>
+      <Polygon>
+        <outerBoundaryIs><LinearRing>
+          <altitudeMode>clampToGround</altitudeMode>
+          <coordinates>
+            139.9669180,40.2481784,0
+            139.9672238,40.2433257,0
+            139.9701834,40.2402921,0
+            139.9747167,40.2412740,0
+            139.9779628,40.2468292,0
+            139.9771562,40.2528805,0
+            139.9732495,40.2548940,0
+            139.9691939,40.2527165,0
+            139.9669180,40.2481784,0
+          </coordinates>
+        </LinearRing></outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>Ballistic landing 7.0 m/s</name>
+      <styleUrl>#ballistic_hull</styleUrl>
+      <Polygon>
+        <outerBoundaryIs><LinearRing>
+          <altitudeMode>clampToGround</altitudeMode>
+          <coordinates>
+            139.9666059,40.2482161,0
+            139.9669485,40.2426967,0
+            139.9703462,40.2391377,0
+            139.9756948,40.2401254,0
+            139.9796072,40.2466277,0
+            139.9785564,40.2537376,0
+            139.9738768,40.2559514,0
+            139.9691895,40.2533790,0
+            139.9666059,40.2482161,0
+          </coordinates>
+        </LinearRing></outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>Ballistic landing 8.0 m/s</name>
+      <styleUrl>#ballistic_hull</styleUrl>
+      <Polygon>
+        <outerBoundaryIs><LinearRing>
+          <altitudeMode>clampToGround</altitudeMode>
+          <coordinates>
+            139.9663643,40.2482452,0
+            139.9667426,40.2420992,0
+            139.9705657,40.2380232,0
+            139.9767453,40.2389788,0
+            139.9813656,40.2464122,0
+            139.9800246,40.2545756,0
+            139.9745414,40.2569575,0
+            139.9692379,40.2539950,0
+            139.9663643,40.2482452,0
+          </coordinates>
+        </LinearRing></outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>spd=0.0 dir=279</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9705593,40.2477351,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=1.0 dir=279</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9715077,40.2476192,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=2.0 dir=279</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9725663,40.2474899,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=3.0 dir=279</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9737387,40.2473465,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=4.0 dir=279</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9750280,40.2471887,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=5.0 dir=279</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9764360,40.2470163,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=6.0 dir=279</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9779628,40.2468292,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=7.0 dir=279</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9796072,40.2466277,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=8.0 dir=279</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9813656,40.2464122,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=1.0 dir=324</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9710446,40.2467426,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=2.0 dir=324</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9716115,40.2457095,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=3.0 dir=324</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9722623,40.2446399,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=4.0 dir=324</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9729975,40.2435395,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=5.0 dir=324</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9738164,40.2424149,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=6.0 dir=324</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9747167,40.2412740,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=7.0 dir=324</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9756948,40.2401254,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=8.0 dir=324</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9767453,40.2389788,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=1.0 dir=009</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9703276,40.2464684,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=2.0 dir=009</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9701643,40.2452018,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=3.0 dir=009</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9700696,40.2439434,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=4.0 dir=009</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9700424,40.2427010,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=5.0 dir=009</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9700812,40.2414817,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=6.0 dir=009</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9701834,40.2402921,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=7.0 dir=009</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9703462,40.2391377,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=8.0 dir=009</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9705657,40.2380232,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=1.0 dir=054</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9697848,40.2469305,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=2.0 dir=054</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9691018,40.2461514,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=3.0 dir=054</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9685075,40.2453999,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=4.0 dir=054</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9679992,40.2446778,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=5.0 dir=054</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9675725,40.2439862,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=6.0 dir=054</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9672238,40.2433257,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=7.0 dir=054</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9669485,40.2426967,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=8.0 dir=054</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9667426,40.2420992,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=1.0 dir=099</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9697157,40.2478380,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=2.0 dir=099</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9689738,40.2479285,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=3.0 dir=099</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9683279,40.2480072,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=4.0 dir=099</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9677737,40.2480746,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=5.0 dir=099</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9673055,40.2481314,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=6.0 dir=099</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9669180,40.2481784,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=7.0 dir=099</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9666059,40.2482161,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=8.0 dir=099</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9663643,40.2482452,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=1.0 dir=144</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9701530,40.2486838,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=2.0 dir=144</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9698229,40.2495864,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=3.0 dir=144</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9695658,40.2504415,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=4.0 dir=144</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9693780,40.2512482,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=5.0 dir=144</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9692555,40.2520064,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=6.0 dir=144</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9691939,40.2527165,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=7.0 dir=144</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9691895,40.2533790,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=8.0 dir=144</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9692379,40.2539950,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=1.0 dir=189</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9708581,40.2489935,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=2.0 dir=189</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9712215,40.2502356,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=3.0 dir=189</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9716467,40.2514534,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=4.0 dir=189</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9721294,40.2526399,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=5.0 dir=189</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9726656,40.2537886,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=6.0 dir=189</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9732495,40.2548940,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=7.0 dir=189</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9738768,40.2559514,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=8.0 dir=189</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9745414,40.2569575,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=1.0 dir=234</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9714267,40.2485624,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=2.0 dir=234</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9723886,40.2494086,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=3.0 dir=234</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9734452,40.2502693,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=4.0 dir=234</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9745943,40.2511391,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=5.0 dir=234</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9758331,40.2520118,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=6.0 dir=234</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9771562,40.2528805,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=7.0 dir=234</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9785564,40.2537376,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=8.0 dir=234</name>
+      <styleUrl>#ballistic_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9800246,40.2545756,0</coordinates>
+      </Point>
+    </Placemark>
+  </Folder>
+  <Folder>
+    <name>Parachute landing</name>
+    <Placemark>
+      <name>Parachute landing 1.0 m/s</name>
+      <styleUrl>#parachute_hull</styleUrl>
+      <Polygon>
+        <outerBoundaryIs><LinearRing>
+          <altitudeMode>clampToGround</altitudeMode>
+          <coordinates>
+            139.9803692,40.2466158,0
+            139.9812829,40.2432943,0
+            139.9848479,40.2414740,0
+            139.9890596,40.2422698,0
+            139.9913940,40.2452851,0
+            139.9903963,40.2487026,0
+            139.9867123,40.2504515,0
+            139.9825844,40.2495596,0
+            139.9803692,40.2466158,0
+          </coordinates>
+        </LinearRing></outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>Parachute landing 2.0 m/s</name>
+      <styleUrl>#parachute_hull</styleUrl>
+      <Polygon>
+        <outerBoundaryIs><LinearRing>
+          <altitudeMode>clampToGround</altitudeMode>
+          <coordinates>
+            139.9752221,40.2472368,0
+            139.9769677,40.2407002,0
+            139.9839691,40.2369987,0
+            139.9924635,40.2384874,0
+            139.9972483,40.2445781,0
+            139.9951668,40.2514979,0
+            139.9876905,40.2549144,0
+            139.9795311,40.2530428,0
+            139.9752221,40.2472368,0
+          </coordinates>
+        </LinearRing></outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>Parachute landing 3.0 m/s</name>
+      <styleUrl>#parachute_hull</styleUrl>
+      <Polygon>
+        <outerBoundaryIs><LinearRing>
+          <altitudeMode>clampToGround</altitudeMode>
+          <coordinates>
+            139.9703298,40.2478268,0
+            139.9728297,40.2381899,0
+            139.9831312,40.2325585,0
+            139.9959617,40.2346323,0
+            140.0033098,40.2438460,0
+            140.0000582,40.2543394,0
+            139.9886934,40.2593343,0
+            139.9766112,40.2564042,0
+            139.9703298,40.2478268,0
+          </coordinates>
+        </LinearRing></outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>Parachute landing 4.0 m/s</name>
+      <styleUrl>#parachute_hull</styleUrl>
+      <Polygon>
+        <outerBoundaryIs><LinearRing>
+          <altitudeMode>clampToGround</altitudeMode>
+          <coordinates>
+            139.9656989,40.2483851,0
+            139.9688771,40.2357705,0
+            139.9823368,40.2281720,0
+            139.9995435,40.2307197,0
+            140.0095607,40.2430907,0
+            140.0050518,40.2572159,0
+            139.9897158,40.2636926,0
+            139.9738320,40.2596350,0
+            139.9656989,40.2483851,0
+          </coordinates>
+        </LinearRing></outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>Parachute landing 5.0 m/s</name>
+      <styleUrl>#parachute_hull</styleUrl>
+      <Polygon>
+        <outerBoundaryIs><LinearRing>
+          <altitudeMode>clampToGround</altitudeMode>
+          <coordinates>
+            139.9613332,40.2489113,0
+            139.9651189,40.2334475,0
+            139.9815889,40.2238573,0
+            140.0031925,40.2267669,0
+            140.0159787,40.2423151,0
+            140.0101275,40.2601142,0
+            139.9907532,40.2679709,0
+            139.9711967,40.2627284,0
+            139.9613332,40.2489113,0
+          </coordinates>
+        </LinearRing></outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>Parachute landing 6.0 m/s</name>
+      <styleUrl>#parachute_hull</styleUrl>
+      <Polygon>
+        <outerBoundaryIs><LinearRing>
+          <altitudeMode>clampToGround</altitudeMode>
+          <coordinates>
+            139.9572344,40.2494051,0
+            139.9615599,40.2312261,0
+            139.9808895,40.2196322,0
+            140.0068962,40.2227909,0
+            140.0225407,40.2415218,0
+            140.0152626,40.2630216,0
+            139.9918005,40.2721531,0
+            139.9687104,40.2656783,0
+            139.9572344,40.2494051,0
+          </coordinates>
+        </LinearRing></outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>Parachute landing 7.0 m/s</name>
+      <styleUrl>#parachute_hull</styleUrl>
+      <Polygon>
+        <outerBoundaryIs><LinearRing>
+          <altitudeMode>clampToGround</altitudeMode>
+          <coordinates>
+            139.9534030,40.2498665,0
+            139.9582059,40.2291094,0
+            139.9802408,40.2155123,0
+            140.0106357,40.2188110,0
+            140.0292194,40.2407142,0
+            140.0204350,40.2659234,0
+            139.9928532,40.2762228,0
+            139.9663745,40.2684801,0
+            139.9534030,40.2498665,0
+          </coordinates>
+        </LinearRing></outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>Parachute landing 8.0 m/s</name>
+      <styleUrl>#parachute_hull</styleUrl>
+      <Polygon>
+        <outerBoundaryIs><LinearRing>
+          <altitudeMode>clampToGround</altitudeMode>
+          <coordinates>
+            139.9498373,40.2502957,0
+            139.9550571,40.2271005,0
+            139.9796442,40.2115127,0
+            140.0143398,40.2149035,0
+            140.0359309,40.2399025,0
+            140.0255843,40.2687859,0
+            139.9939060,40.2801662,0
+            139.9641926,40.2711300,0
+            139.9498373,40.2502957,0
+          </coordinates>
+        </LinearRing></outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>spd=0.0 dir=279</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9857638,40.2459647,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=1.0 dir=279</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9913940,40.2452851,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=2.0 dir=279</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9972483,40.2445781,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=3.0 dir=279</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>140.0033098,40.2438460,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=4.0 dir=279</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>140.0095607,40.2430907,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=5.0 dir=279</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>140.0159787,40.2423151,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=6.0 dir=279</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>140.0225407,40.2415218,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=7.0 dir=279</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>140.0292194,40.2407142,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=8.0 dir=279</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>140.0359309,40.2399025,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=1.0 dir=324</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9890596,40.2422698,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=2.0 dir=324</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9924635,40.2384874,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=3.0 dir=324</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9959617,40.2346323,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=4.0 dir=324</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9995435,40.2307197,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=5.0 dir=324</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>140.0031925,40.2267669,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=6.0 dir=324</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>140.0068962,40.2227909,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=7.0 dir=324</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>140.0106357,40.2188110,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=8.0 dir=324</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>140.0143398,40.2149035,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=1.0 dir=009</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9848479,40.2414740,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=2.0 dir=009</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9839691,40.2369987,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=3.0 dir=009</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9831312,40.2325585,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=4.0 dir=009</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9823368,40.2281720,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=5.0 dir=009</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9815889,40.2238573,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=6.0 dir=009</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9808895,40.2196322,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=7.0 dir=009</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9802408,40.2155123,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=8.0 dir=009</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9796442,40.2115127,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=1.0 dir=054</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9812829,40.2432943,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=2.0 dir=054</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9769677,40.2407002,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=3.0 dir=054</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9728297,40.2381899,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=4.0 dir=054</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9688771,40.2357705,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=5.0 dir=054</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9651189,40.2334475,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=6.0 dir=054</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9615599,40.2312261,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=7.0 dir=054</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9582059,40.2291094,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=8.0 dir=054</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9550571,40.2271005,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=1.0 dir=099</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9803692,40.2466158,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=2.0 dir=099</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9752221,40.2472368,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=3.0 dir=099</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9703298,40.2478268,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=4.0 dir=099</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9656989,40.2483851,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=5.0 dir=099</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9613332,40.2489113,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=6.0 dir=099</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9572344,40.2494051,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=7.0 dir=099</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9534030,40.2498665,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=8.0 dir=099</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9498373,40.2502957,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=1.0 dir=144</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9825844,40.2495596,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=2.0 dir=144</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9795311,40.2530428,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=3.0 dir=144</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9766112,40.2564042,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=4.0 dir=144</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9738320,40.2596350,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=5.0 dir=144</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9711967,40.2627284,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=6.0 dir=144</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9687104,40.2656783,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=7.0 dir=144</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9663745,40.2684801,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=8.0 dir=144</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9641926,40.2711300,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=1.0 dir=189</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9867123,40.2504515,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=2.0 dir=189</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9876905,40.2549144,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=3.0 dir=189</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9886934,40.2593343,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=4.0 dir=189</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9897158,40.2636926,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=5.0 dir=189</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9907532,40.2679709,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=6.0 dir=189</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9918005,40.2721531,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=7.0 dir=189</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9928532,40.2762228,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=8.0 dir=189</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9939060,40.2801662,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=1.0 dir=234</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9903963,40.2487026,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=2.0 dir=234</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>139.9951668,40.2514979,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=3.0 dir=234</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>140.0000582,40.2543394,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=4.0 dir=234</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>140.0050518,40.2572159,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=5.0 dir=234</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>140.0101275,40.2601142,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=6.0 dir=234</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>140.0152626,40.2630216,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=7.0 dir=234</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>140.0204350,40.2659234,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>spd=8.0 dir=234</name>
+      <styleUrl>#parachute_pt</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>140.0255843,40.2687859,0</coordinates>
+      </Point>
+    </Placemark>
+  </Folder>
+</Document>
+</kml>

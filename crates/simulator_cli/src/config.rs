@@ -48,7 +48,6 @@ pub struct LaunchConfig {
     pub latitude: f64,
     pub longitude: f64,
     pub elevation: f64,
-    pub launcher_height: f64,
     #[serde(default = "default_rail_length")]
     pub rail_length: f64,
     pub pitch: f64,

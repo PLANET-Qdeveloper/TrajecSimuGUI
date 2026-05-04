@@ -16,6 +16,12 @@ pub struct Position {
     pub lon_deg: f64,
     /// Altitude above ground level (m).
     pub alt_agl_m: f64,
+    /// Horizontal distance from the launch site (m).
+    pub down_range_m: f64,
+    /// Distance along the launch yaw direction (m), positive forward.
+    pub local_x_m: f64,
+    /// Distance perpendicular to the launch yaw direction (m), positive to the right.
+    pub local_y_m: f64,
 }
 
 /// Velocity in the wind / body frame.
@@ -75,6 +81,16 @@ pub struct AeroState {
     pub beta_deg: f64,
     /// Dynamic pressure (Pa).
     pub qbar_pa: f64,
+    /// Total angle of attack αt = arctan(√(v²+w²) / |u|) (degrees).
+    pub total_aoa_deg: f64,
+    /// Atmospheric pressure (Pa).
+    pub pressure_pa: f64,
+    /// Atmospheric temperature (K).
+    pub temperature_k: f64,
+    /// Airspeed under 9 m/s lateral gust = √(vtrue² + 9²) (m/s).
+    pub gust_airspeed_mps: f64,
+    /// AoA under 9 m/s lateral gust added to v-component (degrees).
+    pub gust_aoa_deg: f64,
 }
 
 /// Complete vehicle state at one time step.

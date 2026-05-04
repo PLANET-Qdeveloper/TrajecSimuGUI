@@ -20,12 +20,11 @@ use crate::dem::DemCache;
 /// data. Modifies the matching event states in-place.
 pub fn refine_one(
     output: &mut UnifiedSimulationOutput,
-    h_launch_asl_m: f64,
     dem: &DemCache,
 ) -> Result<()> {
     if !output.mainline.trajectory.is_empty() {
         if let Some(state) =
-            find_terrain_crossing(&output.mainline.trajectory, h_launch_asl_m, dem)?
+            find_terrain_crossing(&output.mainline.trajectory, dem)?
         {
             update_event(&mut output.events, EventKind::Landed, state);
         }
@@ -33,7 +32,7 @@ pub fn refine_one(
 
     if !output.parachute_branch.trajectory.is_empty() {
         if let Some(state) =
-            find_terrain_crossing(&output.parachute_branch.trajectory, h_launch_asl_m, dem)?
+            find_terrain_crossing(&output.parachute_branch.trajectory, dem)?
         {
             update_event(&mut output.events, EventKind::ParachuteLanded, state);
         }
@@ -49,7 +48,6 @@ pub fn refine_one(
 /// or `None` if no suitable crossing is found (e.g. no DEM data available).
 fn find_terrain_crossing(
     traj: &[SimulationState],
-    h_launch_asl_m: f64,
     dem: &DemCache,
 ) -> Result<Option<SimulationState>> {
     if traj.len() < 2 {
@@ -60,7 +58,7 @@ fn find_terrain_crossing(
     let mut idx_above: Option<usize> = None;
 
     for i in (0..len - 1).rev() {
-        match compute_true_agl(&traj[i], h_launch_asl_m, dem)? {
+        match compute_true_agl(&traj[i], dem)? {
             Some(agl) if agl > 0.0 => {
                 idx_above = Some(i);
                 break;
@@ -82,11 +80,11 @@ fn find_terrain_crossing(
     let a = &traj[idx_above];
     let b = &traj[idx_below];
 
-    let agl_a = match compute_true_agl(a, h_launch_asl_m, dem)? {
+    let agl_a = match compute_true_agl(a, dem)? {
         Some(v) => v,
         None => return Ok(None),
     };
-    let agl_b = match compute_true_agl(b, h_launch_asl_m, dem)? {
+    let agl_b = match compute_true_agl(b, dem)? {
         Some(v) => v,
         None => return Ok(None),
     };
@@ -101,11 +99,10 @@ fn find_terrain_crossing(
 
 fn compute_true_agl(
     s: &SimulationState,
-    h_launch_asl_m: f64,
     dem: &DemCache,
 ) -> Result<Option<f64>> {
     match dem.get_elevation(s.position.lat_deg, s.position.lon_deg)? {
-        Some(h_terrain) => Ok(Some(s.position.alt_agl_m - (h_terrain - h_launch_asl_m))),
+        Some(h_terrain) => Ok(Some(s.position.alt_agl_m - (h_terrain))),
         None => Ok(None),
     }
 }
@@ -118,6 +115,9 @@ fn interpolate_state(a: &SimulationState, b: &SimulationState, t: f64) -> Simula
             lat_deg: lerp(a.position.lat_deg, b.position.lat_deg),
             lon_deg: lerp(a.position.lon_deg, b.position.lon_deg),
             alt_agl_m: lerp(a.position.alt_agl_m, b.position.alt_agl_m),
+            down_range_m: lerp(a.position.down_range_m, b.position.down_range_m),
+            local_x_m: lerp(a.position.local_x_m, b.position.local_x_m),
+            local_y_m: lerp(a.position.local_y_m, b.position.local_y_m),
         },
         velocity: Velocity {
             true_airspeed_mps: lerp(a.velocity.true_airspeed_mps, b.velocity.true_airspeed_mps),

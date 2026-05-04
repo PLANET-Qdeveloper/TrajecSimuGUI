@@ -51,6 +51,35 @@ pub(crate) fn wind_enu_at_alt(winds_table: &[[f64; 3]], alt_msl_m: f64) -> [f64;
     [-speed * theta.sin(), -speed * theta.cos(), 0.0]
 }
 
+/// Convert a geodetic position to launch-site-local coordinates.
+///
+/// Returns `(down_range_m, local_x_m, local_y_m)`:
+/// - `down_range_m`: horizontal distance from the launch site.
+/// - `local_x_m`: distance along the launch yaw direction (positive forward).
+/// - `local_y_m`: distance perpendicular to yaw (positive to the right when
+///   facing the launch direction; 90° clockwise from the yaw axis).
+pub(crate) fn latlon_to_local(
+    lat_deg: f64,
+    lon_deg: f64,
+    launch_lat_deg: f64,
+    launch_lon_deg: f64,
+    launch_yaw_deg: f64,
+) -> (f64, f64, f64) {
+    let d_lat = (lat_deg - launch_lat_deg).to_radians();
+    let d_lon = (lon_deg - launch_lon_deg).to_radians();
+    let lat_mid = ((lat_deg + launch_lat_deg) / 2.0).to_radians();
+    let north_m = d_lat * EARTH_RADIUS_M;
+    let east_m = d_lon * EARTH_RADIUS_M * lat_mid.cos();
+
+    let down_range_m = (north_m.powi(2) + east_m.powi(2)).sqrt();
+
+    let yaw_rad = launch_yaw_deg.to_radians();
+    let local_x_m = north_m * yaw_rad.cos() + east_m * yaw_rad.sin();
+    let local_y_m = -north_m * yaw_rad.sin() + east_m * yaw_rad.cos();
+
+    (down_range_m, local_x_m, local_y_m)
+}
+
 /// Advance a geodetic position by a small ENU offset using the spherical-Earth
 /// approximation (adequate for the per-step displacements the simulator
 /// produces at rocket speeds).
