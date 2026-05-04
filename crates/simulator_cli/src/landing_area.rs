@@ -75,6 +75,7 @@ fn make_conditions(
         .map(|i| (360.0 * i as f64 / directions as f64 + base_yaw_deg).rem_euclid(360.0))
         .collect();
 
+
     let speeds: Vec<f64> = if speed_steps <= 1 {
         vec![0.0]
     } else {
@@ -84,9 +85,31 @@ fn make_conditions(
             .collect()
     };
 
-    dirs.iter()
-        .flat_map(|&dir| speeds.iter().map(move |&spd| Condition { speed_mps: spd, dir_deg: dir }))
-        .collect()
+    let mut conditions = Vec::new();
+
+    // 1. 風速0.0のデータを作成（speedsに含まれている場合のみ）
+    // 風速0のときは方向は意味を持たないため、代表して `base_yaw_deg` (または 0.0) を設定して1つだけ追加します。
+    if speeds.iter().any(|&spd| spd == 0.0) {
+        conditions.push(Condition {
+            speed_mps: 0.0,
+            dir_deg: base_yaw_deg,
+        });
+    }
+
+    // 2. 風速が0より大きいデータを作成し、すべての方向と組み合わせる
+    let non_zero_conditions = dirs.iter().flat_map(|&dir| {
+        speeds
+            .iter()
+            .filter(|&&spd| spd > 0.0) // 風速0を除外
+            .map(move |&spd| Condition {
+                speed_mps: spd,
+                dir_deg: dir,
+            })
+    });
+
+    conditions.extend(non_zero_conditions);
+
+    conditions
 }
 
 // ---------------------------------------------------------------------------
