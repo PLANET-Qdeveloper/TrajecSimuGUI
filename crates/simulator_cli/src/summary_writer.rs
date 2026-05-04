@@ -57,20 +57,20 @@ const KML_HEADER: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
 <Document>
   <name>Landing area</name>
   <Style id="ballistic_hull">
-    <LineStyle><color>ff00ffff</color><width>2</width></LineStyle>
-    <PolyStyle><color>3300ffff</color></PolyStyle>
+    <LineStyle><color>ff005ed5</color><width>2</width></LineStyle>
+    <PolyStyle><color>4D005ED5</color></PolyStyle>
   </Style>
   <Style id="parachute_hull">
-    <LineStyle><color>ff0000ff</color><width>2</width></LineStyle>
-    <PolyStyle><color>330000ff</color></PolyStyle>
+    <LineStyle><color>ff009fe6</color><width>2</width></LineStyle>
+    <PolyStyle><color>4D009FE6</color></PolyStyle>
   </Style>
   <Style id="ballistic_pt">
-    <IconStyle><color>ff00ffff</color><scale>0.7</scale>
+    <IconStyle><color>ff005ed5</color><scale>0.7</scale>
       <Icon><href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href></Icon>
     </IconStyle>
   </Style>
   <Style id="parachute_pt">
-    <IconStyle><color>ff0000ff</color><scale>0.7</scale>
+    <IconStyle><color>ff009fe6</color><scale>0.7</scale>
       <Icon><href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href></Icon>
     </IconStyle>
   </Style>

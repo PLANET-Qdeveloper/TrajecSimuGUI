@@ -12,6 +12,7 @@ mod landing_area;
 mod refine_landing;
 mod runner;
 mod summary_writer;
+mod chart;
 
 #[derive(Parser, Debug)]
 #[command(name = "simulator_cli", about = "TrajecSimuGUI core driver")]
