@@ -21,14 +21,14 @@ const KML_HEADER: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
 <Document>
   <name>TrajecSimuGUI flight</name>
   <Style id="ballistic">
-    <LineStyle><color>ff00ffff</color><width>2</width></LineStyle>
+    <LineStyle><color>ff005ed5</color><width>2</width></LineStyle>
   </Style>
   <Style id="parachute">
-    <LineStyle><color>ff0000ff</color><width>2</width></LineStyle>
+    <LineStyle><color>ff009fe6</color><width>2</width></LineStyle>
   </Style>
   <Style id="event">
     <IconStyle>
-      <color>ff0000ff</color>
+      <color>ffffffff</color>
       <Icon><href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href></Icon>
     </IconStyle>
   </Style>

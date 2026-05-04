@@ -21,6 +21,7 @@ ureq = "2"
 png = "0.17"
 flate2 = "1"
 dirs = "5"
+plotters = "0.3.3"
 
 [[bin]]
 name = "simulator_cli"
