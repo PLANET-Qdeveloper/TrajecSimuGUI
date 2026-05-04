@@ -2,15 +2,16 @@
 
 use std::cmp::min;
 use std::fs;
-use std::io::{BufWriter, Write};
+use std::io::BufWriter;
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 use serde::Serialize;
 
 use simulator_core::analysis;
+
 use simulator_core::{
-    EventKind, Phase, RocketParams, SimulationOrchestrator, SimulationState,
+    EventKind, EventStamp, Phase, RocketParams, SimulationOrchestrator, SimulationState,
     UnifiedSimulationOutput,
 };
 
@@ -19,6 +20,7 @@ pub struct RunPaths {
     pub mainline: PathBuf,
     pub parachute: PathBuf,
     pub events: PathBuf,
+    pub events_csv: PathBuf,
     pub summary: PathBuf,
     pub kml: PathBuf,
 }
@@ -69,6 +71,7 @@ pub fn write_outputs(
         mainline: out_dir.join("mainline.csv"),
         parachute: out_dir.join("parachute.csv"),
         events: out_dir.join("events.json"),
+        events_csv: out_dir.join("events.csv"),
         summary: out_dir.join("summary.json"),
         kml: out_dir.join("trajectory.kml"),
     };
@@ -79,6 +82,7 @@ pub fn write_outputs(
     write_trajectory_csv(&paths.mainline, &out.mainline.trajectory, norm_csv)?;
     write_trajectory_csv(&paths.parachute, &out.parachute_branch.trajectory, norm_csv)?;
     write_events_json(&paths.events, out)?;
+    write_events_csv(&paths.events_csv, &out.events)?;
     write_summary_json(&paths.summary, out)?;
     crate::kml_writer::write_trajectory_kml(&paths.kml, out, params, norm_kml)?;
 
@@ -104,58 +108,210 @@ fn keep_step(i: usize, len: usize, interval: usize) -> bool {
     interval <= 1 || i.is_multiple_of(interval) || i + 1 == len
 }
 
-const CSV_HEADER: &str = "\
-time_sec,\
-lat_deg,lon_deg,alt_agl_m,\
-u_mps,v_mps,w_mps,true_airspeed_mps,ground_speed_mps,\
-pitch_deg,roll_deg,yaw_deg,\
-p_rad_sec,q_rad_sec,r_rad_sec,\
-ax_mps2,ay_mps2,az_mps2,\
-alpha_deg,beta_deg,qbar_pa,\
-thrust_n,mach";
+/// Flat CSV row derived from `SimulationState`.
+///
+/// The csv crate auto-generates the header from field names, so adding a field
+/// here (and to the `From` impl below) is the only change needed when the
+/// output schema grows.
+#[derive(Serialize)]
+struct SimStateCsvRow {
+    // ── Time ────────────────────────────────────────────────────────────
+    time_sec: f64,
+    // ── Position ────────────────────────────────────────────────────────
+    lat_deg: f64,
+    lon_deg: f64,
+    alt_agl_m: f64,
+    down_range_m: f64,
+    local_x_m: f64,
+    local_y_m: f64,
+    // ── Velocity ────────────────────────────────────────────────────────
+    u_mps: f64,
+    v_mps: f64,
+    w_mps: f64,
+    true_airspeed_mps: f64,
+    ground_speed_mps: f64,
+    // ── Attitude ────────────────────────────────────────────────────────
+    pitch_deg: f64,
+    roll_deg: f64,
+    yaw_deg: f64,
+    // ── Angular rates ────────────────────────────────────────────────────
+    p_rad_sec: f64,
+    q_rad_sec: f64,
+    r_rad_sec: f64,
+    // ── Acceleration ─────────────────────────────────────────────────────
+    ax_mps2: f64,
+    ay_mps2: f64,
+    az_mps2: f64,
+    // ── Aerodynamics / atmosphere ────────────────────────────────────────
+    alpha_deg: f64,
+    beta_deg: f64,
+    qbar_pa: f64,
+    total_aoa_deg: f64,
+    pressure_pa: f64,
+    temperature_k: f64,
+    gust_airspeed_mps: f64,
+    gust_aoa_deg: f64,
+    // ── Propulsion ───────────────────────────────────────────────────────
+    thrust_n: f64,
+    mach: f64,
+}
+
+impl From<&SimulationState> for SimStateCsvRow {
+    fn from(s: &SimulationState) -> Self {
+        let p = &s.position;
+        let v = &s.velocity;
+        let att = &s.attitude;
+        let ar = &s.angular_rates;
+        let acc = &s.acceleration;
+        let aero = &s.aero;
+        SimStateCsvRow {
+            time_sec: s.time_sec,
+            lat_deg: p.lat_deg,
+            lon_deg: p.lon_deg,
+            alt_agl_m: p.alt_agl_m,
+            down_range_m: p.down_range_m,
+            local_x_m: p.local_x_m,
+            local_y_m: p.local_y_m,
+            u_mps: v.u_mps,
+            v_mps: v.v_mps,
+            w_mps: v.w_mps,
+            true_airspeed_mps: v.true_airspeed_mps,
+            ground_speed_mps: v.ground_speed_mps,
+            pitch_deg: att.pitch_deg,
+            roll_deg: att.roll_deg,
+            yaw_deg: att.yaw_deg,
+            p_rad_sec: ar.p_rad_sec,
+            q_rad_sec: ar.q_rad_sec,
+            r_rad_sec: ar.r_rad_sec,
+            ax_mps2: acc.ax_mps2,
+            ay_mps2: acc.ay_mps2,
+            az_mps2: acc.az_mps2,
+            alpha_deg: aero.alpha_deg,
+            beta_deg: aero.beta_deg,
+            qbar_pa: aero.qbar_pa,
+            total_aoa_deg: aero.total_aoa_deg,
+            pressure_pa: aero.pressure_pa,
+            temperature_k: aero.temperature_k,
+            gust_airspeed_mps: aero.gust_airspeed_mps,
+            gust_aoa_deg: aero.gust_aoa_deg,
+            thrust_n: s.thrust_n,
+            mach: s.mach,
+        }
+    }
+}
 
 fn write_trajectory_csv(path: &Path, traj: &[SimulationState], interval: usize) -> Result<()> {
     let f = fs::File::create(path).with_context(|| format!("creating {}", path.display()))?;
-    let mut writer = BufWriter::new(f);
-    writeln!(writer, "{CSV_HEADER}")?;
+    let mut writer = csv::Writer::from_writer(BufWriter::new(f));
     let len = traj.len();
     for (i, s) in traj.iter().enumerate() {
         if !keep_step(i, len, interval) {
             continue;
         }
-        writeln!(
-            writer,
-            "{:.9},{:.9},{:.9},{:.6},\
-             {:.6},{:.6},{:.6},{:.6},{:.6},\
-             {:.6},{:.6},{:.6},\
-             {:.6},{:.6},{:.6},\
-             {:.6},{:.6},{:.6},\
-             {:.6},{:.6},{:.6},\
-             {:.6},{:.6}",
-            s.time_sec,
-            s.position.lat_deg,
-            s.position.lon_deg,
-            s.position.alt_agl_m,
-            s.velocity.u_mps,
-            s.velocity.v_mps,
-            s.velocity.w_mps,
-            s.velocity.true_airspeed_mps,
-            s.velocity.ground_speed_mps,
-            s.attitude.pitch_deg,
-            s.attitude.roll_deg,
-            s.attitude.yaw_deg,
-            s.angular_rates.p_rad_sec,
-            s.angular_rates.q_rad_sec,
-            s.angular_rates.r_rad_sec,
-            s.acceleration.ax_mps2,
-            s.acceleration.ay_mps2,
-            s.acceleration.az_mps2,
-            s.aero.alpha_deg,
-            s.aero.beta_deg,
-            s.aero.qbar_pa,
-            s.thrust_n,
-            s.mach,
-        )?;
+        writer
+            .serialize(SimStateCsvRow::from(s))
+            .with_context(|| format!("writing CSV row {i}"))?;
+    }
+    writer.flush()?;
+    Ok(())
+}
+
+/// Flat CSV row for a single event.
+/// State fields are `Option<f64>` — empty cells when the event carries no state.
+#[derive(Serialize)]
+struct EventCsvRow {
+    kind: String,
+    source: String,
+    sim_time_sec: f64,
+    // State fields (mirrors SimStateCsvRow but optional)
+    state_time_sec: Option<f64>,
+    lat_deg: Option<f64>,
+    lon_deg: Option<f64>,
+    alt_agl_m: Option<f64>,
+    down_range_m: Option<f64>,
+    local_x_m: Option<f64>,
+    local_y_m: Option<f64>,
+    u_mps: Option<f64>,
+    v_mps: Option<f64>,
+    w_mps: Option<f64>,
+    true_airspeed_mps: Option<f64>,
+    ground_speed_mps: Option<f64>,
+    pitch_deg: Option<f64>,
+    roll_deg: Option<f64>,
+    yaw_deg: Option<f64>,
+    p_rad_sec: Option<f64>,
+    q_rad_sec: Option<f64>,
+    r_rad_sec: Option<f64>,
+    ax_mps2: Option<f64>,
+    ay_mps2: Option<f64>,
+    az_mps2: Option<f64>,
+    alpha_deg: Option<f64>,
+    beta_deg: Option<f64>,
+    qbar_pa: Option<f64>,
+    total_aoa_deg: Option<f64>,
+    pressure_pa: Option<f64>,
+    temperature_k: Option<f64>,
+    gust_airspeed_mps: Option<f64>,
+    gust_aoa_deg: Option<f64>,
+    thrust_n: Option<f64>,
+    mach: Option<f64>,
+}
+
+impl From<&EventStamp> for EventCsvRow {
+    fn from(e: &EventStamp) -> Self {
+        let s = e.state.as_ref();
+        let p = s.map(|s| &s.position);
+        let v = s.map(|s| &s.velocity);
+        let att = s.map(|s| &s.attitude);
+        let ar = s.map(|s| &s.angular_rates);
+        let acc = s.map(|s| &s.acceleration);
+        let aero = s.map(|s| &s.aero);
+        EventCsvRow {
+            kind: e.kind.to_string(),
+            source: format!("{:?}", e.source),
+            sim_time_sec: e.sim_time_sec,
+            state_time_sec: s.map(|s| s.time_sec),
+            lat_deg: p.map(|p| p.lat_deg),
+            lon_deg: p.map(|p| p.lon_deg),
+            alt_agl_m: p.map(|p| p.alt_agl_m),
+            down_range_m: p.map(|p| p.down_range_m),
+            local_x_m: p.map(|p| p.local_x_m),
+            local_y_m: p.map(|p| p.local_y_m),
+            u_mps: v.map(|v| v.u_mps),
+            v_mps: v.map(|v| v.v_mps),
+            w_mps: v.map(|v| v.w_mps),
+            true_airspeed_mps: v.map(|v| v.true_airspeed_mps),
+            ground_speed_mps: v.map(|v| v.ground_speed_mps),
+            pitch_deg: att.map(|a| a.pitch_deg),
+            roll_deg: att.map(|a| a.roll_deg),
+            yaw_deg: att.map(|a| a.yaw_deg),
+            p_rad_sec: ar.map(|a| a.p_rad_sec),
+            q_rad_sec: ar.map(|a| a.q_rad_sec),
+            r_rad_sec: ar.map(|a| a.r_rad_sec),
+            ax_mps2: acc.map(|a| a.ax_mps2),
+            ay_mps2: acc.map(|a| a.ay_mps2),
+            az_mps2: acc.map(|a| a.az_mps2),
+            alpha_deg: aero.map(|a| a.alpha_deg),
+            beta_deg: aero.map(|a| a.beta_deg),
+            qbar_pa: aero.map(|a| a.qbar_pa),
+            total_aoa_deg: aero.map(|a| a.total_aoa_deg),
+            pressure_pa: aero.map(|a| a.pressure_pa),
+            temperature_k: aero.map(|a| a.temperature_k),
+            gust_airspeed_mps: aero.map(|a| a.gust_airspeed_mps),
+            gust_aoa_deg: aero.map(|a| a.gust_aoa_deg),
+            thrust_n: s.map(|s| s.thrust_n),
+            mach: s.map(|s| s.mach),
+        }
+    }
+}
+
+fn write_events_csv(path: &Path, events: &[EventStamp]) -> Result<()> {
+    let f = fs::File::create(path).with_context(|| format!("creating {}", path.display()))?;
+    let mut writer = csv::Writer::from_writer(BufWriter::new(f));
+    for e in events {
+        writer
+            .serialize(EventCsvRow::from(e))
+            .with_context(|| format!("writing event CSV row: {:?}", e.kind))?;
     }
     writer.flush()?;
     Ok(())

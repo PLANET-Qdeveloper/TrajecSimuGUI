@@ -4,7 +4,6 @@ launch:
   latitude: 40.242865
   longitude: 140.01045
   elevation: 5.3
-  launcher_height: 5.0
   rail_length: 5.0
   pitch: 75.0
   roll: 0.0

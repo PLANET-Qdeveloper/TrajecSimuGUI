@@ -89,6 +89,10 @@ public:
     double get_qbar_psf()   const;
     double get_mach()       const;
 
+    // Atmosphere  (FGAtmosphere)
+    double get_pressure_psf()        const;
+    double get_temperature_rankine() const;
+
     // Propulsion  (FGExternalReactions)
     double get_thrust_magnitude_lbf() const;
 

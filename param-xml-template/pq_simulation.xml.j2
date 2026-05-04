@@ -22,7 +22,7 @@
 
     <!-- Winds aloft: apply wind profile above launcher -->
     <event name="Winds aloft" continuous="true">
-      <condition>position/h-sl-meters gt {{ ctx.launcher_height }}</condition>
+      <condition>simulation/sim-time-sec ge 0.05</condition>
 
       <!-- Direction in rad (pre-converted from deg in Rust) -->
       <set name="atmosphere/psiw-rad">
@@ -54,30 +54,5 @@
     </event>
 
   </run>
-
-  <!-- Debug CSV output. Primary state is read via GetPropertyValue. -->
-  <output name="pq_rocket_output_raw.csv" type="CSV" rate="100" file="unitconversions.xml">
-    <property caption="Latitude">position/lat-gc-deg</property>
-    <property caption="Longitude">position/long-gc-deg</property>
-    <property apply="convert-ft-To-m"           caption="Altitude">position/h-agl-ft</property>
-    <property apply="convert-rad-To-deg"         caption="AngleOfAttack">aero/alpha-rad</property>
-    <property apply="convert-rad-To-deg"         caption="Sideslip">aero/beta-rad</property>
-    <property apply="convert-ft_sec2-To-m_sec2"  caption="AccelX">accelerations/udot-ft_sec2</property>
-    <property apply="convert-ft_sec2-To-m_sec2"  caption="AccelY">accelerations/vdot-ft_sec2</property>
-    <property apply="convert-ft_sec2-To-m_sec2"  caption="AccelZ">accelerations/wdot-ft_sec2</property>
-    <property apply="convert-lbs-To-N"           caption="Thrust">external_reactions/thrust/magnitude</property>
-    <property apply="convert-fps-To-ms"          caption="TrueVelocity">velocities/vtrue-fps</property>
-    <property apply="convert-fps-To-m_s"         caption="GroundVelocity">velocities/vg-fps</property>
-    <property apply="convert-rad-To-deg"         caption="Pitch">attitude/theta-rad</property>
-    <property apply="convert-rad-To-deg"         caption="Roll">attitude/phi-rad</property>
-    <property apply="convert-rad-To-deg"         caption="Yaw">attitude/psi-rad</property>
-    <property apply="convert-psf-To-Pa"          caption="DynPressure">aero/qbar-psf</property>
-    <property apply="convert-fps-To-m_s"         caption="WindSpeed">atmosphere/wind-mag-fps</property>
-    <property caption="Mach">velocities/mach</property>
-    <property caption="OmegaX">velocities/p-rad_sec</property>
-    <property caption="OmegaY">velocities/q-rad_sec</property>
-    <property caption="OmegaZ">velocities/r-rad_sec</property>
-    <property caption="Cmq">aero/coefficient/Cmq</property>
-  </output>
 
 </runscript>

@@ -87,7 +87,6 @@ fn main() -> Result<()> {
                     Ok(cache) => {
                         if let Err(e) = refine_landing::refine_one(
                             &mut output,
-                            params.launch_env.elevation,
                             &cache,
                         ) {
                             eprintln!("warn: DEM refinement failed, using original landing: {e:#}");

@@ -166,12 +166,14 @@ mod tests {
                 lat_deg: lat,
                 lon_deg: lon,
                 alt_agl_m: alt_agl,
+                ..Default::default()
             },
             mach: 0.5,
             aero: simulator_core::output::AeroState {
                 alpha_deg: 0.0,
                 beta_deg: 0.0,
                 qbar_pa: 1234.0,
+                ..Default::default()
             },
             ..Default::default()
         }
@@ -229,7 +231,6 @@ mod tests {
                 latitude: 35.0,
                 longitude: 139.0,
                 elevation: 5.0,
-                launcher_height: 5.0,
                 rail_length_m: 5.0,
                 pitch: 90.0,
                 roll: 0.0,

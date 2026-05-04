@@ -19,7 +19,7 @@ use crate::output::{
     Acceleration, AeroState, AngularRates, Attitude, Position, SimulationState, Velocity,
 };
 use crate::progress::EventKind;
-use crate::simple_simulator::env::{self, G0_MPS2};
+use crate::simple_simulator::env::{self, latlon_to_local, G0_MPS2};
 use crate::simple_simulator::{StageRunner, StageStepInput, StageStepOutput};
 use crate::{Result, RocketParams};
 
@@ -141,6 +141,9 @@ impl LaunchRailStage {
         let (lat_deg, lon_deg) =
             env::advance_latlon_by_enu(launch.latitude, launch.longitude, east_m, north_m);
 
+        let (down_range_m, local_x_m, local_y_m) =
+            latlon_to_local(lat_deg, lon_deg, launch.latitude, launch.longitude, launch.yaw);
+
         let v = self.velocity_mps;
         let v_rel_along_rail = v - wind_along_rail_mps;
 
@@ -150,6 +153,9 @@ impl LaunchRailStage {
                 lat_deg,
                 lon_deg,
                 alt_agl_m: up_m.max(0.0),
+                down_range_m,
+                local_x_m,
+                local_y_m,
             },
             velocity: Velocity {
                 true_airspeed_mps: v_rel_along_rail.abs(),
@@ -304,7 +310,6 @@ mod tests {
                 latitude: 35.0,
                 longitude: 139.0,
                 elevation: 0.0,
-                launcher_height: 5.0,
                 rail_length_m: 5.0,
                 pitch: pitch_deg,
                 roll: 0.0,

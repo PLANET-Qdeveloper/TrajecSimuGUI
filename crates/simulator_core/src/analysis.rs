@@ -109,6 +109,7 @@ mod tests {
                 alpha_deg: 0.0,
                 beta_deg: 0.0,
                 qbar_pa: qbar,
+                ..Default::default()
             },
             acceleration: crate::output::Acceleration {
                 ax_mps2: ax,
@@ -248,7 +249,6 @@ mod tests {
                 latitude: 35.0,
                 longitude: 139.0,
                 elevation: 0.0,
-                launcher_height: 5.0,
                 rail_length_m: 5.0,
                 pitch: 90.0,
                 roll: 0.0,

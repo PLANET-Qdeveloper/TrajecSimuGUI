@@ -6,10 +6,11 @@
 //! This function is called every step (or every N steps as configured),
 //! so it is kept allocation-free.
 
-use uom::si::f64::{Acceleration, Angle, AngularVelocity, Length, Pressure, Velocity};
+use uom::si::f64::{Acceleration, Angle, AngularVelocity, Length, Pressure, ThermodynamicTemperature, Velocity};
 use uom::si::{
     acceleration::foot_per_second_squared, angle::radian, angular_velocity::radian_per_second,
-    length::foot, pressure::pound_force_per_square_foot, velocity::foot_per_second,
+    length::foot, pressure::pound_force_per_square_foot,
+    thermodynamic_temperature::degree_rankine, velocity::foot_per_second,
 };
 
 use super::ffi::bridge::FDMWrapper;
@@ -17,6 +18,7 @@ use crate::output::{
     Acceleration as AccOut, AeroState, AngularRates, Attitude, Position, SimulationState,
     Velocity as VelOut,
 };
+use crate::simple_simulator::env::latlon_to_local;
 
 /// Read the full vehicle state from JSBSim in one call.
 ///
@@ -24,7 +26,12 @@ use crate::output::{
 /// writer side via `SimControl::csv_sample_interval` /
 /// `kml_sample_interval`, so this hot path always produces full-resolution
 /// state.
-pub fn extract_state(fdm: &FDMWrapper) -> SimulationState {
+pub fn extract_state(
+    fdm: &FDMWrapper,
+    launch_lat_deg: f64,
+    launch_lon_deg: f64,
+    launch_yaw_deg: f64,
+) -> SimulationState {
     // ── Position ────────────────────────────────────────────────────────
     let alt_agl_m =
         Length::new::<foot>(fdm.get_h_agl_ft()).get::<uom::si::length::meter>();
@@ -87,15 +94,46 @@ pub fn extract_state(fdm: &FDMWrapper) -> SimulationState {
     let qbar_pa = Pressure::new::<pound_force_per_square_foot>(fdm.get_qbar_psf())
         .get::<uom::si::pressure::pascal>();
 
+    // Total AoA: αt = arctan(√(v²+w²) / |u|)
+    let total_aoa_deg = (v_mps.powi(2) + w_mps.powi(2))
+        .sqrt()
+        .atan2(u_mps.abs())
+        .to_degrees();
+
+    // Atmosphere
+    let pressure_pa = Pressure::new::<pound_force_per_square_foot>(fdm.get_pressure_psf())
+        .get::<uom::si::pressure::pascal>();
+
+    let temperature_k =
+        ThermodynamicTemperature::new::<degree_rankine>(fdm.get_temperature_rankine())
+            .get::<uom::si::thermodynamic_temperature::kelvin>();
+
+    // Gust (fixed 9 m/s in the pitch-axis / v direction)
+    const V_GUST_MPS: f64 = 9.0;
+    let gust_airspeed_mps = (true_airspeed_mps.powi(2) + V_GUST_MPS.powi(2)).sqrt();
+    let gust_aoa_deg = ((v_mps + V_GUST_MPS).powi(2) + w_mps.powi(2))
+        .sqrt()
+        .atan2(u_mps.abs())
+        .to_degrees();
+
+    // ── Launch-local position ────────────────────────────────────────────
+    let lat_deg = fdm.get_lat_gc_deg();
+    let lon_deg = fdm.get_lon_gc_deg();
+    let (down_range_m, local_x_m, local_y_m) =
+        latlon_to_local(lat_deg, lon_deg, launch_lat_deg, launch_lon_deg, launch_yaw_deg);
+
     // ── Thrust ──────────────────────────────────────────────────────────
     let thrust_n = fdm.get_thrust_magnitude_lbf() * 4.448_221_6; // lbf → N
 
     SimulationState {
         time_sec: fdm.get_sim_time_sec(),
         position: Position {
-            lat_deg: fdm.get_lat_gc_deg(),
-            lon_deg: fdm.get_lon_gc_deg(),
+            lat_deg,
+            lon_deg,
             alt_agl_m,
+            down_range_m,
+            local_x_m,
+            local_y_m,
         },
         velocity: VelOut {
             true_airspeed_mps,
@@ -123,6 +161,11 @@ pub fn extract_state(fdm: &FDMWrapper) -> SimulationState {
             alpha_deg,
             beta_deg,
             qbar_pa,
+            total_aoa_deg,
+            pressure_pa,
+            temperature_k,
+            gust_airspeed_mps,
+            gust_aoa_deg,
         },
         thrust_n,
         mach: fdm.get_mach(),

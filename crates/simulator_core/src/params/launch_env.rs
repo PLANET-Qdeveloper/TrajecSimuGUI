@@ -31,8 +31,6 @@ pub struct LaunchEnvParams {
     pub longitude: f64,
     /// Launch pad elevation above sea level (m).
     pub elevation: f64,
-    /// Launcher height above ground (m). Wind model activates above this.
-    pub launcher_height: f64,
     /// Launcher rail length (m). Used by rail-length based `launch_clear`.
     #[serde(default = "default_rail_length_m")]
     pub rail_length_m: f64,

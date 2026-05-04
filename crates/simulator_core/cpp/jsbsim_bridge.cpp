@@ -7,6 +7,7 @@
 #include <FGJSBBase.h>
 
 #include "models/FGAccelerations.h"
+#include "models/FGAtmosphere.h"
 #include "models/FGAuxiliary.h"
 #include "models/FGPropulsion.h"
 // SGPath is declared in FGFDMExec.h transitively via FGJSBBase.h
@@ -177,6 +178,14 @@ double FDMWrapper::get_thrust_magnitude_lbf() const {
     // FGPropulsion provides the total thrust forces in body axes
     auto thrust_forces = fdm_->GetPropulsion()->GetForces();
     return thrust_forces.Magnitude();
+}
+
+double FDMWrapper::get_pressure_psf() const {
+    return fdm_->GetAtmosphere()->GetPressure();
+}
+
+double FDMWrapper::get_temperature_rankine() const {
+    return fdm_->GetAtmosphere()->GetTemperature();
 }
 
 std::unique_ptr<FDMWrapper> new_fdm_wrapper() {

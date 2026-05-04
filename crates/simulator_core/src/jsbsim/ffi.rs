@@ -85,5 +85,9 @@ pub mod bridge {
 
         // Propulsion
         fn get_thrust_magnitude_lbf(self: &FDMWrapper) -> f64;
+
+        // Atmosphere
+        fn get_pressure_psf(self: &FDMWrapper) -> f64;
+        fn get_temperature_rankine(self: &FDMWrapper) -> f64;
     }
 }

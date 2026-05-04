@@ -88,7 +88,6 @@ fn sample_params() -> RocketParams {
             // not fire on the very first integration step. This mirrors the
             // state the orchestrator would hand over after rail-exit.
             elevation: 5.0,
-            launcher_height: 5.0,
             rail_length_m: 5.0,
             pitch: 89.0,
             roll: 0.0,

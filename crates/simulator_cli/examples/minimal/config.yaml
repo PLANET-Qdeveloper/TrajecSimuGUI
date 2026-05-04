@@ -6,7 +6,6 @@ launch:
   latitude: 35.0
   longitude: 139.0
   elevation: 5.0           # pad MSL [m]
-  launcher_height: 5.0     # launcher height [m]
   rail_length: 5.0         # rail length [m]
   pitch: 89.0              # deg (90 = vertical)
   roll: 0.0
