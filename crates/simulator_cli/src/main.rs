@@ -4,6 +4,7 @@ use anyhow::Result;
 use clap::{Parser, Subcommand};
 
 mod assemble;
+mod chart;
 mod config;
 mod csv_loader;
 mod dem;
@@ -12,7 +13,6 @@ mod landing_area;
 mod refine_landing;
 mod runner;
 mod summary_writer;
-mod chart;
 
 #[derive(Parser, Debug)]
 #[command(name = "simulator_cli", about = "TrajecSimuGUI core driver")]
@@ -80,7 +80,12 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match cli.cmd {
-        Cmd::Run { config, out_dir, no_dem , no_chart} => {
+        Cmd::Run {
+            config,
+            out_dir,
+            no_dem,
+            no_chart,
+        } => {
             let cfg = config::Config::load(&config)?;
             let params = assemble::assemble(&cfg)?;
 
@@ -89,10 +94,7 @@ fn main() -> Result<()> {
             if !no_dem {
                 match dem::DemCache::new() {
                     Ok(cache) => {
-                        if let Err(e) = refine_landing::refine_one(
-                            &mut output,
-                            &cache,
-                        ) {
+                        if let Err(e) = refine_landing::refine_one(&mut output, &cache) {
                             eprintln!("warn: DEM refinement failed, using original landing: {e:#}");
                         }
                     }
@@ -107,13 +109,13 @@ fn main() -> Result<()> {
                 cfg.sim.kml_sample_interval as usize,
                 &params,
             )?;
-            
-            if !no_chart{
-                if let Err(e) = chart::draw_result_plot(&out_dir, &output){
-                  eprintln!("warn: chart generation) failed: {e:#}");
+
+            if !no_chart {
+                if let Err(e) = chart::draw_result_plot(&out_dir, &output) {
+                    eprintln!("warn: chart generation) failed: {e:#}");
                 };
             }
-            
+
             eprintln!("wrote {}", paths.summary.display());
             eprintln!("       {}", paths.mainline.display());
             eprintln!("       {}", paths.parachute.display());

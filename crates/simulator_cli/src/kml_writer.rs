@@ -252,7 +252,10 @@ mod tests {
     #[test]
     fn omits_empty_branches() {
         let mut out = empty_output();
-        for s in [make_state(0.0, 35.0, 139.0, 0.0), make_state(1.0, 35.0, 139.0, 100.0)] {
+        for s in [
+            make_state(0.0, 35.0, 139.0, 0.0),
+            make_state(1.0, 35.0, 139.0, 100.0),
+        ] {
             out.mainline.trajectory.push(&s);
         }
         // parachute branch left empty
@@ -287,7 +290,10 @@ mod tests {
     #[test]
     fn emits_well_formed_xml() {
         let mut out = empty_output();
-        for s in [make_state(0.0, 35.0, 139.0, 5.0), make_state(1.0, 35.001, 139.0, 50.0)] {
+        for s in [
+            make_state(0.0, 35.0, 139.0, 5.0),
+            make_state(1.0, 35.001, 139.0, 50.0),
+        ] {
             out.mainline.trajectory.push(&s);
         }
         out.events.push(EventStamp {

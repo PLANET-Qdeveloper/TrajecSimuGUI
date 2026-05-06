@@ -30,9 +30,7 @@ const LAYER_BASE_TEMP_K: [f64; 8] = [
     288.15, 216.65, 216.65, 228.65, 270.65, 270.65, 214.65, 186.946,
 ];
 
-const LAYER_LAPSE_K_PER_M: [f64; 7] = [
-    -0.0065, 0.0, 0.0010, 0.0028, 0.0, -0.0028, -0.0020,
-];
+const LAYER_LAPSE_K_PER_M: [f64; 7] = [-0.0065, 0.0, 0.0010, 0.0028, 0.0, -0.0028, -0.0020];
 
 /// Sample the ISA 1976 standard atmosphere at a geometric altitude.
 ///
@@ -131,8 +129,7 @@ mod tests {
     }
 
     fn geometric_altitude_from_geopotential(geopotential_alt_m: f64) -> f64 {
-        (super::EARTH_RADIUS_M * geopotential_alt_m)
-            / (super::EARTH_RADIUS_M - geopotential_alt_m)
+        (super::EARTH_RADIUS_M * geopotential_alt_m) / (super::EARTH_RADIUS_M - geopotential_alt_m)
     }
 
     #[test]

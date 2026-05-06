@@ -18,8 +18,7 @@ pub use launch_rail::LaunchRailStage;
 pub use parachute::ParachuteStage;
 
 /// Unified per-step input for every phase runner.
-#[derive(Debug, Clone, Copy)]
-#[derive(Default)]
+#[derive(Debug, Clone, Copy, Default)]
 pub struct StageStepInput {
     /// Reserved for external controls/injections.
     ///
@@ -28,7 +27,6 @@ pub struct StageStepInput {
     /// step widths internally.
     pub _reserved: (),
 }
-
 
 /// Unified per-step output for every phase runner.
 #[derive(Debug, Clone)]

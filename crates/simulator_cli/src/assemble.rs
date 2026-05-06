@@ -1,7 +1,7 @@
 //! Convert user-facing `Config` + CSV tables into a `RocketParams`.
 
-use std::cmp::min;
 use anyhow::{bail, Result};
+use std::cmp::min;
 
 use simulator_core::params::{
     AeroParams, BodyMassParams, EngineParams, FuelParams, LaunchEnvParams, ParachuteParams,
@@ -88,10 +88,7 @@ fn build_winds_table(cfg: &Config) -> Result<Vec<[f64; 3]>> {
         }
 
         // ── No wind configured ───────────────────────────────────────────
-        (None, None, None) => Ok(vec![
-            [0.0, 0.0, 0.0],
-            [WINDS_TABLE_TOP_M, 0.0, 0.0],
-        ]),
+        (None, None, None) => Ok(vec![[0.0, 0.0, 0.0], [WINDS_TABLE_TOP_M, 0.0, 0.0]]),
     }
 }
 
@@ -174,7 +171,8 @@ pub fn assemble(cfg: &Config) -> Result<RocketParams> {
         sim: SimControl {
             flight_duration: cfg.sim.flight_duration,
             time_step: cfg.sim.time_step,
-            output_decimation_rate: min(cfg.sim.csv_sample_interval, cfg.sim.kml_sample_interval) as usize,
+            output_decimation_rate: min(cfg.sim.csv_sample_interval, cfg.sim.kml_sample_interval)
+                as usize,
             start_sim_time_sec: 0.0,
         },
         parachute,
@@ -296,11 +294,26 @@ mod tests {
         // 0..=200 by 5 (41) + 210..=1000 by 10 (80) + 1100..=10000 by 100 (90)
         assert_eq!(w.len(), 211);
         assert!((w[0][0] - 0.0).abs() < 1e-9, "first alt = 0 m");
-        assert!((w[w.len() - 1][0] - POWER_LAW_MAX_M as f64).abs() < 1e-9, "last alt = 10 000 m");
-        assert!(w.iter().any(|row| (row[0] - 200.0).abs() < 1e-9), "contains 200 m");
-        assert!(w.iter().any(|row| (row[0] - 210.0).abs() < 1e-9), "contains 210 m");
-        assert!(w.iter().any(|row| (row[0] - 1000.0).abs() < 1e-9), "contains 1000 m");
-        assert!(w.iter().any(|row| (row[0] - 1100.0).abs() < 1e-9), "contains 1100 m");
+        assert!(
+            (w[w.len() - 1][0] - POWER_LAW_MAX_M as f64).abs() < 1e-9,
+            "last alt = 10 000 m"
+        );
+        assert!(
+            w.iter().any(|row| (row[0] - 200.0).abs() < 1e-9),
+            "contains 200 m"
+        );
+        assert!(
+            w.iter().any(|row| (row[0] - 210.0).abs() < 1e-9),
+            "contains 210 m"
+        );
+        assert!(
+            w.iter().any(|row| (row[0] - 1000.0).abs() < 1e-9),
+            "contains 1000 m"
+        );
+        assert!(
+            w.iter().any(|row| (row[0] - 1100.0).abs() < 1e-9),
+            "contains 1100 m"
+        );
         // Surface wind is zero
         assert!((w[0][1] - 0.0).abs() < 1e-9, "surface speed = 0");
         // Direction is constant
@@ -323,7 +336,10 @@ mod tests {
             .iter()
             .find(|row| (row[0] - 1000.0).abs() < 1e-9)
             .expect("1000 m point exists")[1];
-        assert!(v1000 > v100, "power-law speed should increase with altitude");
+        assert!(
+            v1000 > v100,
+            "power-law speed should increase with altitude"
+        );
     }
 
     #[test]

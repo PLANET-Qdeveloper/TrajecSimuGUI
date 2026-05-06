@@ -6,11 +6,13 @@
 //! This function is called every step (or every N steps as configured),
 //! so it is kept allocation-free.
 
-use uom::si::f64::{Acceleration, Angle, AngularVelocity, Length, Pressure, ThermodynamicTemperature, Velocity};
+use uom::si::f64::{
+    Acceleration, Angle, AngularVelocity, Length, Pressure, ThermodynamicTemperature, Velocity,
+};
 use uom::si::{
     acceleration::foot_per_second_squared, angle::radian, angular_velocity::radian_per_second,
-    length::foot, pressure::pound_force_per_square_foot,
-    thermodynamic_temperature::degree_rankine, velocity::foot_per_second,
+    length::foot, pressure::pound_force_per_square_foot, thermodynamic_temperature::degree_rankine,
+    velocity::foot_per_second,
 };
 
 use super::ffi::bridge::FDMWrapper;
@@ -33,13 +35,11 @@ pub fn extract_state(
     launch_yaw_deg: f64,
 ) -> SimulationState {
     // ── Position ────────────────────────────────────────────────────────
-    let alt_agl_m =
-        Length::new::<foot>(fdm.get_h_agl_ft()).get::<uom::si::length::meter>();
+    let alt_agl_m = Length::new::<foot>(fdm.get_h_agl_ft()).get::<uom::si::length::meter>();
 
     // ── Velocity ────────────────────────────────────────────────────────
-    let true_airspeed_mps =
-        Velocity::new::<foot_per_second>(fdm.get_vtrue_fps())
-            .get::<uom::si::velocity::meter_per_second>();
+    let true_airspeed_mps = Velocity::new::<foot_per_second>(fdm.get_vtrue_fps())
+        .get::<uom::si::velocity::meter_per_second>();
 
     let ground_speed_mps = Velocity::new::<foot_per_second>(fdm.get_vg_fps())
         .get::<uom::si::velocity::meter_per_second>();
@@ -55,24 +55,21 @@ pub fn extract_state(
         .get::<uom::si::velocity::meter_per_second>();
 
     // ── Attitude ────────────────────────────────────────────────────────
-    let pitch_deg = Angle::new::<radian>(fdm.get_theta_rad())
-        .get::<uom::si::angle::degree>();
+    let pitch_deg = Angle::new::<radian>(fdm.get_theta_rad()).get::<uom::si::angle::degree>();
 
-    let roll_deg =
-        Angle::new::<radian>(fdm.get_phi_rad()).get::<uom::si::angle::degree>();
+    let roll_deg = Angle::new::<radian>(fdm.get_phi_rad()).get::<uom::si::angle::degree>();
 
-    let yaw_deg =
-        Angle::new::<radian>(fdm.get_psi_rad()).get::<uom::si::angle::degree>();
+    let yaw_deg = Angle::new::<radian>(fdm.get_psi_rad()).get::<uom::si::angle::degree>();
 
     // ── Angular rates ───────────────────────────────────────────────────
-    let p = AngularVelocity::new::<radian_per_second>(fdm.get_p_rad_sec())
-        .get::<radian_per_second>();
+    let p =
+        AngularVelocity::new::<radian_per_second>(fdm.get_p_rad_sec()).get::<radian_per_second>();
 
-    let q = AngularVelocity::new::<radian_per_second>(fdm.get_q_rad_sec())
-        .get::<radian_per_second>();
+    let q =
+        AngularVelocity::new::<radian_per_second>(fdm.get_q_rad_sec()).get::<radian_per_second>();
 
-    let r = AngularVelocity::new::<radian_per_second>(fdm.get_r_rad_sec())
-        .get::<radian_per_second>();
+    let r =
+        AngularVelocity::new::<radian_per_second>(fdm.get_r_rad_sec()).get::<radian_per_second>();
 
     // ── Acceleration (body frame) ───────────────────────────────────────
     let ax = Acceleration::new::<foot_per_second_squared>(fdm.get_udot_ft_sec2())
@@ -85,11 +82,9 @@ pub fn extract_state(
         .get::<uom::si::acceleration::meter_per_second_squared>();
 
     // ── Aerodynamics ────────────────────────────────────────────────────
-    let alpha_deg =
-        Angle::new::<radian>(fdm.get_alpha_rad()).get::<uom::si::angle::degree>();
+    let alpha_deg = Angle::new::<radian>(fdm.get_alpha_rad()).get::<uom::si::angle::degree>();
 
-    let beta_deg =
-        Angle::new::<radian>(fdm.get_beta_rad()).get::<uom::si::angle::degree>();
+    let beta_deg = Angle::new::<radian>(fdm.get_beta_rad()).get::<uom::si::angle::degree>();
 
     let qbar_pa = Pressure::new::<pound_force_per_square_foot>(fdm.get_qbar_psf())
         .get::<uom::si::pressure::pascal>();
@@ -119,8 +114,13 @@ pub fn extract_state(
     // ── Launch-local position ────────────────────────────────────────────
     let lat_deg = fdm.get_lat_gc_deg();
     let lon_deg = fdm.get_lon_gc_deg();
-    let (down_range_m, local_x_m, local_y_m) =
-        latlon_to_local(lat_deg, lon_deg, launch_lat_deg, launch_lon_deg, launch_yaw_deg);
+    let (down_range_m, local_x_m, local_y_m) = latlon_to_local(
+        lat_deg,
+        lon_deg,
+        launch_lat_deg,
+        launch_lon_deg,
+        launch_yaw_deg,
+    );
 
     // ── Thrust ──────────────────────────────────────────────────────────
     let thrust_n = fdm.get_thrust_magnitude_lbf() * 4.448_221_6; // lbf → N

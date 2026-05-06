@@ -2,7 +2,7 @@ use plotters::prelude::*;
 use std::error::Error;
 use std::path::PathBuf;
 
-use simulator_core::{UnifiedSimulationOutput};
+use simulator_core::UnifiedSimulationOutput;
 
 // 岡部・伊藤のカラーパレット指定 (Vermilion -> Orange -> Blue)
 const COLOR_VERMILION: RGBColor = RGBColor(213, 94, 0);
@@ -30,8 +30,8 @@ pub struct PlotConfig {
     pub y_label: String, // 単位を含むY軸ラベル (例: "Voltage [V]")
     pub x_range: Option<(f64, f64)>,
     pub y_range: Option<(f64, f64)>,
-    pub is_x_log: bool,  // X軸を対数にするか
-    pub is_y_log: bool,  // Y軸を対数にするか
+    pub is_x_log: bool, // X軸を対数にするか
+    pub is_y_log: bool, // Y軸を対数にするか
     pub annotations: Vec<Annotation>,
 }
 
@@ -65,7 +65,6 @@ fn validate_and_bounds(
         }
     }
 
-
     if !x_min.is_finite() || !y_min.is_finite() {
         return Err("data has no data points".into());
     }
@@ -82,9 +81,11 @@ fn validate_and_bounds(
     Ok(((x_min, x_max), (y_min, y_max)))
 }
 
-pub fn draw_result_plot(path: &std::path::Path,
-                        output: &UnifiedSimulationOutput,) -> Result<(), Box<dyn Error>> {
-    let qbar_plot_config = PlotConfig{
+pub fn draw_result_plot(
+    path: &std::path::Path,
+    output: &UnifiedSimulationOutput,
+) -> Result<(), Box<dyn Error>> {
+    let qbar_plot_config = PlotConfig {
         output_path: path.join("qbar.plot.bmp"),
         x_label: "Time (s)".to_string(),
         y_label: "Dynamic Pressure (Pa)".to_string(),
@@ -95,12 +96,16 @@ pub fn draw_result_plot(path: &std::path::Path,
         annotations: vec![],
     };
 
-    draw_academic_plot(qbar_plot_config, SeriesData {
-        x_axis: &output.mainline.trajectory.time_sec,
-        y_axis: vec![(None, &output.mainline.trajectory.qbar_pa)]
-    }).expect("failed to draw qbar plot");
+    draw_academic_plot(
+        qbar_plot_config,
+        SeriesData {
+            x_axis: &output.mainline.trajectory.time_sec,
+            y_axis: vec![(None, &output.mainline.trajectory.qbar_pa)],
+        },
+    )
+    .expect("failed to draw qbar plot");
 
-    let mach_plot_config = PlotConfig{
+    let mach_plot_config = PlotConfig {
         output_path: path.join("mach.plot.bmp"),
         x_label: "Time (s)".to_string(),
         y_label: "Mach".to_string(),
@@ -111,12 +116,16 @@ pub fn draw_result_plot(path: &std::path::Path,
         annotations: vec![],
     };
 
-    draw_academic_plot(mach_plot_config, SeriesData {
-        x_axis: &output.mainline.trajectory.time_sec,
-        y_axis: vec![(None, &output.mainline.trajectory.mach)]
-    }).expect("failed to draw mach plot");
+    draw_academic_plot(
+        mach_plot_config,
+        SeriesData {
+            x_axis: &output.mainline.trajectory.time_sec,
+            y_axis: vec![(None, &output.mainline.trajectory.mach)],
+        },
+    )
+    .expect("failed to draw mach plot");
 
-    let altitude_plot_config = PlotConfig{
+    let altitude_plot_config = PlotConfig {
         output_path: path.join("altitude.plot.bmp"),
         x_label: "Time (s)".to_string(),
         y_label: "Altitude (m)".to_string(),
@@ -127,12 +136,16 @@ pub fn draw_result_plot(path: &std::path::Path,
         annotations: vec![],
     };
 
-    draw_academic_plot(altitude_plot_config, SeriesData {
-        x_axis: &output.mainline.trajectory.time_sec,
-        y_axis: vec![(None, &output.mainline.trajectory.alt_agl_m)]
-    }).expect("failed to draw mach plot");
+    draw_academic_plot(
+        altitude_plot_config,
+        SeriesData {
+            x_axis: &output.mainline.trajectory.time_sec,
+            y_axis: vec![(None, &output.mainline.trajectory.alt_agl_m)],
+        },
+    )
+    .expect("failed to draw mach plot");
 
-    let velocity_plot_config = PlotConfig{
+    let velocity_plot_config = PlotConfig {
         output_path: path.join("velocity.plot.bmp"),
         x_label: "Time (s)".to_string(),
         y_label: "Velocity (m/s)".to_string(),
@@ -143,16 +156,20 @@ pub fn draw_result_plot(path: &std::path::Path,
         annotations: vec![],
     };
 
-    draw_academic_plot(velocity_plot_config, SeriesData {
-        x_axis: &output.mainline.trajectory.time_sec,
-        y_axis: vec![
-            (Some("x".to_string()), &output.mainline.trajectory.u_mps),
-            (Some("y".to_string()), &output.mainline.trajectory.v_mps),
-            (Some("z".to_string()), &output.mainline.trajectory.w_mps),
-        ]
-    }).expect("failed to draw mach plot");
+    draw_academic_plot(
+        velocity_plot_config,
+        SeriesData {
+            x_axis: &output.mainline.trajectory.time_sec,
+            y_axis: vec![
+                (Some("x".to_string()), &output.mainline.trajectory.u_mps),
+                (Some("y".to_string()), &output.mainline.trajectory.v_mps),
+                (Some("z".to_string()), &output.mainline.trajectory.w_mps),
+            ],
+        },
+    )
+    .expect("failed to draw mach plot");
 
-    let trajectory_plot_config = PlotConfig{
+    let trajectory_plot_config = PlotConfig {
         output_path: path.join("trajectory.plot.bmp"),
         x_label: "Time (s)".to_string(),
         y_label: "xyz (m)".to_string(),
@@ -162,16 +179,23 @@ pub fn draw_result_plot(path: &std::path::Path,
         is_y_log: false,
         annotations: vec![],
     };
-    draw_academic_plot(trajectory_plot_config, SeriesData {
-        x_axis: &output.mainline.trajectory.time_sec,
-        y_axis: vec![
-            (Some("x".to_string()), &output.mainline.trajectory.local_x_m),
-            (Some("y".to_string()), &output.mainline.trajectory.local_y_m),
-            (Some("altitude".to_string()), &output.mainline.trajectory.alt_agl_m),
-        ]
-    }).expect("failed to draw mach plot");
+    draw_academic_plot(
+        trajectory_plot_config,
+        SeriesData {
+            x_axis: &output.mainline.trajectory.time_sec,
+            y_axis: vec![
+                (Some("x".to_string()), &output.mainline.trajectory.local_x_m),
+                (Some("y".to_string()), &output.mainline.trajectory.local_y_m),
+                (
+                    Some("altitude".to_string()),
+                    &output.mainline.trajectory.alt_agl_m,
+                ),
+            ],
+        },
+    )
+    .expect("failed to draw mach plot");
 
-    let acceleration_plot_config = PlotConfig{
+    let acceleration_plot_config = PlotConfig {
         output_path: path.join("acceleration.plot.bmp"),
         x_label: "Time (s)".to_string(),
         y_label: "xyz (m/s²)".to_string(),
@@ -182,17 +206,20 @@ pub fn draw_result_plot(path: &std::path::Path,
         annotations: vec![],
     };
 
-    draw_academic_plot(acceleration_plot_config, SeriesData {
-        x_axis: &output.mainline.trajectory.time_sec,
-        y_axis: vec![
-            (Some("x".to_string()), &output.mainline.trajectory.ax_mps2),
-            (Some("y".to_string()), &output.mainline.trajectory.ay_mps2),
-            (Some("z".to_string()), &output.mainline.trajectory.az_mps2),
-        ]
-    }).expect("failed to draw mach plot");
+    draw_academic_plot(
+        acceleration_plot_config,
+        SeriesData {
+            x_axis: &output.mainline.trajectory.time_sec,
+            y_axis: vec![
+                (Some("x".to_string()), &output.mainline.trajectory.ax_mps2),
+                (Some("y".to_string()), &output.mainline.trajectory.ay_mps2),
+                (Some("z".to_string()), &output.mainline.trajectory.az_mps2),
+            ],
+        },
+    )
+    .expect("failed to draw mach plot");
 
     Ok(())
-
 }
 
 /// 学術的なグラフを生成する関数

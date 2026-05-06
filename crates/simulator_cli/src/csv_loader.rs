@@ -121,13 +121,8 @@ pub fn load_wind_table(path: &Path) -> Result<Vec<[f64; 3]>> {
     }
 
     for row in iter {
-        let nums = parse_row_as_f64(&row).ok_or_else(|| {
-            anyhow!(
-                "non-numeric cell in {} (row: {:?})",
-                path.display(),
-                row
-            )
-        })?;
+        let nums = parse_row_as_f64(&row)
+            .ok_or_else(|| anyhow!("non-numeric cell in {} (row: {:?})", path.display(), row))?;
         push_3cols(&mut data, &nums, path)?;
     }
 

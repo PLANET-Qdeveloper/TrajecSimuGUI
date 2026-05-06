@@ -75,7 +75,6 @@ fn make_conditions(
         .map(|i| (360.0 * i as f64 / directions as f64 + base_yaw_deg).rem_euclid(360.0))
         .collect();
 
-
     let speeds: Vec<f64> = if speed_steps <= 1 {
         vec![0.0]
     } else {
@@ -124,8 +123,12 @@ pub fn run(base_cfg: &Config, base_params: &RocketParams, args: &LandingAreaArgs
     }
 
     let base_yaw_deg = base_cfg.launch.yaw;
-    let conditions =
-        make_conditions(args.directions, args.speed_max, args.speed_steps, base_yaw_deg);
+    let conditions = make_conditions(
+        args.directions,
+        args.speed_max,
+        args.speed_steps,
+        base_yaw_deg,
+    );
     let total = conditions.len();
     eprintln!(
         "landing-area: {} conditions ({} directions × {} speeds)",
@@ -215,14 +218,8 @@ pub fn run(base_cfg: &Config, base_params: &RocketParams, args: &LandingAreaArgs
             .unwrap_or_else(|e| eprintln!("warn: landing_summary.csv: {e:#}"));
         summary_writer::write_range_kml(&args.out_dir, &cond_results)
             .unwrap_or_else(|e| eprintln!("warn: landing_range.kml: {e:#}"));
-        eprintln!(
-            "wrote {}/landing_summary.csv",
-            args.out_dir.display()
-        );
-        eprintln!(
-            "       {}/landing_range.kml",
-            args.out_dir.display()
-        );
+        eprintln!("wrote {}/landing_summary.csv", args.out_dir.display());
+        eprintln!("       {}/landing_range.kml", args.out_dir.display());
     }
 
     if n_fail > 0 {
