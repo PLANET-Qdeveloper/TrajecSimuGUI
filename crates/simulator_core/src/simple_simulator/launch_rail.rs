@@ -22,6 +22,7 @@ use crate::progress::EventKind;
 use crate::simple_simulator::env::{self, latlon_to_local, G0_MPS2};
 use crate::simple_simulator::{StageRunner, StageStepInput, StageStepOutput};
 use crate::{Result, RocketParams};
+use crate::standard_atmosphere::sample_atmosphere;
 
 /// Launch rail phase: 1-D along-rail integrator.
 #[derive(Debug, Clone)]
@@ -120,66 +121,6 @@ impl LaunchRailStage {
         (empty + remaining_prop).max(1e-6)
     }
 
-    fn to_public_state(
-        &self,
-        params: &RocketParams,
-        wind_along_rail_mps: f64,
-        thrust_n: f64,
-        accel_along_rail: f64,
-    ) -> SimulationState {
-        let launch = &params.launch_env;
-
-        let pitch = launch.pitch.to_radians();
-        let yaw = launch.yaw.to_radians();
-
-        let horizontal_m = self.distance_m * pitch.cos();
-        let up_m = params.launch_env.elevation + self.distance_m * pitch.sin();
-
-        let north_m = horizontal_m * yaw.cos();
-        let east_m = horizontal_m * yaw.sin();
-
-        let (lat_deg, lon_deg) =
-            env::advance_latlon_by_enu(launch.latitude, launch.longitude, east_m, north_m);
-
-        let (down_range_m, local_x_m, local_y_m) =
-            latlon_to_local(lat_deg, lon_deg, launch.latitude, launch.longitude, launch.yaw);
-
-        let v = self.velocity_mps;
-        let v_rel_along_rail = v - wind_along_rail_mps;
-
-        SimulationState {
-            time_sec: self.sim_time_sec,
-            position: Position {
-                lat_deg,
-                lon_deg,
-                alt_agl_m: up_m.max(0.0),
-                down_range_m,
-                local_x_m,
-                local_y_m,
-            },
-            velocity: Velocity {
-                true_airspeed_mps: v_rel_along_rail.abs(),
-                ground_speed_mps: (v * pitch.cos()).abs(),
-                u_mps: v,
-                v_mps: 0.0,
-                w_mps: 0.0,
-            },
-            attitude: Attitude {
-                pitch_deg: launch.pitch,
-                roll_deg: launch.roll,
-                yaw_deg: launch.yaw,
-            },
-            angular_rates: AngularRates::default(),
-            acceleration: Acceleration {
-                ax_mps2: accel_along_rail,
-                ay_mps2: 0.0,
-                az_mps2: 0.0,
-            },
-            aero: AeroState::default(),
-            thrust_n,
-            mach: 0.0,
-        }
-    }
 }
 
 impl Default for LaunchRailStage {
@@ -201,13 +142,39 @@ impl StageRunner for LaunchRailStage {
 
     fn step(&mut self, params: &RocketParams, _input: StageStepInput) -> Result<StageStepOutput> {
         let dt = self.choose_dt_sec(params);
-        let pitch = params.launch_env.pitch.to_radians();
+        let launch = &params.launch_env;
+        let pitch = launch.pitch.to_radians();
+        let yaw = launch.yaw.to_radians();
+
+        // Rail axis unit vector in ENU.
+        let e_rail = Self::rail_axis_enu(params);
+
+        // Altitude MSL at current rail position (for wind and atmosphere lookups).
+        let alt_msl_m = launch.elevation + self.distance_m * pitch.sin();
+
+        // Wind projected onto the rail axis.
+        let wind_enu = env::wind_enu_at_alt(&launch.winds_table, alt_msl_m);
+        let wind_along_rail = env::dot3(wind_enu, e_rail);
+
+        // Pre-step airspeed relative to air along the rail axis.
+        let v_rel_pre = self.velocity_mps - wind_along_rail;
+
+        // Atmosphere, Mach, dynamic pressure (using pre-step state for force calc).
+        let atmosphere = sample_atmosphere(alt_msl_m.max(0.0));
+        let mach_pre = v_rel_pre.abs() / atmosphere.sound_speed;
+        let qbar_pre = 0.5 * atmosphere.density_kg_m3 * v_rel_pre * v_rel_pre;
+
+        // Reference area from body diameter.
+        let ref_area = std::f64::consts::PI * (params.body_mass.diameter * 0.5).powi(2);
 
         // Instantaneous forces along the rail axis (+ = up the rail).
         let thrust_n = Self::interp_thrust_n(&params.engine.thrust_table, self.sim_time_sec);
         let mass_kg = self.current_mass_kg(params);
         let gravity_component = G0_MPS2 * pitch.sin();
-        let accel = thrust_n / mass_kg - gravity_component;
+        let cd0 = params.aero.cd0_alpha_mach_table.get_value(0.0, mach_pre);
+        // Drag opposes relative airspeed; signum gives direction along rail.
+        let axial_drag_n = qbar_pre * ref_area * cd0 * v_rel_pre.signum();
+        let accel = thrust_n / mass_kg - gravity_component - axial_drag_n / mass_kg;
 
         // Trapezoidal Euler — exact for constant acceleration.
         let v_old = self.velocity_mps;
@@ -228,13 +195,64 @@ impl StageRunner for LaunchRailStage {
         self.consumed_impulse_ns += thrust_n * dt;
         self.sim_time_sec += dt;
 
-        // Wind projected onto the rail axis.
-        let e_rail = Self::rail_axis_enu(params);
-        let alt_msl_m = params.launch_env.elevation + self.distance_m * pitch.sin();
-        let wind_enu = env::wind_enu_at_alt(&params.launch_env.winds_table, alt_msl_m);
-        let wind_along_rail = env::dot3(wind_enu, e_rail);
+        // Position in geodetic / local coordinates (post-step).
+        let horizontal_m = self.distance_m * pitch.cos();
+        let up_m = launch.elevation + self.distance_m * pitch.sin();
+        let north_m = horizontal_m * yaw.cos();
+        let east_m = horizontal_m * yaw.sin();
+        let (lat_deg, lon_deg) =
+            env::advance_latlon_by_enu(launch.latitude, launch.longitude, east_m, north_m);
+        let (down_range_m, local_x_m, local_y_m) =
+            latlon_to_local(lat_deg, lon_deg, launch.latitude, launch.longitude, launch.yaw);
 
-        let state = self.to_public_state(params, wind_along_rail, thrust_n, accel);
+        // Post-step airspeed (for velocity output fields).
+        let v_rel_post = self.velocity_mps - wind_along_rail;
+        let mach_post = v_rel_post.abs() / atmosphere.sound_speed;
+        let qbar_post = 0.5 * atmosphere.density_kg_m3 * v_rel_post * v_rel_post;
+
+        let state = SimulationState {
+            time_sec: self.sim_time_sec,
+            position: Position {
+                lat_deg,
+                lon_deg,
+                alt_agl_m: up_m.max(0.0),
+                down_range_m,
+                local_x_m,
+                local_y_m,
+            },
+            velocity: Velocity {
+                true_airspeed_mps: v_rel_post.abs(),
+                ground_speed_mps: (self.velocity_mps * pitch.cos()).abs(),
+                u_mps: self.velocity_mps,
+                v_mps: 0.0,
+                w_mps: 0.0,
+            },
+            attitude: Attitude {
+                pitch_deg: launch.pitch,
+                roll_deg: launch.roll,
+                yaw_deg: launch.yaw,
+            },
+            angular_rates: AngularRates::default(),
+            acceleration: Acceleration {
+                ax_mps2: accel,
+                ay_mps2: 0.0,
+                az_mps2: 0.0,
+            },
+            aero: AeroState {
+                alpha_deg: 0.0,
+                beta_deg: 0.0,
+                qbar_pa: qbar_post,
+                total_aoa_deg: 0.0,
+                pressure_pa: atmosphere.pressure_pa,
+                temperature_k: atmosphere.temperature_k,
+                gust_airspeed_mps: 0.0,
+                gust_aoa_deg: 0.0,
+            },
+            thrust_n,
+            mach: mach_post,
+        };
+
+
 
         let mut events = Vec::new();
         let mut completed = false;
@@ -297,8 +315,11 @@ mod tests {
                 cp_at_launch: [0.5, 0.0, 0.0],
                 cp_mach_table: vec![[0.0, 0.5]].into(),
                 cd0_alpha_mach_table: Cd0AlphaMachTable {
-                    mach_keys: vec![0.0].into(),
-                    rows: vec![vec![0.0, 0.3]].into(),
+                    mach_keys: vec![0.0, 3.0].into(),
+                    rows: vec![
+                        vec![0.0, 0.0, 0.0],
+                        vec![20.0, 0.0, 0.0],
+                    ].into(),
                 },
                 cn_table: vec![[0.0, 2.0]].into(),
                 cs_table: vec![[0.0, 2.0]].into(),
