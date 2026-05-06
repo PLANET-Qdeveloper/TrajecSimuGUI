@@ -14,7 +14,7 @@ use anyhow::{Context, Result};
 
 use simulator_core::params::RocketParams;
 use simulator_core::progress::EventStamp;
-use simulator_core::{EventKind, SimulationState, Trajectory, UnifiedSimulationOutput};
+use simulator_core::{EventKind, SimulationState, UnifiedSimulationOutput};
 
 const KML_HEADER: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
@@ -52,14 +52,13 @@ pub fn write_trajectory_kml(
         .find(|e| e.kind == EventKind::ParachuteOpen)
         .map(|e| e.sim_time_sec);
     let index_at_parachute_open = time_at_parachute_open
-        .map(|t| {
+        .and_then(|t| {
             output
                 .mainline
                 .trajectory
                 .row_iter()
                 .position(|s| s.time_sec >= t)
-        })
-        .flatten();
+        });
 
     write_linestring(
         &mut f,
