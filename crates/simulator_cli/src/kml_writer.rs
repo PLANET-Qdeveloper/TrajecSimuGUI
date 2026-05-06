@@ -105,6 +105,10 @@ fn write_event_placemarks(
     events: &[EventStamp],
     _params: &RocketParams,
 ) -> Result<()> {
+    writeln!(
+        f,
+        "    <Folder>\n      <name>Events</name>\n      <visibility>0</visibility>"
+    )?;
     for e in events {
         // Skip events with no spatial state (e.g. Start at t=0 before
         // the first physics step).
@@ -129,6 +133,7 @@ fn write_event_placemarks(
             alt_msl,
         )?;
     }
+    writeln!(f, "    </Folder>")?;
     Ok(())
 }
 
@@ -141,13 +146,13 @@ fn event_label(kind: EventKind) -> &'static str {
         EventKind::ParachuteOpen => "Parachute open",
         EventKind::Landed => "Landed",
         EventKind::ParachuteLanded => "Parachute landed",
-        EventKind::MaxQ => "Max Q",
+        EventKind::MaxQ => "Max dynamic pressure",
         EventKind::MaxAxialAcceleration => "Max axial accel",
         EventKind::MaxLateralAcceleration => "Max lateral accel",
         EventKind::MaxAngularRate => "Max angular rate",
         EventKind::MaxThrust => "Max thrust",
         EventKind::MaxAirspeed => "Max airspeed",
-        EventKind::MaxDynamicPressureAlpha => "Max dynamic pressure alpha",
+        EventKind::MaxDynamicPressureAlpha => "Max dynamic pressure x alpha",
     }
 }
 
