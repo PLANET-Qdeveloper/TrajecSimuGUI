@@ -11,8 +11,7 @@ use serde::Serialize;
 use simulator_core::analysis;
 
 use simulator_core::{
-    EventKind, EventStamp, Phase, RocketParams, SimulationOrchestrator, SimulationState,
-    Trajectory, UnifiedSimulationOutput,
+    EventKind, EventStamp, Phase, RocketParams, SimulationOrchestrator, SimulationState, UnifiedSimulationOutput,
 };
 
 #[derive(Debug, Clone)]
@@ -85,13 +84,12 @@ pub fn write_outputs(
         .find(|e| e.kind == EventKind::ParachuteOpen)
         .map(|e| e.sim_time_sec);
     let index_at_parachute_open = time_at_parachute_open
-        .map(|t| {
+        .and_then(|t| {
             out.mainline
                 .trajectory
                 .row_iter()
                 .position(|s| s.time_sec >= t)
-        })
-        .flatten();
+        });
 
     write_trajectory_csv(
         &paths.mainline,
