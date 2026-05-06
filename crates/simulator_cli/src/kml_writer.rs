@@ -46,10 +46,20 @@ pub fn write_trajectory_kml(
     let mut f = fs::File::create(path).with_context(|| format!("creating {}", path.display()))?;
     f.write_all(KML_HEADER.as_bytes())?;
 
-
-
-    let time_at_parachute_open = output.events.iter().find(|e| e.kind == EventKind::ParachuteOpen).map(|e| e.sim_time_sec);
-    let index_at_parachute_open = time_at_parachute_open.map(|t| output.mainline.trajectory.row_iter().position(|s| s.time_sec >= t)).flatten();
+    let time_at_parachute_open = output
+        .events
+        .iter()
+        .find(|e| e.kind == EventKind::ParachuteOpen)
+        .map(|e| e.sim_time_sec);
+    let index_at_parachute_open = time_at_parachute_open
+        .map(|t| {
+            output
+                .mainline
+                .trajectory
+                .row_iter()
+                .position(|s| s.time_sec >= t)
+        })
+        .flatten();
 
     write_linestring(
         &mut f,
@@ -61,13 +71,17 @@ pub fn write_trajectory_kml(
         interval,
     )?;
 
-    if let Some(index_at_parachute_open) = index_at_parachute_open  {
-
+    if let Some(index_at_parachute_open) = index_at_parachute_open {
         write_linestring(
             &mut f,
             "parachute",
             "Parachute descent",
-            output.mainline.trajectory.row_iter().take(index_at_parachute_open).chain(output.parachute_branch.trajectory.row_iter()),
+            output
+                .mainline
+                .trajectory
+                .row_iter()
+                .take(index_at_parachute_open)
+                .chain(output.parachute_branch.trajectory.row_iter()),
             index_at_parachute_open + output.parachute_branch.trajectory.len(),
             params,
             interval,
@@ -84,7 +98,7 @@ fn write_linestring(
     f: &mut fs::File,
     style_id: &str,
     name: &str,
-    traj: impl Iterator<Item =SimulationState>,
+    traj: impl Iterator<Item = SimulationState>,
     data_len: usize,
     _params: &RocketParams,
     interval: usize,
