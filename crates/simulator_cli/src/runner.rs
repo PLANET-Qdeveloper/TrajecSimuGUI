@@ -79,8 +79,19 @@ pub fn write_outputs(
     let norm_csv = csv_interval / min(csv_interval, kml_interval);
     let norm_kml = kml_interval / min(csv_interval, kml_interval);
 
-    write_trajectory_csv(&paths.mainline, &out.mainline.trajectory, norm_csv)?;
-    write_trajectory_csv(&paths.parachute, &out.parachute_branch.trajectory, norm_csv)?;
+    let time_at_parachute_open = out.events.iter().find(|e| e.kind == EventKind::ParachuteOpen).map(|e| e.sim_time_sec);
+    let index_at_parachute_open = time_at_parachute_open.map(|t| out.mainline.trajectory.row_iter().position(|s| s.time_sec >= t)).flatten();
+
+
+    write_trajectory_csv(&paths.mainline, out.mainline.trajectory.row_iter(),out.mainline.trajectory.len(), norm_csv)?;
+    if let Some(index_at_parachute_open) = index_at_parachute_open {
+        write_trajectory_csv(
+            &paths.parachute,
+            out.mainline.trajectory.row_iter().take(index_at_parachute_open).chain(out.parachute_branch.trajectory.row_iter()),
+            index_at_parachute_open + out.parachute_branch.trajectory.len(),
+            norm_csv)?;
+    }
+
     write_events_json(&paths.events, out)?;
     write_events_csv(&paths.events_csv, &out.events)?;
     write_summary_json(&paths.summary, out)?;
@@ -104,7 +115,7 @@ pub fn run(
 /// `i` is the trajectory step index, `len` the trajectory length. Keep
 /// rows at multiples of `interval` and always retain the final step so
 /// downstream consumers can read the landing state directly.
-fn keep_step(i: usize, len: usize, interval: usize) -> bool {
+pub(crate) fn keep_step(i: usize, len: usize, interval: usize) -> bool {
     interval <= 1 || i.is_multiple_of(interval) || i + 1 == len
 }
 
@@ -200,12 +211,11 @@ impl From<&SimulationState> for SimStateCsvRow {
     }
 }
 
-fn write_trajectory_csv(path: &Path, traj: &Trajectory, interval: usize) -> Result<()> {
+fn write_trajectory_csv(path: &Path, traj: impl Iterator<Item =SimulationState>, data_len: usize, interval: usize) -> Result<()> {
     let f = fs::File::create(path).with_context(|| format!("creating {}", path.display()))?;
     let mut writer = csv::Writer::from_writer(BufWriter::new(f));
-    let len = traj.len();
-    for (i, s) in traj.row_iter().enumerate() {
-        if !keep_step(i, len, interval) {
+    for (i, s) in traj.enumerate() {
+        if !keep_step(i, data_len, interval) {
             continue;
         }
         writer
