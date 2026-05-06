@@ -1,246 +1,137 @@
-# CLAUDE.md - Development Plan & Architecture Notes
+# CLAUDE.md
 
-**Project:** TrajecSimuGUI - Rocket Trajectory Simulation Platform  
-**Last Updated:** 2026-04-15  
-**Status:** Phase 1 - Core Engine Architecture (In Progress)
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Overview
-
-Rust-based monorepo combining JSBSim integration with custom simulation engines.
-
-### Structure
-```
-crates/
-  ├── simulator_core/    # Physics engine (PRIORITY: HIGHEST)
-  ├── simulator_cli/     # CLI interface (PRIORITY: LOW)
-  └── simulator_gui/     # Tauri GUI (PRIORITY: MEDIUM)
-```
-
-## Setup Complete ✅
-
-### Completed
-- [x] Rust workspace configuration
-- [x] Three-crate monorepo structure
-- [x] Core library scaffolding
-  - SimulationParams (input parameters with validation)
-  - SimulationOutput (trajectory data structures)
-  - Simulator trait (pluggable backend abstraction)
-- [x] Custom ballistic simulator (basic physics)
-- [x] JSBSim wrapper skeleton
-- [x] Error handling framework
-- [x] CLI argument parsing
-- [x] Tauri GUI backend stubs
-- [x] Comprehensive README roadmap
-- [x] Tauri configuration
-
-## Implementation Roadmap
-
-### Phase 1: Core Simulator Engine 🔴 (CURRENT)
-
-#### 1.1 Parameter System ✅
-- Define `SimulationParams` struct
-- Implement validation
-- [ ] Add preset system (Estes, Aerotech, etc.)
-- [ ] JSON config file loading
-
-#### 1.2 Output Data Structure ✅
-- `SimulationOutput` and state types
-- [ ] CSV export format
-- [ ] GeoJSON trajectory export
-
-#### 1.3 Simulator Trait ✅
-- Abstract `Simulator` trait
-- Plugin architecture ready
-- [ ] Factory pattern for simulator selection
-
-#### 1.4 Custom Ballistic Simulator ✅
-- Basic gravity + velocity integration
-- [ ] **NEXT:** Atmospheric density model (ISO 2533)
-- [ ] Drag coefficient effects (Cd modeling)
-- [ ] Thrust/burn profile
-- [ ] Stability analysis (angle of attack tracking)
-
-#### 1.5 JSBSim Wrapper ⏳
-- [ ] PyO3 bindings (Rust ↔ JSBSim Python)
-- [ ] Parameter mapping conversion
-- [ ] State extraction
-- [ ] Aircraft XML loading
-- [ ] Integration testing
-
-#### 1.6 Data Analysis Module ⏳
-- [ ] Apogee/landing detection
-- [ ] Flight statistics
-- [ ] Event timeline (burnout, apogee, landing)
-- [ ] Stability metrics
-
-### Phase 2: GUI Application 🟡 (After 1.4)
-- Parameter input form
-- 2D/3D visualization
-- Telemetry display
-- SvelteKit integration
-
-### Phase 3: CLI Tool 🟢 (After 2)
-- Batch execution
-- Parameter optimization
-- Export utilities
-
-## Next Steps (Priority Order)
-
-1. **Enhance custom simulator physics**
-   - Add atmospheric density (ISO 2533 standard atmosphere)
-   - Implement drag coefficient effects
-   - Add thrust/burn curve modeling
-   - Test with real rocket data
-
-2. **JSBSim integration**
-   - Set up PyO3 for Python-Rust binding
-   - Map SimulationParams → JSBSim properties
-   - Extract output from JSBSim state
-   - Create adapter layer
-
-3. **Data analysis**
-   - Statistics module (apogee, range, duration)
-   - Event detection
-   - Stability analysis
-
-4. **GUI development**
-   - Convert SvelteKit to use simulator_core
-   - Build parameter input form
-   - Implement 2D trajectory visualization
-   - Add telemetry display
-
-## Build Commands
+## Build & Test Commands
 
 ```bash
-# Build all
-cargo build --release
-
-# Build individual crates
+# Build
 cargo build -p simulator_core
 cargo build -p simulator_cli
-cargo build -p simulator_gui
+cargo build --workspace
 
-# Test
+# Test all (74 tests)
+cargo test --workspace
+
+# Test a single crate
 cargo test -p simulator_core
+cargo test -p simulator_cli
+
+# Test a single module or function
+cargo test -p simulator_core -- launch_rail
+cargo test -p simulator_core -- parachute::tests::transient_converges
+
+# Lint / format
+cargo fmt
+cargo clippy --all-targets
 
 # Run CLI
-cargo run -p simulator_cli -- --altitude 1000 --velocity 150
+cargo run -p simulator_cli -- run -c crates/simulator_cli/examples/minimal/config.yaml --out-dir out
+cargo run -p simulator_cli -- validate -c path/to/config.yaml
+cargo run -p simulator_cli -- inspect  -c path/to/config.yaml   # pretty-print assembled params
+cargo run -p simulator_cli -- landing-area -c path/to/config.yaml  # parallel wind sweep
 
-# Run GUI (dev)
-cd crates/simulator_gui && cargo tauri dev
-
-# Formatting
-cargo fmt && cargo clippy --all-targets
+# Snapshot tests (insta)
+cargo insta review   # after a snapshot value legitimately changes
 ```
 
-## Architecture Notes
+## Repository Structure
 
-### Trait-Based Design
-All simulators implement `Simulator` trait:
-```rust
-pub trait Simulator: Send + Sync {
-    fn initialize(&mut self, params: &SimulationParams) -> Result<()>;
-    fn step(&mut self, dt: f64) -> Result<()>;
-    fn reset(&mut self) -> Result<()>;
-    fn get_output(&self) -> Result<SimulationOutput>;
-    fn is_complete(&self) -> bool;
-}
+```
+crates/
+  simulator_core/   # physics engine library (no I/O)
+  simulator_cli/    # CLI binary — config loading, file output, DEM
+src/                # SvelteKit frontend (Tauri GUI, currently separate from core)
+src-tauri/          # Tauri v2 backend stubs
 ```
 
-### Data Flow
-SimulationParams → Validation → Simulator.initialize() → Step loop → SimulationOutput
+## simulator_core Architecture
 
-### Error Handling
-Custom `SimulatorError` enum with specific error types for each subsystem.
+### Phase pipeline
 
-## Integration Notes
+The `SimulationOrchestrator` (orchestrator.rs) drives three sequential phases:
 
-- **JSBSim Submodule:** Already present at `jsbsim/`
-- **SvelteKit Frontend:** Exists in `src/`, needs integration with simulator_core
-- **Node.js Config:** Preserved in `package.json` for frontend build
-- **Original Tauri Config:** Replaced with monorepo structure
-
-## Known Limitations
-
-- Custom simulator uses simple ballistic model (no aerodynamics yet)
-- JSBSim integration not implemented (Python binding pending)
-- No atmospheric effects except gravity
-- No thrust modeling
-- GUI not integrated with simulator_core
-
-## Key Files to Know
-
-- [Cargo.toml](Cargo.toml) - Workspace config
-- [simulator_core/src/lib.rs](crates/simulator_core/src/lib.rs) - Core module
-- [simulator_core/src/parameters.rs](crates/simulator_core/src/parameters.rs) - Input params
-- [simulator_core/src/output.rs](crates/simulator_core/src/output.rs) - Output structures
-- [simulator_core/src/custom_simulator.rs](crates/simulator_core/src/custom_simulator.rs) - Physics engine
-- [README.md](README.md) - Full documentation and roadmap
-
-## Development Tips
-
-1. Use trait bounds for generic simulator types
-2. Keep SimulationParams serializable for IPC
-3. Add tests in each module's `mod tests` section
-4. Use `cargo clippy` to catch common mistakes
-5. Document public APIs with doc comments
-
-## Questions & Notes
-
-- JSBSim Python API needs PyO3 wrapper - plan this carefully
-- Atmospheric model should follow ISO 2533 standard
-- Consider storing trajectory history in SimulatorState for debugging
-- GUI visualization will need efficient trajectory data structures
-
-**Development (frontend only):**
 ```
-pnpm dev
+OnRail   → LaunchRailStage   (simple_simulator/launch_rail.rs)
+           1-DOF kinematics along the rail axis, with ISA atmosphere and Cd0 drag
+Ballistic → JsbSimStage      (simple_simulator/jsbsim_stage.rs)
+           wraps JsbSimSimulator (full 6-DOF via JSBSim C++ binding)
+           detects EngineBurnout (from thrust_table), Apogee, Landed
+Parachute → ParachuteStage   (simple_simulator/parachute.rs)
+           3-D point mass with terminal-velocity drag model
+           terminal velocity table values are at standard sea-level density;
+           corrected at altitude via v_term_actual = v_term_SL * sqrt(ρ₀/ρ)
 ```
 
-**Development (full Tauri app):**
+Each phase implements `StageRunner { initialize, step }` and returns `StageStepOutput { state, events, completed }`.
+
+### Key data structures
+
+**`SimulationState`** (`output.rs`) — per-step snapshot shared by all phases. All values in SI. Coordinates:
+- `position.alt_agl_m` stores **MSL altitude** (not true AGL); named for historical reasons
+- `position.local_x_m/y_m` — distance in launch-yaw and perpendicular directions
+- `velocity.u/v/w_mps` — body-axis forward / lateral / down components
+
+**`Trajectory`** (`output.rs`) — Structure of Arrays (SoA): 31 parallel `Vec<f64>` columns. Use `push(&state)`, `get_state(i)`, `last_state()`, and `row_iter()` (yields reconstructed `SimulationState`s).
+
+**`UnifiedSimulationOutput`** — top-level result: `mainline: SimulationOutput`, `parachute_branch: SimulationOutput`, `events: Vec<EventStamp>`, `analysis: AnalysisOutput`.
+
+**`EventStamp`** — carries `EventKind`, `sim_time_sec`, `EventSource`, and `Option<SimulationState>` snapshot. Events are sparse (~15 per run) and use AoS layout.
+
+### Post-simulation analysis (`analysis.rs`)
+
+`analysis::analyze(&mut output, &params)` detects peak events over the mainline trajectory (MaxQ, MaxAxialAcceleration, MaxLateralAcceleration, MaxAngularRate, MaxThrust, MaxAirspeed, MaxDynamicPressureAlpha) and appends them as derived `EventStamp`s, then time-sorts all events.
+
+### Coordinate conventions
+
+- **Wind table**: `[altitude_m, speed_mps, direction_deg]` — meteorological "from" convention (dir 0 = from north). ENU north component = `-speed * cos(dir)`.
+- **Attitude**: pitch 90° = vertical launch.
+- **Altitude**: `launch_env.elevation` is MSL elevation of the pad. `position.alt_agl_m` = `elevation + height_above_pad` throughout the codebase.
+
+### Standard atmosphere (`standard_atmosphere.rs`)
+
+ISA 1976. `sample_atmosphere(alt_msl_m) -> AtmosphereSample { temperature_k, pressure_pa, density_kg_m3, sound_speed }`. Clamped at 86 km.
+
+## simulator_cli Architecture
+
+### Config format
+
+User-facing YAML (`config.rs` + `assemble.rs`). Tables (thrust, aero, cp, terminal velocity) are referenced as CSV paths relative to the config file.
+
+```yaml
+launch: { latitude, longitude, elevation, rail_length, pitch, yaw, wind_speed_mps, wind_direction_deg, ... }
+body:   { diameter, dry_mass_with_fuel_section, cg, inertia }
+engine: { thrust_table, thruster_pos, tank: { position, tank_contents }, fuel: {...} }
+aero:   { cp_at_launch, cp_mach_table, cd0_alpha_mach_table, cn_table, cs_table, ... }
+parachute: { terminal_velocity_table, deploy_delay_sec }   # optional
+sim:    { flight_duration, time_step, csv_sample_interval, kml_sample_interval }
 ```
-pnpm tauri dev
-```
 
-**Build frontend:**
-```
-pnpm build
-```
+See `crates/simulator_cli/examples/minimal/config.yaml` for a complete reference.
 
-**Build Tauri app:**
-```
-pnpm tauri build
-```
+### `Cd0AlphaMachTable`
 
-**Type-check Svelte:**
-```
-pnpm check
-```
+Bilinear interpolation table. `mach_keys` must have ≥ 2 entries; each row is `[alpha_key, cd_at_mach0, cd_at_mach1, ...]`. Test fixtures must use at least a 2×2 table.
 
-**Package manager:** pnpm (not npm or yarn)
+### Output files (written by `runner.rs`)
 
-## Architecture
+| File | Content |
+|---|---|
+| `mainline.csv` / `parachute.csv` | Trajectory rows decimated by `csv_sample_interval` |
+| `events.csv` / `events.json` | All events with full state payload |
+| `summary.json` | Apogee, max speed, flight time, landing point |
+| `trajectory.kml` | LineStrings + event placemarks, `altitudeMode=absolute` (MSL) |
 
-This is a **Tauri v2** desktop app using **SvelteKit** (SPA mode) + **TypeScript** on the frontend and **Rust** on the backend.
+### DEM elevation refinement (`dem.rs`, `refine_landing.rs`)
 
-### Key constraints
-- SvelteKit runs as a static SPA (no SSR) — `ssr = false` in `src/routes/+layout.ts`, adapter-static with `fallback: "index.html"`.
-- Tauri's dev server expects the Vite frontend at `http://localhost:1420`.
-- Frontend is built to `../build` (relative to `src-tauri/`).
+GSI Japan tiles (zoom 15, `cyberjapandata.gsi.go.jp`). Cached under `{cache_dir}/trajec_simu_dem/15/`. `refine_one()` walks each trajectory backwards to find the actual terrain crossing and overwrites the `Landed`/`ParachuteLanded` event state.
 
-### Frontend (`src/`)
-- **Svelte 5** with runes (`$state`, etc.)
-- **Tailwind CSS v4** (via `@tailwindcss/vite` plugin — no `tailwind.config.js` needed)
-- **MapLibre GL** for map rendering with local raster tiles served from `public/tiles/{z}/{x}/{y}.jpg`
-- Map is centered on the Fukuoka area (130.4, 33.6) and uses locally hosted tiles at zoom level 10
-- `src/lib/components/Map.svelte` — MapLibre map component; loads local aerial tiles, renders GeoJSON route lines
+True AGL = `position.alt_agl_m - dem_elevation_at_latlon`.
 
-### Backend (`src-tauri/`)
-- Rust entry: `src-tauri/src/lib.rs` (logic) + `src-tauri/src/main.rs` (binary entry)
-- Tauri commands are registered in `lib.rs` via `invoke_handler` and called from the frontend with `invoke()` from `@tauri-apps/api/core`
-- Currently has a sample `greet` command
+### Landing area sweep (`landing_area.rs`)
 
-### Adding Tauri commands
-1. Define `#[tauri::command]` fn in `src-tauri/src/lib.rs`
-2. Register it in `tauri::generate_handler![...]`
-3. Call from frontend: `invoke("command_name", { args })` (returns a Promise)
+Rayon-parallel sweep over wind speed × direction. Power-law wind profile applied. Each condition runs the full simulate + refine + write pipeline.
+
+## JSBSim Backend
+
+`JsbSimSimulator` wraps JSBSim via a C++ cxx binding (`jsbsim/ffi.rs`). The smoke test (`tests/jsbsim_smoke.rs`) is `#[ignore]` — run manually when JSBSim is available. The JSBSim aircraft XML is generated from `RocketParams` by `xml_gen/`.
