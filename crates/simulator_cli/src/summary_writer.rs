@@ -61,8 +61,8 @@ const KML_HEADER: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
     <PolyStyle><color>4D005ED5</color></PolyStyle>
   </Style>
   <Style id="parachute_hull">
-    <LineStyle><color>ff009fe6</color><width>2</width></LineStyle>
-    <PolyStyle><color>4D009FE6</color></PolyStyle>
+    <LineStyle><color>ffa779cc</color><width>2</width></LineStyle>
+    <PolyStyle><color>4Da779cc</color></PolyStyle>
   </Style>
   <Style id="ballistic_pt">
     <IconStyle><color>ff005ed5</color><scale>0.7</scale>
@@ -70,7 +70,7 @@ const KML_HEADER: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
     </IconStyle>
   </Style>
   <Style id="parachute_pt">
-    <IconStyle><color>ff009fe6</color><scale>0.7</scale>
+    <IconStyle><color>ffa779cc</color><scale>0.7</scale>
       <Icon><href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href></Icon>
     </IconStyle>
   </Style>
@@ -86,15 +86,6 @@ pub fn write_range_kml(out_dir: &Path, results: &[ConditionResult]) -> Result<()
     let mut w = BufWriter::new(f);
 
     w.write_all(KML_HEADER.as_bytes())?;
-
-    write_landing_folder(
-        &mut w,
-        "Ballistic landing",
-        "ballistic_hull",
-        "ballistic_pt",
-        results,
-        |r| r.landed,
-    )?;
     write_landing_folder(
         &mut w,
         "Parachute landing",
@@ -103,6 +94,15 @@ pub fn write_range_kml(out_dir: &Path, results: &[ConditionResult]) -> Result<()
         results,
         |r| r.parachute_landed,
     )?;
+    write_landing_folder(
+        &mut w,
+        "Ballistic landing",
+        "ballistic_hull",
+        "ballistic_pt",
+        results,
+        |r| r.landed,
+    )?;
+    
 
     writeln!(w, "</Document>\n</kml>")?;
     w.flush()?;
@@ -163,11 +163,11 @@ where
         if let Some((lat, lon)) = get_pt(r) {
             writeln!(
                 w,
-                "    <Placemark>\n      <name>spd={:.1} dir={:03.0}</name>\n      \
+                "    <Placemark>\n      <name>{:03.0}</name>\n      \
                  <styleUrl>#{pt_style}</styleUrl>\n      <Point>\n        \
                  <altitudeMode>clampToGround</altitudeMode>\n        \
                  <coordinates>{:.7},{:.7},0</coordinates>\n      </Point>\n    </Placemark>",
-                r.speed_mps, r.dir_deg, lon, lat,
+                r.dir_deg, lon, lat,
             )?;
         }
     }
