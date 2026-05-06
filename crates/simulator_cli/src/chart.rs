@@ -85,7 +85,7 @@ fn validate_and_bounds(
 pub fn draw_result_plot(path: &std::path::Path,
                         output: &UnifiedSimulationOutput,) -> Result<(), Box<dyn Error>> {
     let qbar_plot_config = PlotConfig{
-        output_path: PathBuf::from(path.join("qbar.plot.bmp")),
+        output_path: path.join("qbar.plot.bmp"),
         x_label: "Time (s)".to_string(),
         y_label: "Dynamic Pressure (Pa)".to_string(),
         x_range: None,
@@ -101,7 +101,7 @@ pub fn draw_result_plot(path: &std::path::Path,
     }).expect("failed to draw qbar plot");
 
     let mach_plot_config = PlotConfig{
-        output_path: PathBuf::from(path.join("mach.plot.bmp")),
+        output_path: path.join("mach.plot.bmp"),
         x_label: "Time (s)".to_string(),
         y_label: "Mach".to_string(),
         x_range: None,
@@ -117,7 +117,7 @@ pub fn draw_result_plot(path: &std::path::Path,
     }).expect("failed to draw mach plot");
 
     let altitude_plot_config = PlotConfig{
-        output_path: PathBuf::from(path.join("altitude.plot.bmp")),
+        output_path: path.join("altitude.plot.bmp"),
         x_label: "Time (s)".to_string(),
         y_label: "Altitude (m)".to_string(),
         x_range: None,
@@ -133,7 +133,7 @@ pub fn draw_result_plot(path: &std::path::Path,
     }).expect("failed to draw mach plot");
 
     let velocity_plot_config = PlotConfig{
-        output_path: PathBuf::from(path.join("velocity.plot.bmp")),
+        output_path: path.join("velocity.plot.bmp"),
         x_label: "Time (s)".to_string(),
         y_label: "Velocity (m/s)".to_string(),
         x_range: None,
@@ -153,7 +153,7 @@ pub fn draw_result_plot(path: &std::path::Path,
     }).expect("failed to draw mach plot");
 
     let trajectory_plot_config = PlotConfig{
-        output_path: PathBuf::from(path.join("trajectory.plot.bmp")),
+        output_path: path.join("trajectory.plot.bmp"),
         x_label: "Time (s)".to_string(),
         y_label: "xyz (m)".to_string(),
         x_range: None,
@@ -172,7 +172,7 @@ pub fn draw_result_plot(path: &std::path::Path,
     }).expect("failed to draw mach plot");
 
     let acceleration_plot_config = PlotConfig{
-        output_path: PathBuf::from(path.join("acceleration.plot.bmp")),
+        output_path: path.join("acceleration.plot.bmp"),
         x_label: "Time (s)".to_string(),
         y_label: "xyz (m/s²)".to_string(),
         x_range: None,
