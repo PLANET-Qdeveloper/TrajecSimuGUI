@@ -24,7 +24,7 @@ const KML_HEADER: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
     <LineStyle><color>ff005ed5</color><width>2</width></LineStyle>
   </Style>
   <Style id="parachute">
-    <LineStyle><color>ff009fe6</color><width>2</width></LineStyle>
+    <LineStyle><color>ffa779cc</color><width>2</width></LineStyle>
   </Style>
   <Style id="event">
     <IconStyle>

@@ -6,9 +6,9 @@ use simulator_core::{UnifiedSimulationOutput};
 
 // 岡部・伊藤のカラーパレット指定 (Vermilion -> Orange -> Blue)
 const COLOR_VERMILION: RGBColor = RGBColor(213, 94, 0);
-const COLOR_ORANGE: RGBColor = RGBColor(230, 159, 0);
+const REDDISH_PURPLE: RGBColor = RGBColor(204, 121, 167);
 const COLOR_BLUE: RGBColor = RGBColor(0, 114, 178);
-const PALETTE: [RGBColor; 3] = [COLOR_VERMILION, COLOR_ORANGE, COLOR_BLUE];
+const PALETTE: [RGBColor; 3] = [COLOR_VERMILION, REDDISH_PURPLE, COLOR_BLUE];
 
 /// グラフに描画するデータシリーズ
 pub struct SeriesData<'a> {
