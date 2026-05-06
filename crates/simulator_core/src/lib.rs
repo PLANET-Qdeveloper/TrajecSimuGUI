@@ -33,6 +33,7 @@ pub mod output;
 pub mod params;
 pub mod progress;
 pub mod simple_simulator;
+pub mod standard_atmosphere;
 pub mod workspace;
 pub mod xml_gen;
 

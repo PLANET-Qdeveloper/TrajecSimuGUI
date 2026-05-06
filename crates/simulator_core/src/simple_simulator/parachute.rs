@@ -35,7 +35,11 @@ use crate::output::{
 use crate::progress::EventKind;
 use crate::simple_simulator::env::{self, latlon_to_local, G0_MPS2};
 use crate::simple_simulator::{StageRunner, StageStepInput, StageStepOutput};
+use crate::standard_atmosphere::{sample_atmosphere, AtmosphereSample};
 use crate::{Result, RocketParams};
+
+/// ISA 1976 sea-level air density (15 °C, 101 325 Pa).
+const RHO_SL: f64 = 1.225_0;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Mode {
@@ -115,6 +119,7 @@ impl ParachuteStage {
         &self,
         wind_enu: [f64; 3],
         accel_enu_down: [f64; 3],
+        atm: AtmosphereSample,
         launch_lat_deg: f64,
         launch_lon_deg: f64,
         launch_yaw_deg: f64,
@@ -124,6 +129,9 @@ impl ParachuteStage {
         let v_rel_n = self.v_north_mps - wind_enu[1];
         let v_rel_d = self.v_down_mps;
         let airspeed = (v_rel_e.powi(2) + v_rel_n.powi(2) + v_rel_d.powi(2)).sqrt();
+
+        let qbar_pa = 0.5 * atm.density_kg_m3 * airspeed * airspeed;
+        let mach = airspeed / atm.sound_speed;
 
         // Velocity-aligned pseudo-body frame: x forward (horizontal heading),
         // z down. Yaw is true heading; pitch is descent angle below horizontal.
@@ -183,9 +191,18 @@ impl ParachuteStage {
                 ay_mps2: 0.0,
                 az_mps2: az_body,
             },
-            aero: AeroState::default(),
+            aero: AeroState {
+                alpha_deg: 0.0,
+                beta_deg: 0.0,
+                qbar_pa,
+                total_aoa_deg: 0.0,
+                pressure_pa: atm.pressure_pa,
+                temperature_k: atm.temperature_k,
+                gust_airspeed_mps: 0.0,
+                gust_aoa_deg: 0.0,
+            },
             thrust_n: 0.0,
-            mach: 0.0,
+            mach,
         }
     }
 }
@@ -203,10 +220,18 @@ impl StageRunner for ParachuteStage {
     }
 
     fn step(&mut self, params: &RocketParams, _input: StageStepInput) -> Result<StageStepOutput> {
-        let v_term = self.terminal_velocity_mps(params).max(1e-6);
         let wind_enu = self.wind_enu_at_current_alt(params);
+
+        // Atmosphere at current altitude, used for density correction and state output.
+        let atm = sample_atmosphere(self.alt_agl_m.max(0.0));
+
+        // Terminal velocity from the table is defined at standard sea-level density
+        // (ρ₀ = 1.225 kg/m³). Scale to actual density: v_term ∝ 1/√ρ.
+        let rho_ratio = RHO_SL / atm.density_kg_m3;
+        let v_term = self.terminal_velocity_mps(params).max(1e-6) * rho_ratio.sqrt();
+
         let mut dt = params.sim.time_step;
-        let mut accel_enu_down = [0.0; 3];
+        let accel_enu_down: [f64; 3];
 
         match self.mode {
             Mode::Transient => {
@@ -244,6 +269,7 @@ impl StageRunner for ParachuteStage {
                 }
             }
             Mode::SteadyState => {
+                accel_enu_down = [0.0, 0.0, 0.0];
                 dt = params.sim.time_step * 10.0;
                 self.v_east_mps = wind_enu[0];
                 self.v_north_mps = wind_enu[1];
@@ -277,6 +303,7 @@ impl StageRunner for ParachuteStage {
         let state = self.build_state(
             wind_enu,
             accel_enu_down,
+            atm,
             params.launch_env.latitude,
             params.launch_env.longitude,
             params.launch_env.yaw,
@@ -329,6 +356,7 @@ mod tests {
         AeroParams, BodyMassParams, Cd0AlphaMachTable, EngineParams, FuelParams, LaunchEnvParams,
         ParachuteParams, SimControl, TankParams,
     };
+    use crate::standard_atmosphere::sample_atmosphere;
 
     // ── lookup_terminal_mps ────────────────────────────────────────────────
 
@@ -506,9 +534,13 @@ mod tests {
         stage.mode = Mode::SteadyState;
 
         stage.step(&params, StageStepInput::default()).unwrap();
+        // Horizontal velocities must equal wind exactly (density correction is vertical-only).
         assert!(stage.v_east_mps.abs() < 1e-9);
         assert!((stage.v_north_mps - (-10.0)).abs() < 1e-9);
-        assert!((stage.v_down_mps - v_term).abs() < 1e-9);
+        // v_down must equal the density-corrected terminal velocity at 1 000 m.
+        let atm = sample_atmosphere(1000.0_f64);
+        let v_term_corrected = v_term * (1.225_f64 / atm.density_kg_m3).sqrt();
+        assert!((stage.v_down_mps - v_term_corrected).abs() < 1e-9);
     }
 
     #[test]
@@ -526,9 +558,18 @@ mod tests {
         for _ in 0..2 {
             stage.step(&params, StageStepInput::default()).unwrap();
         }
-        let expected = 30.0 + (8.0 - 30.0) * 0.5;
+        // Mirror the stage's internal calculation: nominal v_term at t=0.5 s is
+        // the midpoint of the 30→8 ramp, then density-corrected for the altitude
+        // at the start of step 2 (after step 1 descended by v_term_step1 * dt).
+        let dt_steady = params.sim.time_step * 10.0;
+        let atm1 = sample_atmosphere(1000.0_f64);
+        let v_term_step1 = 30.0 * (1.225_f64 / atm1.density_kg_m3).sqrt();
+        let alt_step2 = 1000.0 - v_term_step1 * dt_steady;
+        let atm2 = sample_atmosphere(alt_step2.max(0.0));
+        let v_term_nominal_at_t05 = 30.0 + (8.0 - 30.0) * 0.5;
+        let expected = v_term_nominal_at_t05 * (1.225_f64 / atm2.density_kg_m3).sqrt();
         assert!(
-            (stage.v_down_mps - expected).abs() < 1e-6,
+            (stage.v_down_mps - expected).abs() < 1e-9,
             "v_down={} expected≈{}",
             stage.v_down_mps,
             expected

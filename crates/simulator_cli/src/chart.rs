@@ -218,14 +218,17 @@ pub fn draw_academic_plot(config: PlotConfig, data: SeriesData) -> Result<(), Bo
         return Err("y_range contains non-positive values for log axis".into());
     }
 
+    // 凡例に表示するラベルが1つでも存在するかチェック
+    let has_legend = data.y_axis.iter().any(|(label, _)| label.is_some());
+
     // Plottersは座標系(Linear/Log)によって型が変わるため、マクロで描画処理を共通化
     macro_rules! build_and_draw {
         ($x_spec:expr, $y_spec:expr) => {{
             let mut chart = ChartBuilder::on(&root)
-                .margin(20)
-                // タイトルはなし
-                .x_label_area_size(50)
-                .y_label_area_size(60)
+                .margin(40) // 余白も少し広めにとる
+                // 軸の説明(y_desc等)と目盛りの数字が重ならないようエリアを大幅に広げる
+                .x_label_area_size(100)
+                .y_label_area_size(150)
                 .build_cartesian_2d($x_spec, $y_spec)?;
 
             // 軸・目盛り・グリッド線の設定 (詳細目盛りを含む)
@@ -233,8 +236,17 @@ pub fn draw_academic_plot(config: PlotConfig, data: SeriesData) -> Result<(), Bo
                 .configure_mesh()
                 .x_desc(&config.x_label)
                 .y_desc(&config.y_label)
-                .axis_desc_style(("sans-serif", 20, &BLACK))
-                .label_style(("sans-serif", 15, &BLACK))
+                // 2000x1500の画像サイズに合わせてフォントサイズを大幅に拡大 (20 -> 50)
+                .axis_desc_style(("sans-serif", 50, &BLACK))
+                .label_style(("sans-serif", 40, &BLACK))
+                // 縦軸の数字の桁数を制限して重なりを防ぐ (必要に応じて {:.2e} など指数表記も有効)
+                .y_label_formatter(&|y| {
+                    if y.abs() >= 1e4 {
+                        format!("{:.1e}", y) // 指数表記 (例: 1.0e4)
+                    } else {
+                        format!("{:.1}", y)  // 通常表記 (例: 9999.9)
+                    }
+                })
                 .bold_line_style(&BLACK.mix(0.2))       // 主グリッド
                 .light_line_style(&BLACK.mix(0.05))      // 詳細(マイナー)グリッド
                 .x_labels(10)
@@ -244,49 +256,48 @@ pub fn draw_academic_plot(config: PlotConfig, data: SeriesData) -> Result<(), Bo
             // データのプロット (1〜3個のシリーズを想定)
             for (i, (label, y_values)) in data.y_axis.iter().enumerate() {
                 let color = PALETTE[i % PALETTE.len()];
-                if let Some(label) = label {
-                    chart
-                        .draw_series(LineSeries::new(
-                            // 共通の times と、個別の y_values を zip して結合
-                            data.x_axis.iter().zip(y_values.iter()).map(|(&x, &y)| (x, y)),
-                            color.stroke_width(2),
-                        ))?
-                        .label(label)
-                        .legend(move |(x, y)| {
-                            PathElement::new(vec![(x, y), (x + 20, y)], color.stroke_width(2))
-                        });
-                }else{
-                    chart
-                        .draw_series(LineSeries::new(
-                            // 共通の times と、個別の y_values を zip して結合
-                            data.x_axis.iter().zip(y_values.iter()).map(|(&x, &y)| (x, y)),
-                            color.stroke_width(2),
-                        ))?;
-                }
 
+                let series = LineSeries::new(
+                    data.x_axis.iter().zip(y_values.iter()).map(|(&x, &y)| (x, y)),
+                    color.stroke_width(3), // 論文用に線を少し太く(2 -> 3)すると視認性が上がります
+                );
+
+                if let Some(label_text) = label {
+                    chart
+                        .draw_series(series)?
+                        .label(label_text)
+                        .legend(move |(x, y)| {
+                            PathElement::new(vec![(x, y), (x + 30, y)], color.stroke_width(3))
+                        });
+                } else {
+                    chart.draw_series(series)?;
+                }
             }
 
             // アノテーション(特定の点への文字付きポイント)の描画
             for anno in &config.annotations {
                 chart.draw_series(std::iter::once(
                     EmptyElement::at((anno.x, anno.y))
-                        + Circle::new((0, 0), 4, ShapeStyle::from(&BLACK).filled())
+                        + Circle::new((0, 0), 6, ShapeStyle::from(&BLACK).filled()) // 点も少し大きく
                         + Text::new(
                             anno.text.clone(),
-                            (8, -12), // ポイントからの相対位置オフセット
-                            ("sans-serif", 16).into_font(),
+                            (12, -18), // フォント拡大に合わせてオフセットも広げる
+                            ("sans-serif", 35).into_font(), // 16 -> 35 に拡大
                         ),
                 ))?;
             }
 
-            // 凡例の描画設定
-            chart
-                .configure_series_labels()
-                .background_style(&WHITE.mix(0.8))
-                .border_style(&BLACK)
-                .position(SeriesLabelPosition::UpperRight)
-                .label_font(("sans-serif", 16))
-                .draw()?;
+            // ラベルが1つ以上ある場合のみ凡例を描画する
+            if has_legend {
+                chart
+                    .configure_series_labels()
+                    .background_style(&WHITE.mix(0.9)) // 少し透明度を下げる
+                    .border_style(&BLACK)
+                    .position(SeriesLabelPosition::UpperRight)
+                    .label_font(("sans-serif", 35)) // 16 -> 35 に拡大
+                    .margin(15) // 凡例内の余白
+                    .draw()?;
+            }
         }};
     }
 
