@@ -27,7 +27,6 @@ type TileArc = Arc<TileGrid>;
 
 /// Returns (tile_x, tile_y) for a lat/lon at zoom z.
 pub fn lat_lon_to_tile(lat_deg: f64, lon_deg: f64) -> (u32, u32) {
-    
     let n = (1u64 << ZOOM) as f64;
     let tx = ((lon_deg + 180.0) / 360.0 * n).floor() as u32;
     let lat_r = lat_deg.to_radians();
@@ -46,10 +45,7 @@ pub fn lat_lon_to_pixel(lat_deg: f64, lon_deg: f64) -> (usize, usize) {
     let (tx, ty) = lat_lon_to_tile(lat_deg, lon_deg);
     let px = ((fx - tx as f64) * TILE_PIXELS as f64).floor() as usize;
     let py = ((fy - ty as f64) * TILE_PIXELS as f64).floor() as usize;
-    (
-        px.min(TILE_PIXELS - 1),
-        py.min(TILE_PIXELS - 1),
-    )
+    (px.min(TILE_PIXELS - 1), py.min(TILE_PIXELS - 1))
 }
 
 // ── Elevation decoding ───────────────────────────────────────────────────────
@@ -69,7 +65,9 @@ fn decode_dem_png(bytes: &[u8]) -> Result<TileGrid> {
     let decoder = png::Decoder::new(std::io::Cursor::new(bytes));
     let mut reader = decoder.read_info().context("PNG read_info failed")?;
     let mut buf = vec![0u8; reader.output_buffer_size()];
-    let info = reader.next_frame(&mut buf).context("PNG next_frame failed")?;
+    let info = reader
+        .next_frame(&mut buf)
+        .context("PNG next_frame failed")?;
 
     if info.color_type != png::ColorType::Rgb {
         bail!("expected RGB PNG, got {:?}", info.color_type);
@@ -102,9 +100,8 @@ fn save_tile_gz(path: &Path, grid: &[f32; GRID_SIZE]) -> Result<()> {
         .with_context(|| format!("creating cache file {}", path.display()))?;
     let mut gz = flate2::write::GzEncoder::new(f, flate2::Compression::default());
     // SAFETY: [f32; N] → bytes is always valid (no padding, no undef bits for f32)
-    let bytes: &[u8] = unsafe {
-        std::slice::from_raw_parts(grid.as_ptr() as *const u8, GRID_SIZE * 4)
-    };
+    let bytes: &[u8] =
+        unsafe { std::slice::from_raw_parts(grid.as_ptr() as *const u8, GRID_SIZE * 4) };
     gz.write_all(bytes)?;
     gz.finish()?;
     Ok(())
@@ -134,8 +131,7 @@ pub struct DemCache {
 
 impl DemCache {
     pub fn new() -> Result<Self> {
-        let base = dirs::cache_dir()
-            .context("could not determine OS cache directory")?;
+        let base = dirs::cache_dir().context("could not determine OS cache directory")?;
         let cache_dir = base.join("trajec_simu_dem").join(ZOOM.to_string());
         Ok(Self {
             cache_dir,
@@ -177,7 +173,13 @@ impl DemCache {
         };
 
         // Write lock — or_insert drops the duplicate if another thread won the race.
-        Ok(self.mem.write().unwrap().entry((tx, ty)).or_insert(arc).clone())
+        Ok(self
+            .mem
+            .write()
+            .unwrap()
+            .entry((tx, ty))
+            .or_insert(arc)
+            .clone())
     }
 
     /// Download a tile from GSI.
@@ -192,9 +194,9 @@ impl DemCache {
             .timeout(std::time::Duration::from_secs(30))
             .build();
 
-        let urls = [
-            format!("https://cyberjapandata.gsi.go.jp/xyz/dem5a_png/{ZOOM}/{tx}/{ty}.png"),
-        ];
+        let urls = [format!(
+            "https://cyberjapandata.gsi.go.jp/xyz/dem5a_png/{ZOOM}/{tx}/{ty}.png"
+        )];
 
         for url in &urls {
             match agent.get(url).call() {
@@ -247,7 +249,6 @@ impl DemCache {
             }
         }
     }
-    
 
     /// Terrain elevation in metres ASL at the given position.
     /// Returns `None` if the tile pixel carries no data or the tile

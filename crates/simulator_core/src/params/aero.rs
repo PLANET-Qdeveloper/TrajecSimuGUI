@@ -33,8 +33,8 @@ impl Cd0AlphaMachTable {
         let a1 = a_keys[a_idx + 1];
 
         // 3. 四隅の値を取得 (row[0]はalphaキーなので、machのインデックスは +1 する)
-        let q11 = rows[a_idx][m_idx + 1];     // (a0, m0)
-        let q21 = rows[a_idx][m_idx + 2];     // (a0, m1)
+        let q11 = rows[a_idx][m_idx + 1]; // (a0, m0)
+        let q21 = rows[a_idx][m_idx + 2]; // (a0, m1)
         let q12 = rows[a_idx + 1][m_idx + 1]; // (a1, m0)
         let q22 = rows[a_idx + 1][m_idx + 2]; // (a1, m1)
 
@@ -47,8 +47,12 @@ impl Cd0AlphaMachTable {
 
     // 範囲外をクランプしつつ、左側のインデックスを返す補助関数
     fn find_lower_index(&self, keys: &[f64], val: f64) -> usize {
-        if val <= keys[0] { return 0; }
-        if val >= keys[keys.len() - 1] { return keys.len() - 2; }
+        if val <= keys[0] {
+            return 0;
+        }
+        if val >= keys[keys.len() - 1] {
+            return keys.len() - 2;
+        }
         keys.windows(2)
             .position(|w| val >= w[0] && val <= w[1])
             .unwrap_or(0)

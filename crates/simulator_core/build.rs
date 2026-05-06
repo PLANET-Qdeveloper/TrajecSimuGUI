@@ -37,7 +37,11 @@ fn main() {
     let lib_dir = {
         let base = dst.join("lib");
         let sub = base.join(&profile); // lib/debug, lib/release
-        if sub.exists() { sub } else { base }
+        if sub.exists() {
+            sub
+        } else {
+            base
+        }
     };
     let header_dir = jsbsim.join("src");
 

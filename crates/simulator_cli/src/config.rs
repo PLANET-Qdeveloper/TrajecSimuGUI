@@ -18,7 +18,9 @@ fn default_roll() -> f64 {
     0.0
 }
 
-fn default_wind_power_exponent() -> f64 { 0.166666666 }
+fn default_wind_power_exponent() -> f64 {
+    0.166666666
+}
 
 fn default_csv_sample_interval() -> u32 {
     1
@@ -58,7 +60,7 @@ pub struct LaunchConfig {
     pub wind_speed_mps: Option<f64>,
     #[serde(default)]
     pub wind_reference_alt: Option<f64>,
-    #[serde(default="default_wind_power_exponent")]
+    #[serde(default = "default_wind_power_exponent")]
     pub wind_power_exponent: f64,
     #[serde(default)]
     pub wind_direction_deg: Option<f64>,
@@ -143,7 +145,6 @@ impl Config {
             .parent()
             .map(Path::to_path_buf)
             .unwrap_or_else(|| PathBuf::from("."));
-
 
         cfg.resolve_paths(&base);
         Ok(cfg)

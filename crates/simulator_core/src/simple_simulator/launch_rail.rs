@@ -21,8 +21,8 @@ use crate::output::{
 use crate::progress::EventKind;
 use crate::simple_simulator::env::{self, latlon_to_local, G0_MPS2};
 use crate::simple_simulator::{StageRunner, StageStepInput, StageStepOutput};
-use crate::{Result, RocketParams};
 use crate::standard_atmosphere::sample_atmosphere;
+use crate::{Result, RocketParams};
 
 /// Launch rail phase: 1-D along-rail integrator.
 #[derive(Debug, Clone)]
@@ -120,7 +120,6 @@ impl LaunchRailStage {
         let remaining_prop = total_prop * (1.0 - consumed_fraction);
         (empty + remaining_prop).max(1e-6)
     }
-
 }
 
 impl Default for LaunchRailStage {
@@ -202,8 +201,13 @@ impl StageRunner for LaunchRailStage {
         let east_m = horizontal_m * yaw.sin();
         let (lat_deg, lon_deg) =
             env::advance_latlon_by_enu(launch.latitude, launch.longitude, east_m, north_m);
-        let (down_range_m, local_x_m, local_y_m) =
-            latlon_to_local(lat_deg, lon_deg, launch.latitude, launch.longitude, launch.yaw);
+        let (down_range_m, local_x_m, local_y_m) = latlon_to_local(
+            lat_deg,
+            lon_deg,
+            launch.latitude,
+            launch.longitude,
+            launch.yaw,
+        );
 
         // Post-step airspeed (for velocity output fields).
         let v_rel_post = self.velocity_mps - wind_along_rail;
@@ -251,8 +255,6 @@ impl StageRunner for LaunchRailStage {
             thrust_n,
             mach: mach_post,
         };
-
-
 
         let mut events = Vec::new();
         let mut completed = false;
@@ -316,10 +318,7 @@ mod tests {
                 cp_mach_table: vec![[0.0, 0.5]].into(),
                 cd0_alpha_mach_table: Cd0AlphaMachTable {
                     mach_keys: vec![0.0, 3.0].into(),
-                    rows: vec![
-                        vec![0.0, 0.0, 0.0],
-                        vec![20.0, 0.0, 0.0],
-                    ].into(),
+                    rows: vec![vec![0.0, 0.0, 0.0], vec![20.0, 0.0, 0.0]].into(),
                 },
                 cn_table: vec![[0.0, 2.0]].into(),
                 cs_table: vec![[0.0, 2.0]].into(),

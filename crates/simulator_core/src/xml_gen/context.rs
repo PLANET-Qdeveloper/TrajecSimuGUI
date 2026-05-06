@@ -33,7 +33,6 @@ pub struct XmlContext {
     pub velocity_v: f64,
     pub velocity_w: f64,
 
-
     /// [[alt_m, dir_rad, speed_fps], …]
     pub winds_table: Vec<[f64; 3]>,
 

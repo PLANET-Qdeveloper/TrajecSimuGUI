@@ -371,7 +371,14 @@ impl SimulationOrchestrator {
         let running = !matches!(self.phase, Phase::Completed);
 
         self.decimation_counter += 1;
-        if self.decimation_counter > self.params.as_ref().expect("params present?").sim.output_decimation_rate {
+        if self.decimation_counter
+            > self
+                .params
+                .as_ref()
+                .expect("params present?")
+                .sim
+                .output_decimation_rate
+        {
             self.decimation_counter = 0;
         }
 

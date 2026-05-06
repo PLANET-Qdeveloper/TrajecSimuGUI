@@ -103,7 +103,6 @@ pub fn write_range_kml(out_dir: &Path, results: &[ConditionResult]) -> Result<()
         |r| r.landed,
     )?;
 
-
     writeln!(w, "</Document>\n</kml>")?;
     w.flush()?;
     Ok(())
@@ -212,9 +211,7 @@ fn convex_hull(mut points: Vec<(f64, f64)>) -> Vec<(f64, f64)> {
     let build_half = |iter: &mut dyn Iterator<Item = (f64, f64)>| -> Vec<(f64, f64)> {
         let mut hull: Vec<(f64, f64)> = Vec::with_capacity(n);
         for p in iter {
-            while hull.len() >= 2
-                && cross(hull[hull.len() - 2], hull[hull.len() - 1], p) <= 0.0
-            {
+            while hull.len() >= 2 && cross(hull[hull.len() - 2], hull[hull.len() - 1], p) <= 0.0 {
                 hull.pop();
             }
             hull.push(p);
@@ -246,12 +243,7 @@ mod tests {
     #[test]
     fn hull_square() {
         // Four corners of a unit square.
-        let pts = vec![
-            (0.0_f64, 0.0_f64),
-            (0.0, 1.0),
-            (1.0, 0.0),
-            (1.0, 1.0),
-        ];
+        let pts = vec![(0.0_f64, 0.0_f64), (0.0, 1.0), (1.0, 0.0), (1.0, 1.0)];
         let hull = convex_hull(pts);
         // Hull should close (first == last) and have 5 points (4 corners + 1 closing).
         assert_eq!(hull.first(), hull.last(), "hull must be closed");
@@ -263,7 +255,10 @@ mod tests {
         // All points on a line — hull degenerates to 2 unique + 1 closing.
         let pts: Vec<(f64, f64)> = (0..5).map(|i| (0.0_f64, i as f64)).collect();
         let hull = convex_hull(pts);
-        assert!(hull.len() >= 2, "need at least 2 points for degenerate hull");
+        assert!(
+            hull.len() >= 2,
+            "need at least 2 points for degenerate hull"
+        );
     }
 
     #[test]
@@ -278,4 +273,3 @@ mod tests {
         assert_eq!(hull.len(), 1);
     }
 }
-
