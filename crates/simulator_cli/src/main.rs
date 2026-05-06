@@ -109,7 +109,7 @@ fn main() -> Result<()> {
             )?;
             
             if !no_chart{
-                if let Err(e) = chart::draw_result_plot(&*out_dir, &output){
+                if let Err(e) = chart::draw_result_plot(&out_dir, &output){
                   eprintln!("warn: chart generation) failed: {e:#}");
                 };
             }
