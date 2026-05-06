@@ -102,7 +102,7 @@ pub fn write_range_kml(out_dir: &Path, results: &[ConditionResult]) -> Result<()
         results,
         |r| r.landed,
     )?;
-    
+
 
     writeln!(w, "</Document>\n</kml>")?;
     w.flush()?;
@@ -159,18 +159,23 @@ where
     }
 
     // Individual point placemarks for every condition.
+    writeln!(
+        w,
+        "    <Folder>\n      <name>{folder_name} points</name>\n      <visibility>0</visibility>"
+    )?;
     for r in results {
         if let Some((lat, lon)) = get_pt(r) {
             writeln!(
                 w,
-                "    <Placemark>\n      <name>{:03.0}</name>\n      \
-                 <styleUrl>#{pt_style}</styleUrl>\n      <Point>\n        \
-                 <altitudeMode>clampToGround</altitudeMode>\n        \
-                 <coordinates>{:.7},{:.7},0</coordinates>\n      </Point>\n    </Placemark>",
+                "      <Placemark>\n        <name>{:03.0}</name>\n        \
+                 <styleUrl>#{pt_style}</styleUrl>\n        <Point>\n          \
+                 <altitudeMode>clampToGround</altitudeMode>\n          \
+                 <coordinates>{:.7},{:.7},0</coordinates>\n        </Point>\n      </Placemark>",
                 r.dir_deg, lon, lat,
             )?;
         }
     }
+    writeln!(w, "    </Folder>")?;
 
     writeln!(w, "  </Folder>")?;
     Ok(())
@@ -273,3 +278,4 @@ mod tests {
         assert_eq!(hull.len(), 1);
     }
 }
+
