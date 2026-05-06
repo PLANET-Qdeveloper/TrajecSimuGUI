@@ -14,7 +14,7 @@ use anyhow::{Context, Result};
 
 use simulator_core::params::RocketParams;
 use simulator_core::progress::EventStamp;
-use simulator_core::{EventKind, Trajectory, UnifiedSimulationOutput};
+use simulator_core::{EventKind, SimulationState, Trajectory, UnifiedSimulationOutput};
 
 const KML_HEADER: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
@@ -46,22 +46,34 @@ pub fn write_trajectory_kml(
     let mut f = fs::File::create(path).with_context(|| format!("creating {}", path.display()))?;
     f.write_all(KML_HEADER.as_bytes())?;
 
+
+
+    let time_at_parachute_open = output.events.iter().find(|e| e.kind == EventKind::ParachuteOpen).map(|e| e.sim_time_sec);
+    let index_at_parachute_open = time_at_parachute_open.map(|t| output.mainline.trajectory.row_iter().position(|s| s.time_sec >= t)).flatten();
+
     write_linestring(
         &mut f,
         "ballistic",
         "Ballistic phase",
-        &output.mainline.trajectory,
+        output.mainline.trajectory.row_iter(),
+        output.mainline.trajectory.len(),
         params,
         interval,
     )?;
-    write_linestring(
-        &mut f,
-        "parachute",
-        "Parachute descent",
-        &output.parachute_branch.trajectory,
-        params,
-        interval,
-    )?;
+
+    if let Some(index_at_parachute_open) = index_at_parachute_open  {
+
+        write_linestring(
+            &mut f,
+            "parachute",
+            "Parachute descent",
+            output.mainline.trajectory.row_iter().take(index_at_parachute_open).chain(output.parachute_branch.trajectory.row_iter()),
+            index_at_parachute_open + output.parachute_branch.trajectory.len(),
+            params,
+            interval,
+        )?;
+    }
+
     write_event_placemarks(&mut f, &output.events, params)?;
 
     f.write_all(KML_FOOTER.as_bytes())?;
@@ -72,21 +84,18 @@ fn write_linestring(
     f: &mut fs::File,
     style_id: &str,
     name: &str,
-    traj: &Trajectory,
+    traj: impl Iterator<Item =SimulationState>,
+    data_len: usize,
     _params: &RocketParams,
     interval: usize,
 ) -> Result<()> {
-    if traj.is_empty() {
-        return Ok(());
-    }
     writeln!(
         f,
         "  <Placemark>\n    <name>{name}</name>\n    <styleUrl>#{style_id}</styleUrl>\n    \
          <LineString>\n      <altitudeMode>absolute</altitudeMode>\n      <coordinates>"
     )?;
-    let len = traj.len();
-    for (i, s) in traj.row_iter().enumerate() {
-        if interval > 1 && i % interval != 0 && i + 1 != len {
+    for (i, s) in traj.enumerate() {
+        if !crate::runner::keep_step(i, data_len, interval) {
             continue;
         }
         let alt_msl = s.position.alt_agl_m;
