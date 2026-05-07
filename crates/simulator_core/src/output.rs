@@ -15,7 +15,7 @@ pub struct Position {
     /// Longitude (degrees east).
     pub lon_deg: f64,
     /// Altitude above ground level (m).
-    pub alt_agl_m: f64,
+    pub alt_msl_m: f64,
     /// Horizontal distance from the launch site (m).
     pub down_range_m: f64,
     /// Distance along the launch yaw direction (m), positive forward.
@@ -127,7 +127,7 @@ pub struct Trajectory {
     // ── Position ────────────────────────────────────────────────────────────
     pub lat_deg: Vec<f64>,
     pub lon_deg: Vec<f64>,
-    pub alt_agl_m: Vec<f64>,
+    pub alt_msl_m: Vec<f64>,
     pub down_range_m: Vec<f64>,
     pub local_x_m: Vec<f64>,
     pub local_y_m: Vec<f64>,
@@ -177,7 +177,7 @@ impl Trajectory {
         self.time_sec.push(s.time_sec);
         self.lat_deg.push(s.position.lat_deg);
         self.lon_deg.push(s.position.lon_deg);
-        self.alt_agl_m.push(s.position.alt_agl_m);
+        self.alt_msl_m.push(s.position.alt_msl_m);
         self.down_range_m.push(s.position.down_range_m);
         self.local_x_m.push(s.position.local_x_m);
         self.local_y_m.push(s.position.local_y_m);
@@ -214,7 +214,7 @@ impl Trajectory {
             position: Position {
                 lat_deg: self.lat_deg[i],
                 lon_deg: self.lon_deg[i],
-                alt_agl_m: self.alt_agl_m[i],
+                alt_msl_m: self.alt_msl_m[i],
                 down_range_m: self.down_range_m[i],
                 local_x_m: self.local_x_m[i],
                 local_y_m: self.local_y_m[i],
@@ -298,7 +298,7 @@ impl SimulationOutput {
 
     /// Push a state and update running statistics.
     pub fn push(&mut self, state: SimulationState) {
-        self.max_altitude_m = self.max_altitude_m.max(state.position.alt_agl_m);
+        self.max_altitude_m = self.max_altitude_m.max(state.position.alt_msl_m);
         self.max_speed_mps = self.max_speed_mps.max(state.velocity.true_airspeed_mps);
         self.flight_time_sec = state.time_sec;
         self.trajectory.push(&state);

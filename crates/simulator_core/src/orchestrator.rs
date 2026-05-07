@@ -20,7 +20,7 @@ struct RailHandoff {
     body_velocity_mps: [f64; 3],
     lat_deg: f64,
     lon_deg: f64,
-    alt_agl_m: f64,
+    alt_msl_m: f64,
 }
 
 /// Ballistic → parachute handoff state captured at deployment.
@@ -113,7 +113,7 @@ impl SimulationOrchestrator {
             position: Position {
                 lat_deg: params.launch_env.latitude,
                 lon_deg: params.launch_env.longitude,
-                alt_agl_m: params.launch_env.elevation,
+                alt_msl_m: params.launch_env.elevation,
                 down_range_m: 0.0,
                 local_x_m: 0.0,
                 local_y_m: 0.0,
@@ -163,7 +163,7 @@ impl SimulationOrchestrator {
                     ],
                     lat_deg: out.state.position.lat_deg,
                     lon_deg: out.state.position.lon_deg,
-                    alt_agl_m: out.state.position.alt_agl_m,
+                    alt_msl_m: out.state.position.alt_msl_m,
                 };
                 // Decide whether to push this OnRail state. Previously OnRail
                 // always pushed; now we decimate similarly to other phases.
@@ -354,7 +354,7 @@ impl SimulationOrchestrator {
             handoff.launch_env.initial_position_override = Some(InitialPosition {
                 latitude_deg: h.lat_deg,
                 longitude_deg: h.lon_deg,
-                altitude_agl_m: h.alt_agl_m,
+                altitude_agl_m: h.alt_msl_m,
             });
             // Seed JSBSim's internal clock with the rail-exit time so
             // both its sim-time-sec-indexed tables (thrust, fuel) and

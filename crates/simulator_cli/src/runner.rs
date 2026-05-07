@@ -149,7 +149,7 @@ struct SimStateCsvRow {
     // ── Position ────────────────────────────────────────────────────────
     lat_deg: f64,
     lon_deg: f64,
-    alt_agl_m: f64,
+    alt_msl_m: f64,
     down_range_m: f64,
     local_x_m: f64,
     local_y_m: f64,
@@ -197,7 +197,7 @@ impl From<&SimulationState> for SimStateCsvRow {
             time_sec: s.time_sec,
             lat_deg: p.lat_deg,
             lon_deg: p.lon_deg,
-            alt_agl_m: p.alt_agl_m,
+            alt_msl_m: p.alt_msl_m,
             down_range_m: p.down_range_m,
             local_x_m: p.local_x_m,
             local_y_m: p.local_y_m,
@@ -260,7 +260,7 @@ struct EventCsvRow {
     state_time_sec: Option<f64>,
     lat_deg: Option<f64>,
     lon_deg: Option<f64>,
-    alt_agl_m: Option<f64>,
+    alt_msl_m: Option<f64>,
     down_range_m: Option<f64>,
     local_x_m: Option<f64>,
     local_y_m: Option<f64>,
@@ -306,7 +306,7 @@ impl From<&EventStamp> for EventCsvRow {
             state_time_sec: s.map(|s| s.time_sec),
             lat_deg: p.map(|p| p.lat_deg),
             lon_deg: p.map(|p| p.lon_deg),
-            alt_agl_m: p.map(|p| p.alt_agl_m),
+            alt_msl_m: p.map(|p| p.alt_msl_m),
             down_range_m: p.map(|p| p.down_range_m),
             local_x_m: p.map(|p| p.local_x_m),
             local_y_m: p.map(|p| p.local_y_m),
@@ -371,7 +371,7 @@ struct Summary<'a> {
 struct LandingPoint {
     lat_deg: f64,
     lon_deg: f64,
-    alt_agl_m: f64,
+    alt_msl_m: f64,
     source: &'static str,
 }
 
@@ -399,14 +399,14 @@ fn write_summary_json(path: &Path, out: &UnifiedSimulationOutput) -> Result<()> 
             .map(|s| LandingPoint {
                 lat_deg: s.position.lat_deg,
                 lon_deg: s.position.lon_deg,
-                alt_agl_m: s.position.alt_agl_m,
+                alt_msl_m: s.position.alt_msl_m,
                 source: "parachute",
             })
     } else {
         out.mainline.trajectory.last_state().map(|s| LandingPoint {
             lat_deg: s.position.lat_deg,
             lon_deg: s.position.lon_deg,
-            alt_agl_m: s.position.alt_agl_m,
+            alt_msl_m: s.position.alt_msl_m,
             source: "ballistic",
         })
     };

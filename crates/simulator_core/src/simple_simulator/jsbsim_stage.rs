@@ -78,11 +78,11 @@ impl StageRunner for JsbSimStage {
             }
         }
 
-        if self.apogee.observe(state.position.alt_agl_m) {
+        if self.apogee.observe(state.position.alt_msl_m) {
             events.push(EventKind::Apogee);
         }
 
-        if !self.terrain_terminated && state.position.alt_agl_m <= 0.0 {
+        if !self.terrain_terminated && state.position.alt_msl_m <= 0.0 {
             self.sim.set_property("simulation/terminate", 1.0)?;
             self.terrain_terminated = true;
             completed = true;
@@ -140,16 +140,16 @@ impl ApogeeTracker {
     /// Descent threshold below the peak before apogee fires.
     const DESCENT_MARGIN_M: f64 = 0.1;
 
-    fn observe(&mut self, alt_agl_m: f64) -> bool {
-        if alt_agl_m > self.peak_alt_m {
-            self.peak_alt_m = alt_agl_m;
+    fn observe(&mut self, alt_msl_m: f64) -> bool {
+        if alt_msl_m > self.peak_alt_m {
+            self.peak_alt_m = alt_msl_m;
             return false;
         }
         if self.emitted {
             return false;
         }
         if self.peak_alt_m > Self::PEAK_MIN_M
-            && alt_agl_m < self.peak_alt_m - Self::DESCENT_MARGIN_M
+            && alt_msl_m < self.peak_alt_m - Self::DESCENT_MARGIN_M
         {
             self.emitted = true;
             return true;
