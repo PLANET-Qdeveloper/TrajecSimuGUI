@@ -5,7 +5,7 @@
   "landing": {
     "lat_deg": 40.247623418872834,
     "lon_deg": 139.99783159206322,
-    "alt_agl_m": -0.10328539302957382,
+    "alt_msl_m": -0.10328539302957382,
     "source": "parachute"
   },
   "events_count": 14,

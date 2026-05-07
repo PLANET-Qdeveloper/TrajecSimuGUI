@@ -35,7 +35,7 @@ pub fn extract_state(
     launch_yaw_deg: f64,
 ) -> SimulationState {
     // ── Position ────────────────────────────────────────────────────────
-    let alt_agl_m = Length::new::<foot>(fdm.get_h_agl_ft()).get::<uom::si::length::meter>();
+    let alt_msl_m = Length::new::<foot>(fdm.get_h_agl_ft()).get::<uom::si::length::meter>();
 
     // ── Velocity ────────────────────────────────────────────────────────
     let true_airspeed_mps = Velocity::new::<foot_per_second>(fdm.get_vtrue_fps())
@@ -130,7 +130,7 @@ pub fn extract_state(
         position: Position {
             lat_deg,
             lon_deg,
-            alt_agl_m,
+            alt_msl_m,
             down_range_m,
             local_x_m,
             local_y_m,

@@ -140,7 +140,7 @@ pub fn draw_result_plot(
         altitude_plot_config,
         SeriesData {
             x_axis: &output.mainline.trajectory.time_sec,
-            y_axis: vec![(None, &output.mainline.trajectory.alt_agl_m)],
+            y_axis: vec![(None, &output.mainline.trajectory.alt_msl_m)],
         },
     )
     .expect("failed to draw mach plot");
@@ -188,7 +188,7 @@ pub fn draw_result_plot(
                 (Some("y".to_string()), &output.mainline.trajectory.local_y_m),
                 (
                     Some("altitude".to_string()),
-                    &output.mainline.trajectory.alt_agl_m,
+                    &output.mainline.trajectory.alt_msl_m,
                 ),
             ],
         },

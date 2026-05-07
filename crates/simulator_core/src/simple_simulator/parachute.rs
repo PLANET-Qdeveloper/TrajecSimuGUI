@@ -53,7 +53,7 @@ pub struct ParachuteStage {
 
     lat_deg: f64,
     lon_deg: f64,
-    alt_agl_m: f64,
+    alt_msl_m: f64,
 
     v_east_mps: f64,
     v_north_mps: f64,
@@ -73,7 +73,7 @@ impl ParachuteStage {
             mode: Mode::Transient,
             lat_deg: 0.0,
             lon_deg: 0.0,
-            alt_agl_m: 0.0,
+            alt_msl_m: 0.0,
             v_east_mps: 0.0,
             v_north_mps: 0.0,
             v_down_mps: 0.0,
@@ -95,7 +95,7 @@ impl ParachuteStage {
         self.mode = Mode::Transient;
         self.lat_deg = pos.lat_deg;
         self.lon_deg = pos.lon_deg;
-        self.alt_agl_m = pos.alt_agl_m;
+        self.alt_msl_m = pos.alt_msl_m;
         self.v_east_mps = vel_enu_down_mps[0];
         self.v_north_mps = vel_enu_down_mps[1];
         self.v_down_mps = vel_enu_down_mps[2];
@@ -106,7 +106,7 @@ impl ParachuteStage {
     }
 
     fn wind_enu_at_current_alt(&self, params: &RocketParams) -> [f64; 3] {
-        let alt_msl_m = self.alt_agl_m;
+        let alt_msl_m = self.alt_msl_m;
         env::wind_enu_at_alt(&params.launch_env.winds_table, alt_msl_m)
     }
 
@@ -168,7 +168,7 @@ impl ParachuteStage {
             position: Position {
                 lat_deg: self.lat_deg,
                 lon_deg: self.lon_deg,
-                alt_agl_m: self.alt_agl_m,
+                alt_msl_m: self.alt_msl_m,
                 down_range_m,
                 local_x_m,
                 local_y_m,
@@ -223,7 +223,7 @@ impl StageRunner for ParachuteStage {
         let wind_enu = self.wind_enu_at_current_alt(params);
 
         // Atmosphere at current altitude, used for density correction and state output.
-        let atm = sample_atmosphere(self.alt_agl_m.max(0.0));
+        let atm = sample_atmosphere(self.alt_msl_m.max(0.0));
 
         // Terminal velocity from the table is defined at standard sea-level density
         // (ρ₀ = 1.225 kg/m³). Scale to actual density: v_term ∝ 1/√ρ.
@@ -284,14 +284,14 @@ impl StageRunner for ParachuteStage {
             env::advance_latlon_by_enu(self.lat_deg, self.lon_deg, east_step, north_step);
         self.lat_deg = new_lat;
         self.lon_deg = new_lon;
-        self.alt_agl_m -= self.v_down_mps * dt;
+        self.alt_msl_m -= self.v_down_mps * dt;
 
         self.sim_time_sec += dt;
 
         // Terrain-aware termination.
         let mut events = Vec::new();
         let mut completed = false;
-        if !self.landed && self.alt_agl_m <= 0.0 {
+        if !self.landed && self.alt_msl_m <= 0.0 {
             self.v_east_mps = 0.0;
             self.v_north_mps = 0.0;
             self.v_down_mps = 0.0;
@@ -456,7 +456,7 @@ mod tests {
 
     fn seeded_stage(
         params: &RocketParams,
-        alt_agl_m: f64,
+        alt_msl_m: f64,
         vel_enu_down: [f64; 3],
     ) -> ParachuteStage {
         let mut s = ParachuteStage::new();
@@ -466,7 +466,7 @@ mod tests {
             &Position {
                 lat_deg: params.launch_env.latitude,
                 lon_deg: params.launch_env.longitude,
-                alt_agl_m,
+                alt_msl_m,
                 ..Default::default()
             },
             vel_enu_down,
@@ -586,7 +586,7 @@ mod tests {
         assert_eq!(out.completed, true);
         assert!(out.events.contains(&EventKind::ParachuteLanded));
         assert!(stage.landed);
-        assert!(stage.alt_agl_m <= 0.0);
+        assert!(stage.alt_msl_m <= 0.0);
     }
 
     #[test]

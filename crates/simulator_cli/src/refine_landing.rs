@@ -1,6 +1,5 @@
 //! Landing point refinement using GSI DEM elevation tiles.
 //!
-//! The simulator's `alt_agl_m` is height above the **launch site elevation**
 //! (flat-terrain JSBSim assumption). When the rocket lands elsewhere, the
 //! actual terrain may be higher or lower. This module computes the true
 //! terrain crossing for both the ballistic (Landed) and parachute
@@ -89,7 +88,7 @@ fn find_terrain_crossing(traj: &Trajectory, dem: &DemCache) -> Result<Option<Sim
 
 fn compute_true_agl(s: &SimulationState, dem: &DemCache) -> Result<Option<f64>> {
     match dem.get_elevation(s.position.lat_deg, s.position.lon_deg)? {
-        Some(h_terrain) => Ok(Some(s.position.alt_agl_m - (h_terrain))),
+        Some(h_terrain) => Ok(Some(s.position.alt_msl_m - (h_terrain))),
         None => Ok(None),
     }
 }
@@ -101,7 +100,7 @@ fn interpolate_state(a: &SimulationState, b: &SimulationState, t: f64) -> Simula
         position: Position {
             lat_deg: lerp(a.position.lat_deg, b.position.lat_deg),
             lon_deg: lerp(a.position.lon_deg, b.position.lon_deg),
-            alt_agl_m: lerp(a.position.alt_agl_m, b.position.alt_agl_m),
+            alt_msl_m: lerp(a.position.alt_msl_m, b.position.alt_msl_m),
             down_range_m: lerp(a.position.down_range_m, b.position.down_range_m),
             local_x_m: lerp(a.position.local_x_m, b.position.local_x_m),
             local_y_m: lerp(a.position.local_y_m, b.position.local_y_m),

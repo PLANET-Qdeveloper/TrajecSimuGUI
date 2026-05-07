@@ -111,7 +111,7 @@ fn write_linestring(
         if !crate::runner::keep_step(i, data_len, interval) {
             continue;
         }
-        let alt_msl = s.position.alt_agl_m;
+        let alt_msl = s.position.alt_msl_m;
         writeln!(
             f,
             "        {:.7},{:.7},{:.3}",
@@ -137,7 +137,7 @@ fn write_event_placemarks(
         let Some(state) = e.state.as_ref() else {
             continue;
         };
-        let alt_msl = state.position.alt_agl_m;
+        let alt_msl = state.position.alt_msl_m;
         let kind = e.kind;
         let label = event_label(kind);
         writeln!(
@@ -147,7 +147,7 @@ fn write_event_placemarks(
              <Point>\n      <altitudeMode>absolute</altitudeMode>\n      \
              <coordinates>{:.7},{:.7},{:.3}</coordinates>\n    </Point>\n  </Placemark>",
             e.sim_time_sec,
-            state.position.alt_agl_m,
+            state.position.alt_msl_m,
             state.mach,
             state.aero.qbar_pa,
             state.position.lon_deg,
@@ -192,7 +192,7 @@ mod tests {
             position: simulator_core::output::Position {
                 lat_deg: lat,
                 lon_deg: lon,
-                alt_agl_m: alt_agl,
+                alt_msl_m: alt_agl,
                 ..Default::default()
             },
             mach: 0.5,

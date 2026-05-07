@@ -147,20 +147,20 @@ fn jsbsim_initialize_step_get_state() {
             st.time_sec
         );
         assert!(
-            st.position.alt_agl_m >= -0.1,
+            st.position.alt_msl_m >= -0.1,
             "altitude AGL went substantially negative at iter {i}: {}",
-            st.position.alt_agl_m
+            st.position.alt_msl_m
         );
 
         if i % 20 == 0 {
             println!(
                 "iter={i:>3} t={:6.3}s alt={:7.3}m u={:7.3}m/s thrust={:8.2}N mach={:.3}",
-                st.time_sec, st.position.alt_agl_m, st.velocity.u_mps, st.thrust_n, st.mach,
+                st.time_sec, st.position.alt_msl_m, st.velocity.u_mps, st.thrust_n, st.mach,
             );
         }
 
         last_time = st.time_sec;
-        max_alt = max_alt.max(st.position.alt_agl_m);
+        max_alt = max_alt.max(st.position.alt_msl_m);
 
         if !running {
             println!(

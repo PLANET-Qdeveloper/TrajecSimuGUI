@@ -219,7 +219,7 @@ impl StageRunner for LaunchRailStage {
             position: Position {
                 lat_deg,
                 lon_deg,
-                alt_agl_m: up_m.max(0.0),
+                alt_msl_m: up_m.max(0.0),
                 down_range_m,
                 local_x_m,
                 local_y_m,
@@ -357,7 +357,7 @@ mod tests {
 
         for _ in 0..100 {
             let out = stage.step(&params, StageStepInput::default()).unwrap();
-            assert_eq!(out.state.position.alt_agl_m, 0.0);
+            assert_eq!(out.state.position.alt_msl_m, 0.0);
             assert_eq!(out.state.velocity.u_mps, 0.0);
         }
         assert_eq!(stage.distance_m, 0.0);
@@ -428,9 +428,9 @@ mod tests {
                 v_expected
             );
             assert!(
-                (out.state.position.alt_agl_m - x_expected).abs() < 1e-4,
+                (out.state.position.alt_msl_m - x_expected).abs() < 1e-4,
                 "x: got {}, expected {}",
-                out.state.position.alt_agl_m,
+                out.state.position.alt_msl_m,
                 x_expected
             );
         }
