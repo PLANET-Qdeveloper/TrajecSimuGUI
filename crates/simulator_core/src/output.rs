@@ -207,6 +207,40 @@ impl Trajectory {
         self.mach.push(s.mach);
     }
 
+    pub fn truncate(&mut self, len: usize) {
+        self.time_sec.truncate(len);
+        self.lat_deg.truncate(len);
+        self.lon_deg.truncate(len);
+        self.alt_msl_m.truncate(len);
+        self.down_range_m.truncate(len);
+        self.local_x_m.truncate(len);
+        self.local_y_m.truncate(len);
+        self.u_mps.truncate(len);
+        self.v_mps.truncate(len);
+        self.w_mps.truncate(len);
+        self.true_airspeed_mps.truncate(len);
+        self.ground_speed_mps.truncate(len);
+        self.pitch_deg.truncate(len);
+        self.roll_deg.truncate(len);
+        self.yaw_deg.truncate(len);
+        self.p_rad_sec.truncate(len);
+        self.q_rad_sec.truncate(len);
+        self.r_rad_sec.truncate(len);
+        self.ax_mps2.truncate(len);
+        self.ay_mps2.truncate(len);
+        self.az_mps2.truncate(len);
+        self.alpha_deg.truncate(len);
+        self.beta_deg.truncate(len);
+        self.qbar_pa.truncate(len);
+        self.total_aoa_deg.truncate(len);
+        self.pressure_pa.truncate(len);
+        self.temperature_k.truncate(len);
+        self.gust_airspeed_mps.truncate(len);
+        self.gust_aoa_deg.truncate(len);
+        self.thrust_n.truncate(len);
+        self.mach.truncate(len);
+    }
+
     /// Reconstruct a [`SimulationState`] from row index `i`.
     pub fn get_state(&self, i: usize) -> SimulationState {
         SimulationState {

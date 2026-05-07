@@ -1,24 +1,25 @@
 //! GSI DEM tile cache and elevation lookup.
 //!
-//! Tiles are fetched from cyberjapandata.gsi.go.jp (dem5a_png, fallback dem_png),
-//! decoded to a 256×256 f32 elevation grid, gzip-compressed, and stored under
-//! `{dirs::cache_dir()}/trajec_simu_dem/15/{tx}_{ty}.gz`.
+//! Tiles are fetched from cyberjapandata.gsi.go.jp (dem5a_png),
+//! decoded to a 256×256 f32 elevation grid, gzip-compressed, and stored in
+//! `{dirs::cache_dir()}/trajec_simu_dem/dem_z15.mbtiles` (MBTiles format).
 
 use std::collections::HashMap;
 use std::io::{Read, Write};
-use std::path::{Path, PathBuf};
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc, Mutex, RwLock};
 
 use anyhow::{bail, Context, Result};
+use rusqlite::{params, Connection, OptionalExtension};
 
 pub const ZOOM: u32 = 15;
 const TILE_PIXELS: usize = 256;
 const GRID_SIZE: usize = TILE_PIXELS * TILE_PIXELS; // 65536
 
-// No-data sentinel in the decoded grid.
 const NO_DATA: f32 = f32::NAN;
 
-// Cache type aliases for readability.
+// TMS y-axis convention: tile_row = (2^zoom - 1) - ty
+const TMS_MAX_Y: u32 = (1u32 << ZOOM) - 1;
+
 type TileKey = (u32, u32);
 type TileGrid = Box<[f32; GRID_SIZE]>;
 type TileArc = Arc<TileGrid>;
@@ -90,32 +91,26 @@ fn decode_dem_png(bytes: &[u8]) -> Result<TileGrid> {
     Ok(grid)
 }
 
-// ── Cache I/O ────────────────────────────────────────────────────────────────
+// ── MBTiles I/O ──────────────────────────────────────────────────────────────
 
-fn save_tile_gz(path: &Path, grid: &[f32; GRID_SIZE]) -> Result<()> {
-    if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent)?;
-    }
-    let f = std::fs::File::create(path)
-        .with_context(|| format!("creating cache file {}", path.display()))?;
-    let mut gz = flate2::write::GzEncoder::new(f, flate2::Compression::default());
+fn encode_grid_gz(grid: &[f32; GRID_SIZE]) -> Result<Vec<u8>> {
+    let mut buf = Vec::with_capacity(GRID_SIZE * 2);
+    let mut gz = flate2::write::GzEncoder::new(&mut buf, flate2::Compression::default());
     // SAFETY: [f32; N] → bytes is always valid (no padding, no undef bits for f32)
     let bytes: &[u8] =
         unsafe { std::slice::from_raw_parts(grid.as_ptr() as *const u8, GRID_SIZE * 4) };
     gz.write_all(bytes)?;
     gz.finish()?;
-    Ok(())
+    Ok(buf)
 }
 
-fn load_tile_gz(path: &Path) -> Result<TileGrid> {
-    let f = std::fs::File::open(path)
-        .with_context(|| format!("opening cache file {}", path.display()))?;
-    let mut gz = flate2::read::GzDecoder::new(f);
+fn decode_grid_gz(blob: Vec<u8>) -> Result<TileGrid> {
+    let mut gz = flate2::read::GzDecoder::new(std::io::Cursor::new(blob));
     let mut bytes = vec![0u8; GRID_SIZE * 4];
     gz.read_exact(&mut bytes)
-        .context("reading gzip-compressed tile")?;
+        .context("reading gzip-compressed tile blob")?;
     let mut grid = Box::new([0f32; GRID_SIZE]);
-    // SAFETY: we wrote exactly GRID_SIZE * 4 bytes in save_tile_gz
+    // SAFETY: we wrote exactly GRID_SIZE * 4 bytes in encode_grid_gz
     unsafe {
         std::ptr::copy_nonoverlapping(bytes.as_ptr(), grid.as_mut_ptr() as *mut u8, GRID_SIZE * 4);
     }
@@ -125,51 +120,81 @@ fn load_tile_gz(path: &Path) -> Result<TileGrid> {
 // ── DemCache ─────────────────────────────────────────────────────────────────
 
 pub struct DemCache {
-    cache_dir: PathBuf,
+    db: Mutex<Connection>,
     mem: RwLock<HashMap<TileKey, TileArc>>,
 }
 
 impl DemCache {
     pub fn new() -> Result<Self> {
         let base = dirs::cache_dir().context("could not determine OS cache directory")?;
-        let cache_dir = base.join("trajec_simu_dem").join(ZOOM.to_string());
+        let dir = base.join("trajec_simu_dem");
+        std::fs::create_dir_all(&dir)?;
+        let db_path = dir.join("dem_z15.mbtiles");
+        let conn = Connection::open(&db_path)
+            .with_context(|| format!("opening MBTiles {}", db_path.display()))?;
+        conn.execute_batch(
+            "CREATE TABLE IF NOT EXISTS metadata (name TEXT, value TEXT);
+             CREATE TABLE IF NOT EXISTS tiles (
+                 zoom_level  INTEGER NOT NULL,
+                 tile_column INTEGER NOT NULL,
+                 tile_row    INTEGER NOT NULL,
+                 tile_data   BLOB    NOT NULL,
+                 PRIMARY KEY (zoom_level, tile_column, tile_row)
+             );",
+        )?;
         Ok(Self {
-            cache_dir,
+            db: Mutex::new(conn),
             mem: RwLock::new(HashMap::new()),
         })
     }
 
-    fn tile_path(&self, tx: u32, ty: u32) -> PathBuf {
-        self.cache_dir.join(format!("{tx}_{ty}.gz"))
+    fn load_tile_db(&self, tx: u32, ty: u32) -> Result<Option<TileGrid>> {
+        let tms_row = TMS_MAX_Y - ty;
+        let conn = self.db.lock().unwrap();
+        let blob: Option<Vec<u8>> = conn
+            .query_row(
+                "SELECT tile_data FROM tiles \
+                 WHERE zoom_level=?1 AND tile_column=?2 AND tile_row=?3",
+                params![ZOOM, tx, tms_row],
+                |row| row.get(0),
+            )
+            .optional()?;
+        match blob {
+            None => Ok(None),
+            Some(b) => decode_grid_gz(b).map(Some),
+        }
     }
 
-    /// Load tile: memory cache → disk cache → network.
+    fn save_tile_db(&self, tx: u32, ty: u32, grid: &[f32; GRID_SIZE]) -> Result<()> {
+        let tms_row = TMS_MAX_Y - ty;
+        let buf = encode_grid_gz(grid)?;
+        let conn = self.db.lock().unwrap();
+        conn.execute(
+            "INSERT OR REPLACE INTO tiles (zoom_level, tile_column, tile_row, tile_data) \
+             VALUES (?1, ?2, ?3, ?4)",
+            params![ZOOM, tx, tms_row, buf],
+        )?;
+        Ok(())
+    }
+
+    /// Load tile: memory cache → MBTiles DB → network.
     ///
     /// Uses a double-checked locking pattern with `RwLock`:
     /// - Read lock for the fast cache-hit path (no contention between threads).
-    /// - Disk / network I/O runs entirely outside the lock so other threads
+    /// - DB / network I/O runs entirely outside the lock so other threads
     ///   can continue reading cached tiles concurrently.
     /// - Write lock uses `entry().or_insert()` to safely handle the race where
-    ///   two threads both reach the slow path for the same tile; only one copy
-    ///   is kept and the other is dropped (both contain identical data).
+    ///   two threads both reach the slow path for the same tile.
     fn load_tile(&self, tx: u32, ty: u32) -> Result<TileArc> {
         // Fast path — read lock, no exclusive access needed.
         if let Some(arc) = self.mem.read().unwrap().get(&(tx, ty)) {
             return Ok(arc.clone());
         }
 
-        // Slow path — I/O outside the lock.
-        let path = self.tile_path(tx, ty);
-        let arc = if path.exists() {
-            match load_tile_gz(&path) {
-                Ok(g) => Arc::new(g),
-                Err(e) => {
-                    eprintln!("warn: DEM cache read {tx},{ty}: {e:#} — re-downloading");
-                    self.fetch_or_zero(tx, ty)
-                }
-            }
-        } else {
-            self.fetch_or_zero(tx, ty)
+        // Slow path — DB lookup outside the mem lock.
+        let arc = match self.load_tile_db(tx, ty)? {
+            Some(g) => Arc::new(g),
+            None => self.fetch_or_zero(tx, ty),
         };
 
         // Write lock — or_insert drops the duplicate if another thread won the race.
@@ -183,11 +208,6 @@ impl DemCache {
     }
 
     /// Download a tile from GSI.
-    ///
-    /// Returns:
-    /// - `Ok(Some(grid))` — tile data successfully downloaded
-    /// - `Ok(None)`       — tile does not exist on the server (all URLs 404)
-    /// - `Err`            — network or decode error
     fn download(&self, tx: u32, ty: u32) -> Result<Option<TileGrid>> {
         let agent = ureq::AgentBuilder::new()
             .timeout_connect(std::time::Duration::from_secs(5))
@@ -210,7 +230,6 @@ impl DemCache {
                     return Ok(Some(grid));
                 }
                 Err(ureq::Error::Status(404, _)) => {
-                    // This URL has no data; try fallback.
                     continue;
                 }
                 Err(e) => {
@@ -218,17 +237,15 @@ impl DemCache {
                 }
             }
         }
-        // All URLs returned 404 — tile genuinely absent from GSI servers.
         Ok(None)
     }
 
-    /// Load or create a tile grid. On 404, saves a zero-filled grid to disk so
+    /// Load or create a tile grid. On 404, saves a zero-filled grid to the DB so
     /// the tile is not re-requested on the next run.
     fn fetch_or_zero(&self, tx: u32, ty: u32) -> TileArc {
         match self.download(tx, ty) {
             Ok(Some(g)) => {
-                let path = self.tile_path(tx, ty);
-                if let Err(e) = save_tile_gz(&path, &g) {
+                if let Err(e) = self.save_tile_db(tx, ty, &g) {
                     eprintln!("warn: DEM cache write {tx},{ty}: {e:#}");
                 }
                 Arc::new(g)
@@ -236,16 +253,14 @@ impl DemCache {
             Ok(None) => {
                 eprintln!("DEM: tile {tx},{ty} not found on server — storing as 0 m");
                 let g = Box::new([0f32; GRID_SIZE]);
-                let path = self.tile_path(tx, ty);
-                if let Err(e) = save_tile_gz(&path, &g) {
+                if let Err(e) = self.save_tile_db(tx, ty, &g) {
                     eprintln!("warn: DEM cache write {tx},{ty}: {e:#}");
                 }
                 Arc::new(g)
             }
             Err(e) => {
-                eprintln!("warn: DEM download {tx},{ty}: {e:#} — storing as 0 m");
-                let g = Box::new([0f32; GRID_SIZE]);
-                Arc::new(g)
+                eprintln!("warn: DEM download {tx},{ty}: {e:#} — using 0 m");
+                Arc::new(Box::new([0f32; GRID_SIZE]))
             }
         }
     }
@@ -320,5 +335,24 @@ mod tests {
         let b = (raw & 0xFF) as u8;
         let h = decode_elevation(r, g, b);
         assert!((h - (-1.0)).abs() < 0.01, "h={h}");
+    }
+
+    #[test]
+    fn gz_roundtrip() {
+        let mut grid = Box::new([0f32; GRID_SIZE]);
+        grid[0] = 123.45;
+        grid[GRID_SIZE - 1] = -9.99;
+        let blob = encode_grid_gz(&grid).unwrap();
+        let decoded = decode_grid_gz(blob).unwrap();
+        assert!((decoded[0] - 123.45).abs() < 1e-4);
+        assert!((decoded[GRID_SIZE - 1] - (-9.99)).abs() < 1e-4);
+    }
+
+    #[test]
+    fn tms_y_conversion() {
+        // zoom=15, ty=12375 → tms_row = 32767 - 12375 = 20392
+        let ty = 12375u32;
+        let tms_row = TMS_MAX_Y - ty;
+        assert_eq!(tms_row, 20392);
     }
 }

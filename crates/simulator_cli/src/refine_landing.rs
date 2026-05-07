@@ -18,13 +18,17 @@ use crate::dem::DemCache;
 /// data. Modifies the matching event states in-place.
 pub fn refine_one(output: &mut UnifiedSimulationOutput, dem: &DemCache) -> Result<()> {
     if !output.mainline.trajectory.is_empty() {
-        if let Some(state) = find_terrain_crossing(&output.mainline.trajectory, dem)? {
+        if let Some((state, idx)) = find_terrain_crossing(&output.mainline.trajectory, dem)? {
+            output.mainline.trajectory.truncate(idx + 1);
+            output.mainline.trajectory.push(&state);
             update_event(&mut output.events, EventKind::Landed, state);
         }
     }
 
     if !output.parachute_branch.trajectory.is_empty() {
-        if let Some(state) = find_terrain_crossing(&output.parachute_branch.trajectory, dem)? {
+        if let Some((state, idx)) = find_terrain_crossing(&output.parachute_branch.trajectory, dem)? {
+            output.parachute_branch.trajectory.truncate(idx + 1);
+            output.parachute_branch.trajectory.push(&state);
             update_event(&mut output.events, EventKind::ParachuteLanded, state);
         }
     }
@@ -37,7 +41,10 @@ pub fn refine_one(output: &mut UnifiedSimulationOutput, dem: &DemCache) -> Resul
 /// Walk backwards through `traj` to find where the rocket crosses the actual
 /// terrain. Returns an interpolated `SimulationState` at the exact crossing,
 /// or `None` if no suitable crossing is found (e.g. no DEM data available).
-fn find_terrain_crossing(traj: &Trajectory, dem: &DemCache) -> Result<Option<SimulationState>> {
+fn find_terrain_crossing(
+    traj: &Trajectory,
+    dem: &DemCache,
+) -> Result<Option<(SimulationState, usize)>> {
     if traj.len() < 2 {
         return Ok(None);
     }
@@ -79,11 +86,11 @@ fn find_terrain_crossing(traj: &Trajectory, dem: &DemCache) -> Result<Option<Sim
     };
 
     if agl_a <= 0.0 || agl_b >= 0.0 {
-        return Ok(Some(b));
+        return Ok(Some((b, idx_above)));
     }
 
     let t = agl_a / (agl_a - agl_b);
-    Ok(Some(interpolate_state(&a, &b, t)))
+    Ok(Some((interpolate_state(&a, &b, t), idx_above)))
 }
 
 fn compute_true_agl(s: &SimulationState, dem: &DemCache) -> Result<Option<f64>> {
@@ -130,3 +137,5 @@ fn update_event(
         ev.state = Some(state);
     }
 }
+
+

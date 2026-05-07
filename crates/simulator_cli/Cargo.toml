@@ -21,6 +21,7 @@ ureq = "2"
 png = "0.17"
 flate2 = "1"
 dirs = "5"
+rusqlite = { version = "0.31", features = ["bundled"] }
 plotters = "0.3.3"
 
 [[bin]]
