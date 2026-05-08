@@ -2,8 +2,10 @@
 members = [
     "crates/simulator_core",
     "crates/simulator_cli",
+    "crates/tile_cache",
+    "src-tauri",
 ]
-exclude = ["jsbsim", "src", "src-tauri", "public", "static"]
+exclude = ["jsbsim", "src", "public", "static"]
 resolver = "2"
 
 [workspace.package]

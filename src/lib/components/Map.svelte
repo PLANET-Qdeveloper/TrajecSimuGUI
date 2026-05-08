@@ -15,12 +15,10 @@
         sources: {
           'local-aerial': {
             type: 'raster',
-            // {z}/{x}/{y} はMapLibreが自動的に計算して展開します
-            // Svelteのpublicフォルダ(ルート)にある tiles フォルダを参照
-            tiles: ['/tiles/{z}/{x}/{y}.jpg'], 
+            tiles: ['tile://localhost/aerial/{z}/{x}/{y}'],
             tileSize: 256,
-            minzoom: 7,  // ZOOM_LEVELS の最小値に合わせる
-            maxzoom: 10  // ZOOM_LEVELS の最大値に合わせる
+            minzoom: 2,
+            maxzoom: 15
           }
         },
         layers: [
