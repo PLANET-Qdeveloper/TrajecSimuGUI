@@ -26,7 +26,8 @@ pub fn refine_one(output: &mut UnifiedSimulationOutput, dem: &DemCache) -> Resul
     }
 
     if !output.parachute_branch.trajectory.is_empty() {
-        if let Some((state, idx)) = find_terrain_crossing(&output.parachute_branch.trajectory, dem)? {
+        if let Some((state, idx)) = find_terrain_crossing(&output.parachute_branch.trajectory, dem)?
+        {
             output.parachute_branch.trajectory.truncate(idx + 1);
             output.parachute_branch.trajectory.push(&state);
             update_event(&mut output.events, EventKind::ParachuteLanded, state);
@@ -137,5 +138,3 @@ fn update_event(
         ev.state = Some(state);
     }
 }
-
-

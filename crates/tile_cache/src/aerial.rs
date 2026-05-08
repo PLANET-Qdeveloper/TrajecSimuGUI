@@ -16,17 +16,17 @@ use rusqlite::{params, Connection, OptionalExtension};
 const BASE_URL: &str = "https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto";
 
 type TileKey = (u8, u32, u32); // (zoom, tx, ty)
-type TileArc = Arc<Vec<u8>>;   // raw JPEG bytes
+type TileArc = Arc<Vec<u8>>; // raw JPEG bytes
 
 pub struct AerialCache {
-    db:  Mutex<Connection>,
+    db: Mutex<Connection>,
     mem: RwLock<HashMap<TileKey, TileArc>>,
 }
 
 impl AerialCache {
     pub fn new() -> Result<Self> {
         let base = dirs::cache_dir().context("cannot find OS cache dir")?;
-        let dir  = base.join("trajec_simu_dem");
+        let dir = base.join("trajec_simu_dem");
         std::fs::create_dir_all(&dir)?;
         let db_path = dir.join("aerial.mbtiles");
         let conn = Connection::open(&db_path)
@@ -43,7 +43,7 @@ impl AerialCache {
              );",
         )?;
         Ok(Self {
-            db:  Mutex::new(conn),
+            db: Mutex::new(conn),
             mem: RwLock::new(HashMap::new()),
         })
     }
