@@ -136,7 +136,7 @@ impl DemCache {
         conn.execute_batch("PRAGMA journal_mode=WAL;")?;
         conn.execute_batch(
             "CREATE TABLE IF NOT EXISTS metadata (name TEXT, value TEXT);
-             CREATE TABLE IF NOT EXISTS terraintiles (
+             CREATE TABLE IF NOT EXISTS tiles (
                  zoom_level  INTEGER NOT NULL,
                  tile_column INTEGER NOT NULL,
                  tile_row    INTEGER NOT NULL,
@@ -155,7 +155,7 @@ impl DemCache {
         let conn = self.db.lock().unwrap();
         let blob: Option<Vec<u8>> = conn
             .query_row(
-                "SELECT tile_data FROM terraintiles \
+                "SELECT tile_data FROM tiles \
                  WHERE zoom_level=?1 AND tile_column=?2 AND tile_row=?3",
                 params![ZOOM, tx, tms_row],
                 |row| row.get(0),
@@ -172,7 +172,7 @@ impl DemCache {
         let buf = encode_grid_gz(grid)?;
         let conn = self.db.lock().unwrap();
         conn.execute(
-            "INSERT OR REPLACE INTO terraintiles (zoom_level, tile_column, tile_row, tile_data) \
+            "INSERT OR REPLACE INTO tiles (zoom_level, tile_column, tile_row, tile_data) \
              VALUES (?1, ?2, ?3, ?4)",
             params![ZOOM, tx, tms_row, buf],
         )?;
