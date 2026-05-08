@@ -51,14 +51,13 @@ pub fn write_trajectory_kml(
         .iter()
         .find(|e| e.kind == EventKind::ParachuteOpen)
         .map(|e| e.sim_time_sec);
-    let index_at_parachute_open = time_at_parachute_open
-        .and_then(|t| {
-            output
-                .mainline
-                .trajectory
-                .row_iter()
-                .position(|s| s.time_sec >= t)
-        });
+    let index_at_parachute_open = time_at_parachute_open.and_then(|t| {
+        output
+            .mainline
+            .trajectory
+            .row_iter()
+            .position(|s| s.time_sec >= t)
+    });
 
     write_linestring(
         &mut f,
