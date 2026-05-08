@@ -1,0 +1,16 @@
+[package]
+name = "tile_cache"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Shared tile cache library (DEM + aerial imagery)"
+
+[dependencies]
+rusqlite = { version = "0.31", features = ["bundled"] }
+flate2   = "1"
+ureq     = "2"
+png      = "0.17"
+dirs     = "5"
+anyhow   = "1.0"
+log      = "0.4"
