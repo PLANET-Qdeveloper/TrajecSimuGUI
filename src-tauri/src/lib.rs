@@ -1,6 +1,6 @@
 use std::sync::Arc;
 use tile_cache::aerial::AerialCache;
-use tile_cache::dem_tile::DemTileCache;
+use tile_cache::dem::DemTileCache;
 
 struct TileCaches {
     aerial: Arc<AerialCache>,
