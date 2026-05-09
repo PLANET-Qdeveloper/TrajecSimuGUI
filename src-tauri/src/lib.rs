@@ -4,7 +4,7 @@ use tile_cache::dem::DemTileCache;
 
 struct TileCaches {
     aerial: Arc<AerialCache>,
-    dem:    Arc<DemTileCache>,
+    dem: Arc<DemTileCache>,
 }
 
 #[tauri::command]
@@ -16,7 +16,7 @@ fn greet(name: &str) -> String {
 pub fn run() {
     let caches = Arc::new(TileCaches {
         aerial: Arc::new(AerialCache::new().expect("aerial cache init failed")),
-        dem:    Arc::new(DemTileCache::new().expect("dem tile cache init failed")),
+        dem: Arc::new(DemTileCache::new().expect("dem tile cache init failed")),
     });
 
     tauri::Builder::default()

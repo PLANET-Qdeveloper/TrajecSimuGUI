@@ -76,9 +76,7 @@ fn download_gsi_png(zoom: u32, tx: u32, ty: u32) -> Result<Option<Vec<u8>>> {
         .timeout_connect(std::time::Duration::from_secs(5))
         .timeout(std::time::Duration::from_secs(30))
         .build();
-    let url = format!(
-        "https://cyberjapandata.gsi.go.jp/xyz/dem5a_png/{zoom}/{tx}/{ty}.png"
-    );
+    let url = format!("https://cyberjapandata.gsi.go.jp/xyz/dem5a_png/{zoom}/{tx}/{ty}.png");
     match agent.get(&url).call() {
         Ok(resp) => {
             let mut bytes = Vec::new();
@@ -97,7 +95,9 @@ fn decode_dem_png(bytes: &[u8]) -> Result<TileGrid> {
     let decoder = png::Decoder::new(std::io::Cursor::new(bytes));
     let mut reader = decoder.read_info().context("PNG read_info failed")?;
     let mut buf = vec![0u8; reader.output_buffer_size()];
-    let info = reader.next_frame(&mut buf).context("PNG next_frame failed")?;
+    let info = reader
+        .next_frame(&mut buf)
+        .context("PNG next_frame failed")?;
 
     if info.color_type != png::ColorType::Rgb {
         bail!("expected RGB PNG, got {:?}", info.color_type);
@@ -105,7 +105,10 @@ fn decode_dem_png(bytes: &[u8]) -> Result<TileGrid> {
     if info.width != TILE_PIXELS as u32 || info.height != TILE_PIXELS as u32 {
         bail!(
             "expected {}×{} tile, got {}×{}",
-            TILE_PIXELS, TILE_PIXELS, info.width, info.height
+            TILE_PIXELS,
+            TILE_PIXELS,
+            info.width,
+            info.height
         );
     }
 
@@ -133,7 +136,8 @@ fn encode_grid_gz(grid: &[f32; GRID_SIZE]) -> Result<Vec<u8>> {
 fn decode_grid_gz(blob: Vec<u8>) -> Result<TileGrid> {
     let mut gz = flate2::read::GzDecoder::new(std::io::Cursor::new(blob));
     let mut bytes = vec![0u8; GRID_SIZE * 4];
-    gz.read_exact(&mut bytes).context("reading gzip-compressed tile blob")?;
+    gz.read_exact(&mut bytes)
+        .context("reading gzip-compressed tile blob")?;
     let mut grid = Box::new([0f32; GRID_SIZE]);
     // SAFETY: we wrote exactly GRID_SIZE * 4 bytes in encode_grid_gz
     unsafe {
@@ -145,7 +149,7 @@ fn decode_grid_gz(blob: Vec<u8>) -> Result<TileGrid> {
 /// Three-layer cache (memory → MBTiles → GSI network) for zoom-15 DEM tiles
 /// stored as gzip-compressed f32 elevation grids. Shared with the CLI.
 pub struct DemCache {
-    db:  Mutex<Connection>,
+    db: Mutex<Connection>,
     mem: RwLock<HashMap<(u32, u32), Arc<TileGrid>>>,
 }
 
@@ -169,7 +173,7 @@ impl DemCache {
              );",
         )?;
         Ok(Self {
-            db:  Mutex::new(conn),
+            db: Mutex::new(conn),
             mem: RwLock::new(HashMap::new()),
         })
     }
@@ -211,7 +215,13 @@ impl DemCache {
             Some(g) => Arc::new(g),
             None => self.fetch_or_zero(tx, ty),
         };
-        Ok(self.mem.write().unwrap().entry((tx, ty)).or_insert(arc).clone())
+        Ok(self
+            .mem
+            .write()
+            .unwrap()
+            .entry((tx, ty))
+            .or_insert(arc)
+            .clone())
     }
 
     fn fetch_or_zero(&self, tx: u32, ty: u32) -> Arc<TileGrid> {
@@ -256,7 +266,11 @@ impl DemCache {
         };
         let (px, py) = lat_lon_to_pixel(lat_deg, lon_deg);
         let val = grid[py * TILE_PIXELS + px];
-        if val.is_nan() { Ok(None) } else { Ok(Some(val as f64)) }
+        if val.is_nan() {
+            Ok(None)
+        } else {
+            Ok(Some(val as f64))
+        }
     }
 }
 
@@ -278,7 +292,9 @@ fn encode_rgb_png(rgb: &[u8], width: u32, height: u32) -> Result<Vec<u8>> {
     encoder.set_color(png::ColorType::Rgb);
     encoder.set_depth(png::BitDepth::Eight);
     let mut writer = encoder.write_header().context("PNG write_header")?;
-    writer.write_image_data(rgb).context("PNG write_image_data")?;
+    writer
+        .write_image_data(rgb)
+        .context("PNG write_image_data")?;
     drop(writer);
     Ok(out)
 }
@@ -290,7 +306,7 @@ fn gsi_png_to_terrarium_png(gsi_bytes: &[u8]) -> Result<Vec<u8>> {
     let mut rgb = vec![0u8; GRID_SIZE * 3];
     for (i, &h) in grid.iter().enumerate() {
         let [r, g, b] = elevation_to_terrarium(if h.is_nan() { 0.0 } else { h as f64 });
-        rgb[i * 3]     = r;
+        rgb[i * 3] = r;
         rgb[i * 3 + 1] = g;
         rgb[i * 3 + 2] = b;
     }
@@ -300,14 +316,14 @@ fn gsi_png_to_terrarium_png(gsi_bytes: &[u8]) -> Result<Vec<u8>> {
 /// Three-layer cache (memory → MBTiles → GSI network) for DEM tiles at any
 /// zoom level, stored as Terrarium-encoded PNG for MapLibre `raster-dem`.
 pub struct DemTileCache {
-    db:  Mutex<Connection>,
+    db: Mutex<Connection>,
     mem: RwLock<HashMap<(u8, u32, u32), Arc<Vec<u8>>>>,
 }
 
 impl DemTileCache {
     pub fn new() -> Result<Self> {
         let base = dirs::cache_dir().context("cannot find OS cache dir")?;
-        let dir  = base.join("trajec_simu_dem");
+        let dir = base.join("trajec_simu_dem");
         std::fs::create_dir_all(&dir)?;
         let db_path = dir.join("dem_terrain.mbtiles");
         let conn = Connection::open(&db_path)
@@ -324,7 +340,7 @@ impl DemTileCache {
              );",
         )?;
         Ok(Self {
-            db:  Mutex::new(conn),
+            db: Mutex::new(conn),
             mem: RwLock::new(HashMap::new()),
         })
     }
@@ -349,7 +365,9 @@ impl DemTileCache {
             },
         };
         Ok(Some(
-            self.mem.write().unwrap()
+            self.mem
+                .write()
+                .unwrap()
                 .entry((zoom, tx, ty))
                 .or_insert(arc)
                 .clone(),
@@ -480,6 +498,9 @@ mod tests {
         // gsi_png_to_terrarium_png maps NaN → 0 m
         let [r, g, b] = elevation_to_terrarium(0.0);
         let decoded = r as f64 * 256.0 + g as f64 + b as f64 / 256.0 - 32768.0;
-        assert!(decoded.abs() < 0.01, "no-data should map to 0 m, got {decoded}");
+        assert!(
+            decoded.abs() < 0.01,
+            "no-data should map to 0 m, got {decoded}"
+        );
     }
 }
