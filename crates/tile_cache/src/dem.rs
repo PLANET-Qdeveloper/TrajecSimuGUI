@@ -279,7 +279,7 @@ impl DemCache {
 /// Encodes elevation in metres to Terrarium RGB bytes.
 /// Terrarium: `height = R×256 + G + B/256 − 32768`
 fn elevation_to_terrarium(h: f64) -> [u8; 3] {
-    let shifted = (h + 32768.0).clamp(0.0, 65535.999_999);
+    let shifted = (h + 32768.0).clamp(0.0, 65_535.999_999);
     let r = (shifted / 256.0).floor() as u8;
     let g = (shifted % 256.0).floor() as u8;
     let b = (shifted.fract() * 256.0).round().min(255.0) as u8;
