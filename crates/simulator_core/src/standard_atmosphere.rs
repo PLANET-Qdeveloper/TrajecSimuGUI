@@ -37,7 +37,7 @@ const LAYER_LAPSE_K_PER_M: [f64; 7] = [-0.0065, 0.0, 0.0010, 0.0028, 0.0, -0.002
 /// Altitudes below sea level are clamped to 0 m. Altitudes above 86 km are
 /// clamped to 86 km, which is the ISA validity range for this layer model.
 pub fn sample_atmosphere(alt_m: f64) -> AtmosphereSample {
-    let alt_m = alt_m.max(0.0).min(MAX_GEOMETRIC_ALT_M);
+    let alt_m = alt_m.clamp(0.0, MAX_GEOMETRIC_ALT_M);
     let geopot_m = geopotential_altitude(alt_m);
 
     let layer = layer_index(geopot_m);

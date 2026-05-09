@@ -1,5 +1,11 @@
 use std::sync::Arc;
 use tile_cache::aerial::AerialCache;
+use tile_cache::dem_tile::DemTileCache;
+
+struct TileCaches {
+    aerial: Arc<AerialCache>,
+    dem:    Arc<DemTileCache>,
+}
 
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -8,14 +14,17 @@ fn greet(name: &str) -> String {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let aerial = Arc::new(AerialCache::new().expect("aerial cache init failed"));
+    let caches = Arc::new(TileCaches {
+        aerial: Arc::new(AerialCache::new().expect("aerial cache init failed")),
+        dem:    Arc::new(DemTileCache::new().expect("dem tile cache init failed")),
+    });
 
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .register_asynchronous_uri_scheme_protocol("tile", move |_ctx, request, responder| {
-            let cache = aerial.clone();
+            let c = caches.clone();
             std::thread::spawn(move || {
-                responder.respond(serve_tile(&cache, request));
+                responder.respond(serve_tile(&c, request));
             });
         })
         .invoke_handler(tauri::generate_handler![greet])
@@ -24,10 +33,10 @@ pub fn run() {
 }
 
 fn serve_tile(
-    cache: &AerialCache,
+    caches: &TileCaches,
     request: tauri::http::Request<Vec<u8>>,
 ) -> tauri::http::Response<Vec<u8>> {
-    // URL path: "/aerial/{z}/{x}/{y}" — strip leading '/'.
+    // URL path: "/{kind}/{z}/{x}/{y}" — strip leading '/'.
     let path = &request.uri().path()[1..];
     let parts: Vec<&str> = path.splitn(4, '/').collect();
 
@@ -41,8 +50,8 @@ fn serve_tile(
         };
     }
 
-    if parts.len() != 4 || parts[0] != "aerial" {
-        return err!(400, "expected /aerial/{z}/{x}/{y}");
+    if parts.len() != 4 {
+        return err!(400, "expected /{kind}/{z}/{x}/{y}");
     }
     let (Ok(z), Ok(x), Ok(y)) = (
         parts[1].parse::<u8>(),
@@ -52,18 +61,35 @@ fn serve_tile(
         return err!(400, "invalid tile coordinates");
     };
 
-    match cache.get_tile(z, x, y) {
-        Ok(Some(jpeg)) => tauri::http::Response::builder()
-            .status(200)
-            .header("Content-Type", "image/jpeg")
-            .header("Access-Control-Allow-Origin", "*")
-            .header("Cache-Control", "public, max-age=86400")
-            .body((*jpeg).clone())
-            .unwrap(),
-        Ok(None) => err!(404, "tile not found"),
-        Err(e) => {
-            log::error!("aerial tile {z}/{x}/{y}: {e:#}");
-            err!(500, "tile cache error")
-        }
+    match parts[0] {
+        "aerial" => match caches.aerial.get_tile(z, x, y) {
+            Ok(Some(jpeg)) => tauri::http::Response::builder()
+                .status(200)
+                .header("Content-Type", "image/jpeg")
+                .header("Access-Control-Allow-Origin", "*")
+                .header("Cache-Control", "public, max-age=86400")
+                .body((*jpeg).clone())
+                .unwrap(),
+            Ok(None) => err!(404, "tile not found"),
+            Err(e) => {
+                log::error!("aerial tile {z}/{x}/{y}: {e:#}");
+                err!(500, "tile cache error")
+            }
+        },
+        "dem" => match caches.dem.get_tile(z, x, y) {
+            Ok(Some(png)) => tauri::http::Response::builder()
+                .status(200)
+                .header("Content-Type", "image/png")
+                .header("Access-Control-Allow-Origin", "*")
+                .header("Cache-Control", "public, max-age=86400")
+                .body((*png).clone())
+                .unwrap(),
+            Ok(None) => err!(404, "dem tile not found"),
+            Err(e) => {
+                log::error!("dem tile {z}/{x}/{y}: {e:#}");
+                err!(500, "dem tile cache error")
+            }
+        },
+        _ => err!(400, "unknown tile kind"),
     }
 }
