@@ -3,9 +3,9 @@
   "max_speed_mps": 297.1242272628197,
   "flight_time_sec": 188.7059999999787,
   "landing": {
-    "lat_deg": 40.247623418872834,
-    "lon_deg": 139.99783159206322,
-    "alt_msl_m": -0.10328539302957382,
+    "lat_deg": 40.24762325903129,
+    "lon_deg": 139.9978317023509,
+    "alt_msl_m": 0.0,
     "source": "parachute"
   },
   "events_count": 14,
