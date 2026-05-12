@@ -8,7 +8,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 fn default_rail_length() -> f64 {
     5.0
@@ -34,18 +34,18 @@ fn default_deploy_delay() -> f64 {
     1.0
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Config {
     pub launch: LaunchConfig,
     pub body: BodyConfig,
     pub engine: EngineConfig,
     pub aero: AeroConfig,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub parachute: Option<ParachuteConfig>,
     pub sim: SimConfig,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct LaunchConfig {
     pub latitude: f64,
     pub longitude: f64,
@@ -56,19 +56,19 @@ pub struct LaunchConfig {
     #[serde(default = "default_roll")]
     pub roll: f64,
     pub yaw: f64,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub wind_speed_mps: Option<f64>,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub wind_reference_alt: Option<f64>,
     #[serde(default = "default_wind_power_exponent")]
     pub wind_power_exponent: f64,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub wind_direction_deg: Option<f64>,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub wind_table: Option<PathBuf>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct BodyConfig {
     pub diameter: f64,
     /// Airframe dry mass with fuel section installed, before tank fill [kg].
@@ -78,7 +78,7 @@ pub struct BodyConfig {
     pub inertia: [f64; 6],
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct EngineConfig {
     pub thrust_table: PathBuf,
     pub thruster_pos: [f64; 3],
@@ -86,16 +86,16 @@ pub struct EngineConfig {
     pub fuel: FuelConfig,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct TankConfig {
     pub position: [f64; 3],
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub drain_position: Option<[f64; 3]>,
     /// Tank contents mass [kg].
     pub tank_contents: f64,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct FuelConfig {
     pub position: [f64; 3],
     /// Fuel section mass before burn [kg].
@@ -104,7 +104,7 @@ pub struct FuelConfig {
     pub fuel_section_weight_after_burn: f64,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct AeroConfig {
     pub cp_at_launch: [f64; 3],
     pub cp_mach_table: PathBuf,
@@ -116,14 +116,14 @@ pub struct AeroConfig {
     pub yaw_damping: f64,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ParachuteConfig {
     pub terminal_velocity_table: PathBuf,
     #[serde(default = "default_deploy_delay")]
     pub deploy_delay_sec: f64,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct SimConfig {
     pub flight_duration: f64,
     pub time_step: f64,

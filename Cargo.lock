@@ -4835,6 +4835,7 @@ dependencies = [
  "log",
  "serde",
  "serde_json",
+ "serde_yaml",
  "simulator_cli",
  "tauri",
  "tauri-build",
