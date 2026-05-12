@@ -3,10 +3,8 @@
   import { invoke } from '@tauri-apps/api/core';
   import { listen } from '@tauri-apps/api/event';
   import { open, save } from '@tauri-apps/plugin-dialog';
-  import * as yaml from 'js-yaml';
 
   import { defaultConfig, type AppConfig, type SimSummary } from '$lib/types/config';
-  import { parseConfig, serializeConfig } from '$lib/utils/yamlConfig';
   import { dirOf } from '$lib/utils/path';
 
   import Map from '$lib/components/Map.svelte';
@@ -16,7 +14,7 @@
   let activeTab = $state<'params' | 'map'>('params');
   let config = $state<AppConfig>(defaultConfig());
   let configFilePath = $state('');
-  let configBaseDir = $state('');
+  let configBaseDir = $derived(dirOf(configFilePath));
 
   let running = $state(false);
   let progressMsg = $state('');
@@ -29,32 +27,24 @@
     return () => { unlisten.then((fn) => fn()); };
   });
 
-  async function loadFromPath(path: string) {
-    try {
-      const content = await invoke<string>('read_text_file', { path });
-      const parsed = yaml.load(content);
-      const baseDir = dirOf(path);
-      config = parseConfig(parsed, baseDir);
-      configFilePath = path;
-      configBaseDir = baseDir;
-    } catch (e) {
-      alert(`読み込みエラー: ${e}`);
-    }
-  }
-
   async function handleLoad() {
     const path = await open({
       multiple: false,
       filters: [{ name: 'YAML', extensions: ['yaml', 'yml'] }],
     });
-    if (path) await loadFromPath(path as string);
+    if (!path) return;
+    try {
+      config = await invoke<AppConfig>('load_config', { path: path as string });
+      configFilePath = path as string;
+    } catch (e) {
+      alert(`読み込みエラー: ${e}`);
+    }
   }
 
   async function handleSave() {
     if (!configFilePath) return handleSaveAs();
     try {
-      const content = serializeConfig(config, configBaseDir);
-      await invoke('write_text_file', { path: configFilePath, content });
+      await invoke('save_config', { config, savePath: configFilePath });
     } catch (e) {
       alert(`保存エラー: ${e}`);
     }
@@ -66,12 +56,9 @@
       filters: [{ name: 'YAML', extensions: ['yaml', 'yml'] }],
     });
     if (!path) return;
-    const dir = dirOf(path as string);
     try {
-      const content = serializeConfig(config, dir);
-      await invoke('write_text_file', { path, content });
+      await invoke('save_config', { config, savePath: path as string });
       configFilePath = path as string;
-      configBaseDir = dir;
     } catch (e) {
       alert(`保存エラー: ${e}`);
     }
@@ -84,10 +71,7 @@
     });
     if (!path) return;
     try {
-      const content = await invoke<string>('read_text_file', { path: path as string });
-      const parsed = yaml.load(content);
-      const baseDir = dirOf(path as string);
-      config = parseConfig(parsed, baseDir);
+      config = await invoke<AppConfig>('load_config', { path: path as string });
       // configFilePath はそのまま（インポートは現在ファイルを変えない）
     } catch (e) {
       alert(`インポートエラー: ${e}`);

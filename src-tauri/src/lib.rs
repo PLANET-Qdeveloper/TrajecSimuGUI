@@ -32,6 +32,73 @@ fn write_text_file(path: String, content: String) -> Result<(), String> {
     std::fs::write(&path, content).map_err(|e| format!("{}: {e}", path))
 }
 
+// ── Config 読み込み / 保存 / バリデーション ───────────────────────────────────
+
+#[tauri::command]
+fn load_config(path: String) -> Result<simulator_cli::config::Config, String> {
+    simulator_cli::config::Config::load(std::path::Path::new(&path))
+        .map_err(|e| format!("{e:#}"))
+}
+
+fn to_relative(base: &std::path::Path, abs: &std::path::Path) -> PathBuf {
+    let bc: Vec<_> = base.components().collect();
+    let ac: Vec<_> = abs.components().collect();
+    let n = bc.iter().zip(&ac).take_while(|(a, b)| a == b).count();
+    let mut r = PathBuf::new();
+    for _ in 0..(bc.len() - n) {
+        r.push("..");
+    }
+    for c in &ac[n..] {
+        r.push(c);
+    }
+    r
+}
+
+#[tauri::command]
+fn save_config(
+    mut config: simulator_cli::config::Config,
+    save_path: String,
+) -> Result<(), String> {
+    use std::path::Path;
+
+    let save_dir = Path::new(&save_path)
+        .parent()
+        .map(Path::to_path_buf)
+        .unwrap_or_else(|| PathBuf::from("."));
+
+    let rel = |p: &mut PathBuf| {
+        if !p.as_os_str().is_empty() {
+            *p = to_relative(&save_dir, p);
+        }
+    };
+
+    rel(&mut config.engine.thrust_table);
+    rel(&mut config.aero.cp_mach_table);
+    rel(&mut config.aero.cd0_alpha_mach_table);
+    rel(&mut config.aero.cn_table);
+    rel(&mut config.aero.cs_table);
+    if let Some(p) = config.parachute.as_mut() {
+        rel(&mut p.terminal_velocity_table);
+    }
+    if let Some(w) = config.launch.wind_table.as_mut() {
+        rel(w);
+    }
+
+    let yaml =
+        serde_yaml::to_string(&config).map_err(|e| format!("YAML シリアライズエラー: {e}"))?;
+    if let Some(parent) = std::path::Path::new(&save_path).parent() {
+        std::fs::create_dir_all(parent).ok();
+    }
+    std::fs::write(&save_path, yaml).map_err(|e| format!("{save_path}: {e}"))
+}
+
+#[tauri::command]
+fn validate_config(config: simulator_cli::config::Config) -> Result<(), String> {
+    simulator_cli::assemble::assemble(&config)
+        .map(|_| ())
+        .map_err(|e| format!("{e:#}"))
+}
+
 // ── シミュレーション実行 ──────────────────────────────────────────────────────
 
 #[derive(Serialize, Clone)]
@@ -173,6 +240,9 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             greet,
+            load_config,
+            save_config,
+            validate_config,
             read_text_file,
             write_text_file,
             run_simulation,
