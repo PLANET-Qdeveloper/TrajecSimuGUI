@@ -113,7 +113,7 @@ pub fn write_outputs(
     write_events_json(&paths.events, out)?;
     write_events_csv(&paths.events_csv, &out.events)?;
     write_summary_json(&paths.summary, out)?;
-    crate::kml_writer::write_trajectory_kml(&paths.kml, out, params, norm_kml)?;
+    crate::kml_writer::write_trajectory_kml_file(&paths.kml, out, params, norm_kml)?;
 
     Ok(paths)
 }

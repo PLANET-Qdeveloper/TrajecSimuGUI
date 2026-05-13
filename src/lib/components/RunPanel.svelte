@@ -8,7 +8,8 @@
     progressMsg?: string;
     result?: SimSummary | null;
     class?: string;
-    onrun?: (outDir: string, noDem: boolean) => void;
+    on_run_single?: (outDir: string, noDem: boolean) => void;
+    on_run_parallel?: (outDir: string, noDem: boolean) => void;
   }
 
   let {
@@ -17,7 +18,8 @@
     progressMsg = $bindable(''),
     result = $bindable<SimSummary | null>(null),
     class: cls = '',
-    onrun,
+    on_run_single,
+    on_run_parallel,
   }: Props = $props();
 
   let outDir = $state('');
@@ -28,12 +30,20 @@
     if (dir) outDir = dir as string;
   }
 
-  function handleRun() {
+  function handleRunSingle() {
     if (!outDir) {
       alert('出力ディレクトリを選択してください');
       return;
     }
-    onrun?.(outDir, noDem);
+    on_run_single?.(outDir, noDem);
+  }
+
+  function handleRunParallel() {
+    if (!outDir) {
+      alert('出力ディレクトリを選択してください');
+      return;
+    }
+    on_run_parallel?.(outDir, noDem);
   }
 </script>
 
@@ -65,14 +75,25 @@
   </div>
 
   <!-- 実行ボタン -->
-  <button
-    onclick={handleRun}
-    disabled={running}
-    class="w-full py-1 text-sm font-medium text-white bg-primary hover:bg-primary-light
+  <div class="w-full flex gap-1.5">
+    <button
+            onclick={handleRunSingle}
+            disabled={running}
+            class="w-full py-1 text-sm font-medium text-white bg-primary hover:bg-primary-light
            disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-  >
-    {running ? '実行中...' : '▶ シミュレーション実行'}
-  </button>
+    >
+      {running ? '実行中...' : '▶ シングルシミュレーション実行'}
+    </button>
+    <button
+            onclick={handleRunSingle}
+            disabled={running}
+            class="w-full py-1 text-sm font-medium text-white bg-primary hover:bg-primary-light
+           disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+    >
+      {running ? '実行中...' : '▶ 着地範囲シミュレーション実行'}
+    </button>
+  </div>
+
 
   <!-- 進捗 -->
   {#if running || progressMsg}

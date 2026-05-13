@@ -2020,7 +2020,7 @@
   <Placemark>
     <name>Start</name>
     <styleUrl>#event</styleUrl>
-    <description>t=0.000s alt_agl=5.3m mach=0.000 qbar=0.0Pa</description>
+    <description>t=0.000s alt_msl=5.3m mach=0.000 qbar=0.0Pa</description>
     <Point>
       <altitudeMode>absolute</altitudeMode>
       <coordinates>140.0104500,40.2428650,5.300</coordinates>
@@ -2029,7 +2029,7 @@
   <Placemark>
     <name>Max thrust</name>
     <styleUrl>#event</styleUrl>
-    <description>t=0.529s alt_agl=9.3m mach=0.061 qbar=262.3Pa</description>
+    <description>t=0.529s alt_msl=9.3m mach=0.061 qbar=262.3Pa</description>
     <Point>
       <altitudeMode>absolute</altitudeMode>
       <coordinates>140.0104377,40.2428665,9.258</coordinates>
@@ -2038,7 +2038,7 @@
   <Placemark>
     <name>Launch clear</name>
     <styleUrl>#event</styleUrl>
-    <description>t=0.570s alt_agl=10.1m mach=0.068 qbar=326.0Pa</description>
+    <description>t=0.570s alt_msl=10.1m mach=0.068 qbar=326.0Pa</description>
     <Point>
       <altitudeMode>absolute</altitudeMode>
       <coordinates>140.0104349,40.2428668,10.149</coordinates>
@@ -2047,7 +2047,7 @@
   <Placemark>
     <name>Max axial accel</name>
     <styleUrl>#event</styleUrl>
-    <description>t=0.779s alt_agl=16.1m mach=0.108 qbar=820.7Pa</description>
+    <description>t=0.779s alt_msl=16.1m mach=0.108 qbar=820.7Pa</description>
     <Point>
       <altitudeMode>absolute</altitudeMode>
       <coordinates>140.0104156,40.2428693,16.138</coordinates>
@@ -2056,7 +2056,7 @@
   <Placemark>
     <name>Max dynamic pressure x alpha</name>
     <styleUrl>#event</styleUrl>
-    <description>t=5.971s alt_agl=836.1m mach=0.826 qbar=43830.3Pa</description>
+    <description>t=5.971s alt_msl=836.1m mach=0.826 qbar=43830.3Pa</description>
     <Point>
       <altitudeMode>absolute</altitudeMode>
       <coordinates>140.0068431,40.2436148,836.122</coordinates>
@@ -2065,7 +2065,7 @@
   <Placemark>
     <name>Max lateral accel</name>
     <styleUrl>#event</styleUrl>
-    <description>t=6.565s alt_agl=993.7m mach=0.873 qbar=47961.2Pa</description>
+    <description>t=6.565s alt_msl=993.7m mach=0.873 qbar=47961.2Pa</description>
     <Point>
       <altitudeMode>absolute</altitudeMode>
       <coordinates>140.0060835,40.2437878,993.705</coordinates>
@@ -2074,7 +2074,7 @@
   <Placemark>
     <name>Max dynamic pressure</name>
     <styleUrl>#event</styleUrl>
-    <description>t=6.796s alt_agl=1056.9m mach=0.884 qbar=48784.6Pa</description>
+    <description>t=6.796s alt_msl=1056.9m mach=0.884 qbar=48784.6Pa</description>
     <Point>
       <altitudeMode>absolute</altitudeMode>
       <coordinates>140.0057748,40.2438585,1056.893</coordinates>
@@ -2083,7 +2083,7 @@
   <Placemark>
     <name>Max airspeed</name>
     <styleUrl>#event</styleUrl>
-    <description>t=6.818s alt_agl=1062.9m mach=0.884 qbar=48768.0Pa</description>
+    <description>t=6.818s alt_msl=1062.9m mach=0.884 qbar=48768.0Pa</description>
     <Point>
       <altitudeMode>absolute</altitudeMode>
       <coordinates>140.0057452,40.2438653,1062.937</coordinates>
@@ -2092,7 +2092,7 @@
   <Placemark>
     <name>Engine burnout</name>
     <styleUrl>#event</styleUrl>
-    <description>t=10.541s alt_agl=1973.1m mach=0.695 qbar=26982.9Pa</description>
+    <description>t=10.541s alt_msl=1973.1m mach=0.695 qbar=26982.9Pa</description>
     <Point>
       <altitudeMode>absolute</altitudeMode>
       <coordinates>140.0009462,40.2449582,1973.068</coordinates>
@@ -2101,7 +2101,7 @@
   <Placemark>
     <name>Max angular rate</name>
     <styleUrl>#event</styleUrl>
-    <description>t=26.068s alt_agl=3467.8m mach=0.186 qbar=1593.0Pa</description>
+    <description>t=26.068s alt_msl=3467.8m mach=0.186 qbar=1593.0Pa</description>
     <Point>
       <altitudeMode>absolute</altitudeMode>
       <coordinates>139.9859268,40.2483433,3467.800</coordinates>
@@ -2110,7 +2110,7 @@
   <Placemark>
     <name>Apogee</name>
     <styleUrl>#event</styleUrl>
-    <description>t=26.967s alt_agl=3470.5m mach=0.182 qbar=1532.8Pa</description>
+    <description>t=26.967s alt_msl=3470.5m mach=0.182 qbar=1532.8Pa</description>
     <Point>
       <altitudeMode>absolute</altitudeMode>
       <coordinates>139.9851748,40.2485115,3470.508</coordinates>
@@ -2119,7 +2119,7 @@
   <Placemark>
     <name>Parachute open</name>
     <styleUrl>#event</styleUrl>
-    <description>t=26.977s alt_agl=3470.5m mach=0.182 qbar=1532.5Pa</description>
+    <description>t=26.977s alt_msl=3470.5m mach=0.182 qbar=1532.5Pa</description>
     <Point>
       <altitudeMode>absolute</altitudeMode>
       <coordinates>139.9851664,40.2485133,3470.493</coordinates>
@@ -2128,7 +2128,7 @@
   <Placemark>
     <name>Landed</name>
     <styleUrl>#event</styleUrl>
-    <description>t=57.522s alt_agl=0.0m mach=0.530 qbar=19925.0Pa</description>
+    <description>t=57.522s alt_msl=0.0m mach=0.530 qbar=19925.0Pa</description>
     <Point>
       <altitudeMode>absolute</altitudeMode>
       <coordinates>139.9658507,40.2527259,0.000</coordinates>
@@ -2137,7 +2137,7 @@
   <Placemark>
     <name>Parachute landed</name>
     <styleUrl>#event</styleUrl>
-    <description>t=188.706s alt_agl=0.0m mach=0.015 qbar=245.0Pa</description>
+    <description>t=188.706s alt_msl=0.0m mach=0.015 qbar=245.0Pa</description>
     <Point>
       <altitudeMode>absolute</altitudeMode>
       <coordinates>139.9978317,40.2476233,0.000</coordinates>

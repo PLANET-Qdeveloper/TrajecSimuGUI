@@ -78,7 +78,7 @@
     }
   }
 
-  async function handleRun(outDir: string, noDem: boolean) {
+  async function handleRunSingle(outDir: string, noDem: boolean) {
     running = true;
     result = null;
     progressMsg = '';
@@ -117,7 +117,7 @@
     {#if activeTab === 'params'}
       <div class="flex h-full overflow-hidden">
         <!-- 左カラム: パラメータ + 実行パネル -->
-        <div class="flex flex-col w-[480px] min-w-[480px] border-r overflow-hidden">
+        <div class="flex flex-col w-120 min-w-120 border-r overflow-hidden">
           <ParamsPanel
             bind:config
             configFilePath={configFilePath}
@@ -132,17 +132,21 @@
             bind:progressMsg
             bind:result
             class="border-t shrink-0"
-            onrun={handleRun}
+            on_run_single={handleRunSingle}
           />
         </div>
 
-        <!-- 右カラム: 将来の分析パラメータ用予約スペース -->
+        <!-- 真ん中カラム: 将来の分析パラメータ用予約スペース -->
         <div class="flex-1 flex flex-col p-2 bg-gray-50 overflow-hidden">
           <p class="text-[10px] text-gray-400 font-medium uppercase tracking-wide">
             分析パラメータ（予定）
           </p>
         </div>
+
+        <!-- 右カラム：Map -->
+        <Map />
       </div>
+
     {:else}
       <Map />
     {/if}
