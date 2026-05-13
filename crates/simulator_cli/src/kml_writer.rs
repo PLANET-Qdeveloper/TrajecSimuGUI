@@ -7,7 +7,8 @@
 //! is configured the per-point terrain offset is added too.
 
 use std::fs;
-use std::io::Write;
+use std::fs::File;
+use std::io::{BufWriter, Write};
 use std::path::Path;
 
 use anyhow::{Context, Result};
@@ -36,14 +37,25 @@ const KML_HEADER: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
 
 const KML_FOOTER: &str = "</Document>\n</kml>\n";
 
-pub fn write_trajectory_kml(
+pub fn write_trajectory_kml_file(
     path: &Path,
     output: &UnifiedSimulationOutput,
-    params: &RocketParams,
+    _params: &RocketParams,
     interval: usize,
 ) -> Result<()> {
     let interval = interval.max(1);
-    let mut f = fs::File::create(path).with_context(|| format!("creating {}", path.display()))?;
+    let mut f =
+        BufWriter::new(File::create(path).with_context(|| format!("creating {}", path.display()))?);
+
+    write_trajectory_kml(output, interval, &mut f)?;
+    Ok(())
+}
+
+pub fn write_trajectory_kml(
+    output: &UnifiedSimulationOutput,
+    interval: usize,
+    f: &mut impl Write,
+) -> Result<()> {
     f.write_all(KML_HEADER.as_bytes())?;
 
     let time_at_parachute_open = output
@@ -60,18 +72,17 @@ pub fn write_trajectory_kml(
     });
 
     write_linestring(
-        &mut f,
+        f,
         "ballistic",
         "Ballistic phase",
         output.mainline.trajectory.row_iter(),
         output.mainline.trajectory.len(),
-        params,
         interval,
     )?;
 
     if let Some(index_at_parachute_open) = index_at_parachute_open {
         write_linestring(
-            &mut f,
+            f,
             "parachute",
             "Parachute descent",
             output
@@ -81,24 +92,22 @@ pub fn write_trajectory_kml(
                 .take(index_at_parachute_open)
                 .chain(output.parachute_branch.trajectory.row_iter()),
             index_at_parachute_open + output.parachute_branch.trajectory.len(),
-            params,
             interval,
         )?;
     }
 
-    write_event_placemarks(&mut f, &output.events, params)?;
+    write_event_placemarks(f, &output.events)?;
 
     f.write_all(KML_FOOTER.as_bytes())?;
     Ok(())
 }
 
 fn write_linestring(
-    f: &mut fs::File,
+    f: &mut impl Write,
     style_id: &str,
     name: &str,
     traj: impl Iterator<Item = SimulationState>,
     data_len: usize,
-    _params: &RocketParams,
     interval: usize,
 ) -> Result<()> {
     writeln!(
@@ -121,11 +130,7 @@ fn write_linestring(
     Ok(())
 }
 
-fn write_event_placemarks(
-    f: &mut fs::File,
-    events: &[EventStamp],
-    _params: &RocketParams,
-) -> Result<()> {
+fn write_event_placemarks(f: &mut impl Write, events: &[EventStamp]) -> Result<()> {
     writeln!(
         f,
         "    <Folder>\n      <name>Events</name>\n      <visibility>0</visibility>"
@@ -142,7 +147,7 @@ fn write_event_placemarks(
         writeln!(
             f,
             "  <Placemark>\n    <name>{label}</name>\n    <styleUrl>#event</styleUrl>\n    \
-             <description>t={:.3}s alt_agl={:.1}m mach={:.3} qbar={:.1}Pa</description>\n    \
+             <description>t={:.3}s alt_msl={:.1}m mach={:.3} qbar={:.1}Pa</description>\n    \
              <Point>\n      <altitudeMode>absolute</altitudeMode>\n      \
              <coordinates>{:.7},{:.7},{:.3}</coordinates>\n    </Point>\n  </Placemark>",
             e.sim_time_sec,
@@ -282,7 +287,7 @@ mod tests {
         // parachute branch left empty
         let p = flat_params();
         let path = std::env::temp_dir().join("kml_omits_empty.kml");
-        write_trajectory_kml(&path, &out, &p, 1).unwrap();
+        write_trajectory_kml_file(&path, &out, &p, 1).unwrap();
         let kml = fs::read_to_string(&path).unwrap();
         assert!(kml.contains("Ballistic phase"));
         assert!(!kml.contains("Parachute descent"));
@@ -297,7 +302,7 @@ mod tests {
         }
         let p = flat_params();
         let path = std::env::temp_dir().join("kml_interval.kml");
-        write_trajectory_kml(&path, &out, &p, 5).unwrap();
+        write_trajectory_kml_file(&path, &out, &p, 5).unwrap();
         let kml = fs::read_to_string(&path).unwrap();
         // Expect points at i=0,5,9 (last); count "        " (8 leading
         // spaces, used only on coordinate rows).
@@ -325,7 +330,7 @@ mod tests {
         });
         let p = flat_params();
         let path = std::env::temp_dir().join("kml_xml.kml");
-        write_trajectory_kml(&path, &out, &p, 1).unwrap();
+        write_trajectory_kml_file(&path, &out, &p, 1).unwrap();
         let kml = fs::read_to_string(&path).unwrap();
         assert!(kml.starts_with("<?xml version=\"1.0\""));
         assert!(kml.contains("<kml xmlns=\"http://www.opengis.net/kml/2.2\">"));

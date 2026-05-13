@@ -1,11 +1,14 @@
+use serde::Serialize;
+use simulator_cli::kml_writer::write_trajectory_kml;
+use simulator_cli::EventKind;
+use simulator_cli::{assemble, dem, refine_landing, runner};
+use std::cmp::min;
+use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Arc;
-
-use serde::Serialize;
 use tauri::Emitter;
 use tile_cache::aerial::AerialCache;
 use tile_cache::dem::DemTileCache;
-
 struct TileCaches {
     aerial: Arc<AerialCache>,
     dem: Arc<DemTileCache>,
@@ -36,8 +39,7 @@ fn write_text_file(path: String, content: String) -> Result<(), String> {
 
 #[tauri::command]
 fn load_config(path: String) -> Result<simulator_cli::config::Config, String> {
-    simulator_cli::config::Config::load(std::path::Path::new(&path))
-        .map_err(|e| format!("{e:#}"))
+    simulator_cli::config::Config::load(std::path::Path::new(&path)).map_err(|e| format!("{e:#}"))
 }
 
 fn to_relative(base: &std::path::Path, abs: &std::path::Path) -> PathBuf {
@@ -55,12 +57,7 @@ fn to_relative(base: &std::path::Path, abs: &std::path::Path) -> PathBuf {
 }
 
 #[tauri::command]
-fn save_config(
-    mut config: simulator_cli::config::Config,
-    save_path: String,
-) -> Result<(), String> {
-    use std::path::Path;
-
+fn save_config(mut config: simulator_cli::config::Config, save_path: String) -> Result<(), String> {
     let save_dir = Path::new(&save_path)
         .parent()
         .map(Path::to_path_buf)
@@ -106,10 +103,13 @@ pub struct SimSummary {
     pub apogee_m: f64,
     pub max_speed_mps: f64,
     pub flight_time_sec: f64,
-    pub landing_lat: Option<f64>,
-    pub landing_lon: Option<f64>,
-    pub landing_alt_m: Option<f64>,
-    pub landing_source: Option<String>,
+    pub landing_lat_parachute: Option<f64>,
+    pub landing_lon_parachute: Option<f64>,
+    pub landing_alt_m_parachute: Option<f64>,
+    pub landing_lat_ballistic: Option<f64>,
+    pub landing_lon_ballistic: Option<f64>,
+    pub landing_alt_m_ballistic: Option<f64>,
+    pub kml_result: String,
     pub out_dir: String,
 }
 
@@ -137,8 +137,6 @@ fn run_simulation_blocking(
     no_dem: bool,
     app: &tauri::AppHandle,
 ) -> Result<SimSummary, String> {
-    use simulator_cli::{assemble, dem, refine_landing, runner};
-
     let emit = |msg: &str| {
         let _ = app.emit("sim-progress", msg);
     };
@@ -176,30 +174,48 @@ fn run_simulation_blocking(
     .map_err(|e| format!("出力書き込みエラー: {e:#}"))?;
 
     // サマリ情報を組み立てて返す
-    use simulator_cli::EventKind;
-    let has_parachute = output.events.iter().any(|e| e.kind == EventKind::ParachuteLanded);
-    let (landing_lat, landing_lon, landing_alt_m, landing_source) = if has_parachute {
-        output.parachute_branch.trajectory.last_state().map_or(
-            (None, None, None, None),
-            |s| {
+
+    let has_parachute = output
+        .events
+        .iter()
+        .any(|e| e.kind == EventKind::ParachuteLanded);
+    let (landing_lat_parachute, landing_lon_parachute, landing_alt_m_parachute) = if has_parachute {
+        output
+            .parachute_branch
+            .trajectory
+            .last_state()
+            .map_or((None, None, None), |s| {
                 (
                     Some(s.position.lat_deg),
                     Some(s.position.lon_deg),
                     Some(s.position.alt_msl_m),
-                    Some("parachute".to_string()),
                 )
-            },
-        )
+            })
     } else {
-        output.mainline.trajectory.last_state().map_or((None, None, None, None), |s| {
+        (None, None, None)
+    };
+    let (landing_lat_ballistic, landing_lon_ballistic, landing_alt_m_ballistic) = output
+        .mainline
+        .trajectory
+        .last_state()
+        .map(|s| {
             (
                 Some(s.position.lat_deg),
                 Some(s.position.lon_deg),
                 Some(s.position.alt_msl_m),
-                Some("ballistic".to_string()),
             )
         })
-    };
+        .unwrap_or((None, None, None));
+
+    let mut kml_vector = Vec::new();
+    write_trajectory_kml(
+        &output,
+        (cfg.sim.kml_sample_interval
+            / min(cfg.sim.kml_sample_interval, cfg.sim.csv_sample_interval)) as usize,
+        kml_vector.by_ref(),
+    )
+    .map_err(|e| format!("KML 生成エラー: {e:#}"))?;
+    let kml_string = String::from_utf8(kml_vector).map_err(|e| format!("KML 生成エラー: {e:#}"));
 
     emit("完了");
     Ok(SimSummary {
@@ -212,10 +228,13 @@ fn run_simulation_blocking(
             .mainline
             .flight_time_sec
             .max(output.parachute_branch.flight_time_sec),
-        landing_lat,
-        landing_lon,
-        landing_alt_m,
-        landing_source,
+        landing_lat_ballistic,
+        landing_lon_ballistic,
+        landing_alt_m_ballistic,
+        landing_lat_parachute,
+        landing_lon_parachute,
+        landing_alt_m_parachute,
+        kml_result: kml_string,
         out_dir: out_dir.to_string_lossy().to_string(),
     })
 }

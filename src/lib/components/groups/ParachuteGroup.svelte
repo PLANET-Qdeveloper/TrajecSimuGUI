@@ -8,7 +8,19 @@
   }
   let { parachute = $bindable<ParachuteConfig | undefined>() }: Props = $props();
 
-  let enabled = $state(parachute !== undefined);
+  let enabled = $state(true);
+  let hasInitialized = false;
+
+  $effect(() => {
+    if (!hasInitialized) {
+      hasInitialized = true;
+      if (parachute === undefined) {
+        parachute = { terminal_velocity_table: '', deploy_delay_sec: 1.0 };
+      }
+    }
+
+    enabled = parachute !== undefined;
+  });
 
   function toggle() {
     enabled = !enabled;
