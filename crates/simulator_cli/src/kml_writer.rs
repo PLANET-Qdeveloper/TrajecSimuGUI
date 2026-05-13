@@ -53,7 +53,7 @@ pub fn write_trajectory_kml_file(
 pub fn write_trajectory_kml(
     output: &UnifiedSimulationOutput,
     interval: usize,
-    f: &_,
+    f: &mut impl Write,
 ) -> Result<()> {
     f.write_all(KML_HEADER.as_bytes())?;
 
@@ -188,6 +188,7 @@ mod tests {
     use simulator_core::output::SimulationOutput;
     use simulator_core::progress::{EventSource, EventStamp};
     use simulator_core::SimulationState;
+    use std::fs;
 
     fn make_state(t: f64, lat: f64, lon: f64, alt_agl: f64) -> SimulationState {
         SimulationState {
