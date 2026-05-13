@@ -6,7 +6,6 @@
 //! by adding the launch-pad elevation to each AGL sample. When a `Terrain`
 //! is configured the per-point terrain offset is added too.
 
-use std::fs;
 use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::path::Path;
@@ -54,7 +53,7 @@ pub fn write_trajectory_kml_file(
 pub fn write_trajectory_kml(
     output: &UnifiedSimulationOutput,
     interval: usize,
-    f: &mut impl Write,
+    f: &_,
 ) -> Result<()> {
     f.write_all(KML_HEADER.as_bytes())?;
 

@@ -212,10 +212,10 @@ fn run_simulation_blocking(
         &output,
         (cfg.sim.kml_sample_interval
             / min(cfg.sim.kml_sample_interval, cfg.sim.csv_sample_interval)) as usize,
-        kml_vector.by_ref(),
+        kml_vector.as_ref(),
     )
     .map_err(|e| format!("KML 生成エラー: {e:#}"))?;
-    let kml_string = String::from_utf8(kml_vector).map_err(|e| format!("KML 生成エラー: {e:#}"));
+    let kml_string = String::from_utf8(kml_vector).map_err(|e| format!("KML 生成エラー: {e:#}"))?;
 
     emit("完了");
     Ok(SimSummary {
