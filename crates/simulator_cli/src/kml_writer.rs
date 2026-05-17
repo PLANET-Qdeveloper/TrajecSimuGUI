@@ -115,7 +115,7 @@ fn write_linestring(
          <LineString>\n      <altitudeMode>absolute</altitudeMode>\n      <coordinates>"
     )?;
     for (i, s) in traj.enumerate() {
-        if !crate::runner::keep_step(i, data_len, interval) {
+        if !crate::pipeline::keep_step(i, data_len, interval) {
             continue;
         }
         let alt_msl = s.position.alt_msl_m;

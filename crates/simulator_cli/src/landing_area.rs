@@ -24,8 +24,9 @@ use simulator_core::{EventKind, RocketParams, UnifiedSimulationOutput};
 use crate::assemble::power_law_winds_table;
 use crate::config::Config;
 use crate::dem::DemCache;
+use crate::pipeline;
 use crate::refine_landing;
-use crate::runner;
+use crate::simulate;
 use crate::summary_writer::{self, ConditionResult};
 
 // ---------------------------------------------------------------------------
@@ -86,8 +87,7 @@ fn make_conditions(
 
     let mut conditions = Vec::new();
 
-    // 1. 風速0.0のデータを作成（speedsに含まれている場合のみ）
-    // 風速0のときは方向は意味を持たないため、代表して `base_yaw_deg` (または 0.0) を設定して1つだけ追加します。
+    // 風速0のときは方向は意味を持たないため、代表して base_yaw_deg を設定して1つだけ追加する
     if speeds.contains(&0.0) {
         conditions.push(Condition {
             speed_mps: 0.0,
@@ -95,11 +95,10 @@ fn make_conditions(
         });
     }
 
-    // 2. 風速が0より大きいデータを作成し、すべての方向と組み合わせる
     let non_zero_conditions = dirs.iter().flat_map(|&dir| {
         speeds
             .iter()
-            .filter(|&&spd| spd > 0.0) // 風速0を除外
+            .filter(|&&spd| spd > 0.0)
             .map(move |&spd| Condition {
                 speed_mps: spd,
                 dir_deg: dir,
@@ -107,7 +106,6 @@ fn make_conditions(
     });
 
     conditions.extend(non_zero_conditions);
-
     conditions
 }
 
@@ -143,7 +141,6 @@ pub fn run(base_cfg: &Config, base_params: &RocketParams, args: &LandingAreaArgs
     let alpha = base_cfg.launch.wind_power_exponent;
 
     // Initialise DEM cache once; shared across all rayon workers via reference.
-    // DemCache is Send + Sync (RwLock interior), so this is safe.
     let dem: Option<DemCache> = if args.no_dem {
         None
     } else {
@@ -157,11 +154,13 @@ pub fn run(base_cfg: &Config, base_params: &RocketParams, args: &LandingAreaArgs
     };
     let dem_ref = dem.as_ref();
 
+    let (csv_int, kml_int) =
+        pipeline::normalise_intervals(args.csv_interval, args.kml_interval);
+
     let completed = AtomicUsize::new(0);
     let failed = AtomicUsize::new(0);
 
     // Parallel: simulate → (optional) refine → write → extract tiny result → drop output.
-    // Only the small ConditionResult is accumulated; full outputs are dropped per-closure.
     let cond_results: Vec<ConditionResult> = conditions
         .par_iter()
         .filter_map(|cond| {
@@ -172,23 +171,21 @@ pub fn run(base_cfg: &Config, base_params: &RocketParams, args: &LandingAreaArgs
                 power_law_winds_table(cond.speed_mps, cond.dir_deg, h_ref, alpha).into();
 
             let result = (|| -> Result<ConditionResult> {
-                let mut output = runner::simulate(&params)?;
+                let mut output = simulate::simulate(&params)?;
 
-                if let Some(dem) = dem_ref {
-                    if let Err(e) = refine_landing::refine_one(&mut output, dem) {
-                        eprintln!("warn: DEM refine {}: {e:#}", cond.dir_name());
-                    }
-                }
+                refine_landing::try_refine(&mut output, dem_ref);
 
                 let cr = extract_condition_result(cond, &output);
 
-                runner::write_outputs(
-                    &output,
-                    &out_dir,
-                    args.csv_interval,
-                    args.kml_interval,
-                    base_params,
-                )?;
+                std::fs::create_dir_all(&out_dir)?;
+                let ctx = pipeline::RunContext {
+                    output: &output,
+                    out_dir: &out_dir,
+                    params: base_params,
+                    csv_interval: csv_int,
+                    kml_interval: kml_int,
+                };
+                pipeline::run_pipeline(&ctx, &pipeline::default_mandatory_steps(), &[])?;
                 // `output` is dropped here.
                 Ok(cr)
             })();
@@ -212,7 +209,6 @@ pub fn run(base_cfg: &Config, base_params: &RocketParams, args: &LandingAreaArgs
     let n_fail = failed.load(Ordering::Relaxed);
     eprintln!("landing-area done: {n_ok} OK, {n_fail} failed");
 
-    // Write summary files from the tiny accumulated results.
     if !cond_results.is_empty() {
         summary_writer::write_summary_csv(&args.out_dir, &cond_results)
             .unwrap_or_else(|e| eprintln!("warn: landing_summary.csv: {e:#}"));
