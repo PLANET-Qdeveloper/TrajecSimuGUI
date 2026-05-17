@@ -8,6 +8,7 @@
   import { dirOf } from '$lib/utils/path';
 
   import Map from '$lib/components/Map.svelte';
+  import KmlFileInput from '$lib/components/KmlFileInput.svelte';
   import ParamsPanel from '$lib/components/ParamsPanel.svelte';
   import RunPanel from '$lib/components/RunPanel.svelte';
 
@@ -19,6 +20,12 @@
   let running = $state(false);
   let progressMsg = $state('');
   let result = $state<SimSummary | null>(null);
+  let outDir = $state('');
+  let noDem = $state(false);
+
+  let mapLoaded = $state(false);
+  let overlayKmlString = $state<string | null>(null);
+  let overlayFileName = $state('');
 
   onMount(() => {
     const unlisten = listen<string>('sim-progress', (e) => {
@@ -78,7 +85,7 @@
     }
   }
 
-  async function handleRunSingle(outDir: string, noDem: boolean) {
+  async function handleRunSingle() {
     running = true;
     result = null;
     progressMsg = '';
@@ -112,43 +119,62 @@
     {/each}
   </div>
 
-  <!-- コンテンツ -->
-  <div class="flex-1 overflow-hidden">
-    {#if activeTab === 'params'}
-      <div class="flex h-full overflow-hidden">
-        <!-- 左カラム: パラメータ + 実行パネル -->
-        <div class="flex flex-col w-120 min-w-120 border-r overflow-hidden">
-          <ParamsPanel
-            bind:config
-            configFilePath={configFilePath}
-            class="flex-1 overflow-hidden"
-            onsave={handleSave}
-            onload={handleLoad}
-            onimport={handleImport}
-          />
-          <RunPanel
-            {config}
-            bind:running
-            bind:progressMsg
-            bind:result
-            class="border-t shrink-0"
-            on_run_single={handleRunSingle}
-          />
-        </div>
+  <!-- コンテンツ: タブ切り替えで Map を破棄しないよう absolute で重ねて CSS 表示切り替え -->
+  <div class="flex-1 overflow-hidden relative">
 
-        <!-- 真ん中カラム: 将来の分析パラメータ用予約スペース -->
-        <div class="flex-1 flex flex-col p-2 bg-gray-50 overflow-hidden">
-          <p class="text-[10px] text-gray-400 font-medium uppercase tracking-wide">
-            分析パラメータ（予定）
-          </p>
-        </div>
-
-        <!-- 右カラム：Map -->
-        <Map />
+    <!-- params タブ -->
+    <div class="absolute inset-0 flex overflow-hidden" class:hidden={activeTab !== 'params'}>
+      <!-- 左カラム: パラメータ + 実行パネル -->
+      <div class="flex flex-col w-120 min-w-120 border-r overflow-hidden">
+        <ParamsPanel
+          bind:config
+          configFilePath={configFilePath}
+          class="flex-1 overflow-hidden"
+          onsave={handleSave}
+          onload={handleLoad}
+          onimport={handleImport}
+        />
+        <RunPanel
+          {config}
+          bind:running
+          bind:progressMsg
+          bind:result
+          bind:outDir
+          bind:noDem
+          class="border-t shrink-0"
+          on_run_single={handleRunSingle}
+        />
       </div>
 
-    {:else}
-      <Map />
-    {/if}
+      <!-- 真ん中カラム: 将来の分析パラメータ用予約スペース -->
+      <div class="flex-1 flex flex-col p-2 bg-gray-50 overflow-hidden">
+        <p class="text-[10px] text-gray-400 font-medium uppercase tracking-wide">
+          分析パラメータ（予定）
+        </p>
+      </div>
+
+      <!-- 右カラム: Map + KML ファイル入力 -->
+      <div class="flex flex-col overflow-hidden" style="flex: 1">
+        <div class="flex-1 min-h-0">
+          <Map
+            kmlString={result?.kml_result ?? null}
+            {overlayKmlString}
+            visible={activeTab === 'params'}
+            bind:mapLoaded
+          />
+        </div>
+        <KmlFileInput
+          filename={overlayFileName}
+          onload={(kml, name) => { overlayKmlString = kml; overlayFileName = name; }}
+          onclear={() => { overlayKmlString = null; overlayFileName = ''; }}
+        />
+      </div>
+    </div>
+
+    <!-- map タブ -->
+    <div class="absolute inset-0" class:hidden={activeTab !== 'map'}>
+      <div class="p-4 text-sm text-gray-500">TODO: 詳細な結果画面</div>
+    </div>
+
   </div>
 </div>

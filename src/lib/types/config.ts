@@ -75,10 +75,13 @@ export interface SimSummary {
   apogee_m: number;
   max_speed_mps: number;
   flight_time_sec: number;
-  landing_lat?: number;
-  landing_lon?: number;
-  landing_alt_m?: number;
-  landing_source?: string;
+  landing_lat_parachute?: number;
+  landing_lon_parachute?: number;
+  landing_alt_m_parachute?: number;
+  landing_lat_ballistic?: number;
+  landing_lon_ballistic?: number;
+  landing_alt_m_ballistic?: number;
+  kml_result: string;
   out_dir: string;
 }
 
@@ -105,7 +108,7 @@ export function defaultConfig(): AppConfig {
       inertia: [5.0, 5.0, 0.1, 0, 0, 0],
     },
     engine: {
-      thrust_table: '',
+      thrust_table: "",
       thruster_pos: [1.0, 0, 0],
       tank: {
         position: [0.5, 0, 0],
@@ -120,10 +123,10 @@ export function defaultConfig(): AppConfig {
     },
     aero: {
       cp_at_launch: [0.6, 0, 0],
-      cp_mach_table: '',
-      cd0_alpha_mach_table: '',
-      cn_table: '',
-      cs_table: '',
+      cp_mach_table: "",
+      cd0_alpha_mach_table: "",
+      cn_table: "",
+      cs_table: "",
       roll_damping: 0.0,
       pitch_damping: 0.0,
       yaw_damping: 0.0,

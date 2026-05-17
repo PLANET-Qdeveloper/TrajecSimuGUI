@@ -9,6 +9,11 @@
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+    "format:fe": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css}\" --ignore-unknown",
+    "lint:fe": "eslint \"src/**/*.{ts,tsx}\" --fix",
+    "format:be": "cargo fmt",
+    "lint:be": "cargo clippy --fix --allow-dirty --allow-staged",
+    "fix": "pnpm run format:fe && pnpm run lint:fe && pnpm run format:be && pnpm run lint:be",
     "tauri": "tauri"
   },
   "license": "MIT",
@@ -18,6 +23,9 @@
     ]
   },
   "dependencies": {
+    "@deck.gl/core": "^9.3.2",
+    "@deck.gl/layers": "^9.3.2",
+    "@deck.gl/mapbox": "^9.3.2",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-dialog": "^2.7.1",
     "@tauri-apps/plugin-opener": "^2",
@@ -26,16 +34,24 @@
     "maplibre-gl": "^5.20.0"
   },
   "devDependencies": {
+    "@eslint/css": "^1.2.0",
+    "@eslint/js": "^10.0.1",
+    "@eslint/json": "^1.2.0",
+    "@eslint/markdown": "^8.0.1",
     "@sveltejs/adapter-static": "^3.0.6",
     "@sveltejs/kit": "^2.9.0",
     "@sveltejs/vite-plugin-svelte": "^5.0.0",
     "@tailwindcss/vite": "^4.2.1",
     "@tauri-apps/cli": "^2",
     "@types/node": "^25.5.0",
+    "eslint": "^10.4.0",
+    "globals": "^17.6.0",
+    "prettier": "^3.8.3",
     "svelte": "^5.0.0",
     "svelte-check": "^4.0.0",
     "tailwindcss": "^4.2.1",
     "typescript": "~5.6.2",
+    "typescript-eslint": "^8.59.3",
     "vite": "^6.0.3"
   }
 }

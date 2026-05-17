@@ -7,9 +7,11 @@
     running?: boolean;
     progressMsg?: string;
     result?: SimSummary | null;
+    outDir?: string;
+    noDem?: boolean;
     class?: string;
-    on_run_single?: (outDir: string, noDem: boolean) => void;
-    on_run_parallel?: (outDir: string, noDem: boolean) => void;
+    on_run_single?: () => void;
+    on_run_parallel?: () => void;
   }
 
   let {
@@ -17,13 +19,12 @@
     running = $bindable(false),
     progressMsg = $bindable(''),
     result = $bindable<SimSummary | null>(null),
+    outDir = $bindable(''),
+    noDem = $bindable(false),
     class: cls = '',
     on_run_single,
     on_run_parallel,
   }: Props = $props();
-
-  let outDir = $state('');
-  let noDem = $state(false);
 
   async function browseOutDir() {
     const dir = await open({ directory: true, multiple: false });
@@ -35,7 +36,7 @@
       alert('出力ディレクトリを選択してください');
       return;
     }
-    on_run_single?.(outDir, noDem);
+    on_run_single?.();
   }
 
   function handleRunParallel() {
@@ -43,7 +44,7 @@
       alert('出力ディレクトリを選択してください');
       return;
     }
-    on_run_parallel?.(outDir, noDem);
+    on_run_parallel?.();
   }
 </script>
 
@@ -111,12 +112,6 @@
         <span class="font-mono">{result.max_speed_mps.toFixed(1)} m/s</span>
         <span class="text-gray-500">飛行時間</span>
         <span class="font-mono">{result.flight_time_sec.toFixed(1)} s</span>
-        {#if result.landing_lat !== undefined}
-          <span class="text-gray-500">着地（{result.landing_source}）</span>
-          <span class="font-mono text-[10px]">
-            {result.landing_lat.toFixed(5)}°, {result.landing_lon?.toFixed(5)}°
-          </span>
-        {/if}
       </div>
       <p class="text-[10px] text-gray-400 mt-0.5">出力: {result.out_dir}</p>
     </div>

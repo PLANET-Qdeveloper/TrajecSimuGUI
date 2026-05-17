@@ -10,7 +10,9 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result};
 use serde::Serialize;
 
-use simulator_core::{EventKind, EventStamp, RocketParams, SimulationState, UnifiedSimulationOutput};
+use simulator_core::{
+    EventKind, EventStamp, RocketParams, SimulationState, UnifiedSimulationOutput,
+};
 
 // ── Context ──────────────────────────────────────────────────────────────────
 
@@ -106,7 +108,9 @@ pub fn default_mandatory_steps() -> Vec<Box<dyn PostProcessor>> {
 pub struct WriteTrajectoryStep;
 
 impl PostProcessor for WriteTrajectoryStep {
-    fn name(&self) -> &str { "write trajectory CSV" }
+    fn name(&self) -> &str {
+        "write trajectory CSV"
+    }
 
     fn run(&self, ctx: &RunContext<'_>) -> Result<()> {
         let out = ctx.output;
@@ -152,12 +156,13 @@ impl PostProcessor for WriteTrajectoryStep {
 pub struct WriteEventsJsonStep;
 
 impl PostProcessor for WriteEventsJsonStep {
-    fn name(&self) -> &str { "write events JSON" }
+    fn name(&self) -> &str {
+        "write events JSON"
+    }
 
     fn run(&self, ctx: &RunContext<'_>) -> Result<()> {
         let path = ctx.out_dir.join("events.json");
-        let f = fs::File::create(&path)
-            .with_context(|| format!("creating {}", path.display()))?;
+        let f = fs::File::create(&path).with_context(|| format!("creating {}", path.display()))?;
         serde_json::to_writer_pretty(BufWriter::new(f), &ctx.output.events)?;
         Ok(())
     }
@@ -167,7 +172,9 @@ impl PostProcessor for WriteEventsJsonStep {
 pub struct WriteEventsCsvStep;
 
 impl PostProcessor for WriteEventsCsvStep {
-    fn name(&self) -> &str { "write events CSV" }
+    fn name(&self) -> &str {
+        "write events CSV"
+    }
 
     fn run(&self, ctx: &RunContext<'_>) -> Result<()> {
         write_events_csv(&ctx.out_dir.join("events.csv"), &ctx.output.events)
@@ -178,7 +185,9 @@ impl PostProcessor for WriteEventsCsvStep {
 pub struct WriteSummaryJsonStep;
 
 impl PostProcessor for WriteSummaryJsonStep {
-    fn name(&self) -> &str { "write summary JSON" }
+    fn name(&self) -> &str {
+        "write summary JSON"
+    }
 
     fn run(&self, ctx: &RunContext<'_>) -> Result<()> {
         write_summary_json(&ctx.out_dir.join("summary.json"), ctx.output)
@@ -189,7 +198,9 @@ impl PostProcessor for WriteSummaryJsonStep {
 pub struct WriteKmlStep;
 
 impl PostProcessor for WriteKmlStep {
-    fn name(&self) -> &str { "write trajectory KML" }
+    fn name(&self) -> &str {
+        "write trajectory KML"
+    }
 
     fn run(&self, ctx: &RunContext<'_>) -> Result<()> {
         crate::kml_writer::write_trajectory_kml_file(
@@ -205,11 +216,12 @@ impl PostProcessor for WriteKmlStep {
 pub struct DrawChartsStep;
 
 impl PostProcessor for DrawChartsStep {
-    fn name(&self) -> &str { "draw charts" }
+    fn name(&self) -> &str {
+        "draw charts"
+    }
 
     fn run(&self, ctx: &RunContext<'_>) -> Result<()> {
-        crate::chart::draw_result_plot(ctx.out_dir, ctx.output)
-            .map_err(|e| anyhow::anyhow!("{e}"))
+        crate::chart::draw_result_plot(ctx.out_dir, ctx.output).map_err(|e| anyhow::anyhow!("{e}"))
     }
 }
 
