@@ -21,6 +21,36 @@ fn greet(name: &str) -> String {
 // ── ファイル I/O ─────────────────────────────────────────────────────────────
 
 #[tauri::command]
+fn load_kml_file(path: String) -> Result<String, String> {
+    use std::io::Read;
+    let p = std::path::Path::new(&path);
+    let ext = p
+        .extension()
+        .and_then(|e| e.to_str())
+        .unwrap_or("")
+        .to_lowercase();
+    match ext.as_str() {
+        "kml" => std::fs::read_to_string(p).map_err(|e| format!("{e}")),
+        "kmz" => {
+            let file = std::fs::File::open(p).map_err(|e| format!("{e}"))?;
+            let mut archive = zip::ZipArchive::new(file).map_err(|e| format!("{e}"))?;
+            for i in 0..archive.len() {
+                let mut entry = archive.by_index(i).map_err(|e| format!("{e}"))?;
+                if entry.name().ends_with(".kml") {
+                    let mut contents = String::new();
+                    entry
+                        .read_to_string(&mut contents)
+                        .map_err(|e| format!("{e}"))?;
+                    return Ok(contents);
+                }
+            }
+            Err("KMZ ファイル内に .kml が見つかりません".to_string())
+        }
+        _ => Err(format!("未対応の拡張子: {ext}")),
+    }
+}
+
+#[tauri::command]
 fn read_text_file(path: String) -> Result<String, String> {
     std::fs::read_to_string(&path).map_err(|e| format!("{}: {e}", path))
 }
@@ -157,8 +187,7 @@ fn run_simulation_blocking(
     }
 
     emit("結果を保存中...");
-    std::fs::create_dir_all(&out_dir)
-        .map_err(|e| format!("出力ディレクトリ作成エラー: {e}"))?;
+    std::fs::create_dir_all(&out_dir).map_err(|e| format!("出力ディレクトリ作成エラー: {e}"))?;
     let (csv_int, kml_int) = pipeline::normalise_intervals(
         cfg.sim.csv_sample_interval as usize,
         cfg.sim.kml_sample_interval as usize,
@@ -208,12 +237,8 @@ fn run_simulation_blocking(
         .unwrap_or((None, None, None));
 
     let mut kml_vector = Vec::new();
-    write_trajectory_kml(
-        &output,
-        kml_int,
-        &mut kml_vector,
-    )
-    .map_err(|e| format!("KML 生成エラー: {e:#}"))?;
+    write_trajectory_kml(&output, kml_int, &mut kml_vector)
+        .map_err(|e| format!("KML 生成エラー: {e:#}"))?;
     let kml_string = String::from_utf8(kml_vector).map_err(|e| format!("KML 生成エラー: {e:#}"))?;
 
     emit("完了");
@@ -258,6 +283,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             greet,
+            load_kml_file,
             load_config,
             save_config,
             validate_config,

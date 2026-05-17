@@ -61,8 +61,7 @@ pub fn run_single(params: &RocketParams, args: &RunArgs) -> Result<RunPaths> {
     std::fs::create_dir_all(&args.out_dir)
         .with_context(|| format!("creating output dir {}", args.out_dir.display()))?;
 
-    let (csv_int, kml_int) =
-        pipeline::normalise_intervals(args.csv_interval, args.kml_interval);
+    let (csv_int, kml_int) = pipeline::normalise_intervals(args.csv_interval, args.kml_interval);
     let ctx = pipeline::RunContext {
         output: &output,
         out_dir: &args.out_dir,

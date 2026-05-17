@@ -154,8 +154,7 @@ pub fn run(base_cfg: &Config, base_params: &RocketParams, args: &LandingAreaArgs
     };
     let dem_ref = dem.as_ref();
 
-    let (csv_int, kml_int) =
-        pipeline::normalise_intervals(args.csv_interval, args.kml_interval);
+    let (csv_int, kml_int) = pipeline::normalise_intervals(args.csv_interval, args.kml_interval);
 
     let completed = AtomicUsize::new(0);
     let failed = AtomicUsize::new(0);
