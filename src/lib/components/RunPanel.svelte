@@ -1,9 +1,8 @@
 <script lang="ts">
-  import { open } from '@tauri-apps/plugin-dialog';
-  import type { AppConfig, SimSummary } from '$lib/types/config';
+  import { open } from "@tauri-apps/plugin-dialog";
+  import type { SimSummary } from "$lib/types/config";
 
   interface Props {
-    config: AppConfig;
     running?: boolean;
     progressMsg?: string;
     result?: SimSummary | null;
@@ -15,13 +14,12 @@
   }
 
   let {
-    config,
     running = $bindable(false),
-    progressMsg = $bindable(''),
+    progressMsg = $bindable(""),
     result = $bindable<SimSummary | null>(null),
-    outDir = $bindable(''),
+    outDir = $bindable(""),
     noDem = $bindable(false),
-    class: cls = '',
+    class: cls = "",
     on_run_single,
     on_run_parallel,
   }: Props = $props();
@@ -33,7 +31,7 @@
 
   function handleRunSingle() {
     if (!outDir) {
-      alert('出力ディレクトリを選択してください');
+      alert("出力ディレクトリを選択してください");
       return;
     }
     on_run_single?.();
@@ -41,7 +39,7 @@
 
   function handleRunParallel() {
     if (!outDir) {
-      alert('出力ディレクトリを選択してください');
+      alert("出力ディレクトリを選択してください");
       return;
     }
     on_run_parallel?.();
@@ -63,7 +61,8 @@
       <button
         onclick={browseOutDir}
         class="shrink-0 px-2 py-0.5 text-xs border bg-white hover:bg-gray-50"
-      >参照</button>
+        >参照
+      </button>
     </div>
   </div>
 
@@ -78,23 +77,22 @@
   <!-- 実行ボタン -->
   <div class="w-full flex gap-1.5">
     <button
-            onclick={handleRunSingle}
-            disabled={running}
-            class="w-full py-1 text-sm font-medium text-white bg-primary hover:bg-primary-light
+      onclick={handleRunSingle}
+      disabled={running}
+      class="w-full py-1 text-sm font-medium text-white bg-primary hover:bg-primary-light
            disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
     >
-      {running ? '実行中...' : '▶ シングルシミュレーション実行'}
+      {running ? "実行中..." : "▶ シングルシミュレーション実行"}
     </button>
     <button
-            onclick={handleRunSingle}
-            disabled={running}
-            class="w-full py-1 text-sm font-medium text-white bg-primary hover:bg-primary-light
+      onclick={handleRunParallel}
+      disabled={running}
+      class="w-full py-1 text-sm font-medium text-white bg-primary hover:bg-primary-light
            disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
     >
-      {running ? '実行中...' : '▶ 着地範囲シミュレーション実行'}
+      {running ? "実行中..." : "▶ 着地範囲シミュレーション実行"}
     </button>
   </div>
-
 
   <!-- 進捗 -->
   {#if running || progressMsg}
@@ -104,7 +102,9 @@
   <!-- 結果 -->
   {#if result}
     <div class="border-t pt-1.5 flex flex-col gap-0.5">
-      <span class="text-[10px] font-semibold text-gray-600">シミュレーション結果</span>
+      <span class="text-[10px] font-semibold text-gray-600"
+        >シミュレーション結果</span
+      >
       <div class="grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs">
         <span class="text-gray-500">アポジー</span>
         <span class="font-mono">{result.apogee_m.toFixed(0)} m</span>
