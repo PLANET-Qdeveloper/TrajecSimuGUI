@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { open } from '@tauri-apps/plugin-dialog';
+  import { open } from "@tauri-apps/plugin-dialog";
 
   interface Props {
     value?: string;
@@ -11,15 +11,17 @@
   }
 
   let {
-    value = $bindable(''),
+    value = $bindable(""),
     label,
-    extensions = ['csv'],
+    extensions = ["csv"],
     filterName,
-    placeholder = '未設定',
-    defaultDir = '',
+    placeholder = "未設定",
+    defaultDir = "",
   }: Props = $props();
 
-  const filterLabel = $derived(filterName ?? extensions[0]?.toUpperCase() ?? 'FILE');
+  const filterLabel = $derived(
+    filterName ?? extensions[0]?.toUpperCase() ?? "FILE",
+  );
 
   async function browse() {
     const result = await open({
@@ -32,11 +34,13 @@
 </script>
 
 <div class="flex flex-col gap-0.5">
-  <span class="text-[10px] text-gray-500 font-medium uppercase tracking-wide">{label}</span>
+  <span class="text-[10px] text-gray-500 font-medium uppercase tracking-wide"
+    >{label}</span
+  >
   <div class="flex gap-1">
     <input
       class="flex-1 px-2 py-0.5 border text-xs bg-white focus:outline-none focus:ring-1 focus:ring-primary truncate"
-      value={value || ''}
+      value={value || ""}
       readonly
       {placeholder}
       title={value || placeholder}
@@ -44,13 +48,14 @@
     <button
       onclick={browse}
       class="shrink-0 px-2 py-0.5 text-xs border bg-white hover:bg-gray-50 active:bg-gray-100"
-    >参照</button>
+      >参照</button
+    >
     {#if value}
       <button
-        onclick={() => (value = '')}
+        onclick={() => (value = "")}
         class="shrink-0 px-1.5 py-0.5 text-xs border bg-white hover:bg-gray-50 text-gray-400"
-        title="クリア"
-      >×</button>
+        title="クリア">×</button
+      >
     {/if}
   </div>
 </div>

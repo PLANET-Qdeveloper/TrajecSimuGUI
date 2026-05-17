@@ -1,8 +1,4 @@
 <script>
-    import { fade } from "svelte/transition";
-
-    import Rocket from "$lib/components/icons/Rocket.svelte";
-
 </script>
 
 <!--
