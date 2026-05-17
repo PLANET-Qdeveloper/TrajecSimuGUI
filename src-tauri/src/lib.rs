@@ -1,8 +1,7 @@
 use serde::Serialize;
 use simulator_cli::kml_writer::write_trajectory_kml;
 use simulator_cli::EventKind;
-use simulator_cli::{assemble, dem, refine_landing, runner};
-use std::cmp::min;
+use simulator_cli::{assemble, dem, pipeline, refine_landing, simulate};
 use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -149,29 +148,30 @@ fn run_simulation_blocking(
     }
     emit("シミュレーションを実行中...");
     let mut output =
-        runner::simulate(&params).map_err(|e| format!("シミュレーションエラー: {e:#}"))?;
+        simulate::simulate(&params).map_err(|e| format!("シミュレーションエラー: {e:#}"))?;
 
     if !no_dem {
         emit("着地点を補正中 (DEM)...");
-        match dem::DemCache::new() {
-            Ok(cache) => {
-                if let Err(e) = refine_landing::refine_one(&mut output, &cache) {
-                    log::warn!("DEM 補正失敗、元の着地点を使用: {e:#}");
-                }
-            }
-            Err(e) => log::warn!("DEM キャッシュ初期化失敗: {e:#}"),
-        }
+        let dem_cache = dem::DemCache::new().ok();
+        refine_landing::try_refine(&mut output, dem_cache.as_ref());
     }
 
     emit("結果を保存中...");
-    let _paths = runner::write_outputs(
-        &output,
-        &out_dir,
+    std::fs::create_dir_all(&out_dir)
+        .map_err(|e| format!("出力ディレクトリ作成エラー: {e}"))?;
+    let (csv_int, kml_int) = pipeline::normalise_intervals(
         cfg.sim.csv_sample_interval as usize,
         cfg.sim.kml_sample_interval as usize,
-        &params,
-    )
-    .map_err(|e| format!("出力書き込みエラー: {e:#}"))?;
+    );
+    let ctx = pipeline::RunContext {
+        output: &output,
+        out_dir: &out_dir,
+        params: &params,
+        csv_interval: csv_int,
+        kml_interval: kml_int,
+    };
+    pipeline::run_pipeline(&ctx, &pipeline::default_mandatory_steps(), &[])
+        .map_err(|e| format!("出力書き込みエラー: {e:#}"))?;
 
     // サマリ情報を組み立てて返す
 
@@ -210,8 +210,7 @@ fn run_simulation_blocking(
     let mut kml_vector = Vec::new();
     write_trajectory_kml(
         &output,
-        (cfg.sim.kml_sample_interval
-            / min(cfg.sim.kml_sample_interval, cfg.sim.csv_sample_interval)) as usize,
+        kml_int,
         &mut kml_vector,
     )
     .map_err(|e| format!("KML 生成エラー: {e:#}"))?;

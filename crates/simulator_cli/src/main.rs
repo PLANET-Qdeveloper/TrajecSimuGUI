@@ -10,8 +10,9 @@ mod csv_loader;
 mod dem;
 mod kml_writer;
 mod landing_area;
+mod pipeline;
 mod refine_landing;
-mod runner;
+mod simulate;
 mod summary_writer;
 
 #[derive(Parser, Debug)]
@@ -88,34 +89,14 @@ fn main() -> Result<()> {
         } => {
             let cfg = config::Config::load(&config)?;
             let params = assemble::assemble(&cfg)?;
-
-            let mut output = runner::simulate(&params)?;
-
-            if !no_dem {
-                match dem::DemCache::new() {
-                    Ok(cache) => {
-                        if let Err(e) = refine_landing::refine_one(&mut output, &cache) {
-                            eprintln!("warn: DEM refinement failed, using original landing: {e:#}");
-                        }
-                    }
-                    Err(e) => eprintln!("warn: DEM cache init failed: {e:#}"),
-                }
-            }
-
-            let paths = runner::write_outputs(
-                &output,
-                &out_dir,
-                cfg.sim.csv_sample_interval as usize,
-                cfg.sim.kml_sample_interval as usize,
-                &params,
-            )?;
-
-            if !no_chart {
-                if let Err(e) = chart::draw_result_plot(&out_dir, &output) {
-                    eprintln!("warn: chart generation) failed: {e:#}");
-                };
-            }
-
+            let args = simulate::RunArgs {
+                out_dir,
+                no_dem,
+                no_chart,
+                csv_interval: cfg.sim.csv_sample_interval as usize,
+                kml_interval: cfg.sim.kml_sample_interval as usize,
+            };
+            let paths = simulate::run_single(&params, &args)?;
             eprintln!("wrote {}", paths.summary.display());
             eprintln!("       {}", paths.mainline.display());
             eprintln!("       {}", paths.parachute.display());

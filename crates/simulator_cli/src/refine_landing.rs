@@ -14,6 +14,15 @@ use simulator_core::UnifiedSimulationOutput;
 
 use crate::dem::DemCache;
 
+/// Apply DEM refinement if a cache is provided. On any failure, emit a warning
+/// and leave `output` unmodified.
+pub fn try_refine(output: &mut UnifiedSimulationOutput, dem: Option<&DemCache>) {
+    let Some(cache) = dem else { return };
+    if let Err(e) = refine_one(output, cache) {
+        eprintln!("warn: DEM refinement failed, using original landing: {e:#}");
+    }
+}
+
 /// Refine the Landed and ParachuteLanded events in `output` using DEM terrain
 /// data. Modifies the matching event states in-place.
 pub fn refine_one(output: &mut UnifiedSimulationOutput, dem: &DemCache) -> Result<()> {
