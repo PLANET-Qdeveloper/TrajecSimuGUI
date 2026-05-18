@@ -2,6 +2,8 @@
 
 A Rust-based monorepo for rocket trajectory simulation combining JSBSim integration with custom simulation engines,
 providing CLI and Tauri GUI interfaces.
+❯ perf stat -ddd cargo run --profile release -p simulator_cli -- landing-area --config
+crates/simulator_cli/examples/noshiri_2025/config.yaml --out-dir crates/simulator_cli/examples/noshiri_2025/out
 
 # License
 
