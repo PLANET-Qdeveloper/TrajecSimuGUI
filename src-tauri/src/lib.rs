@@ -1,5 +1,6 @@
 use serde::Serialize;
 use simulator_cli::kml_writer::write_trajectory_kml;
+use simulator_cli::pipeline::PostProcessor;
 use simulator_cli::EventKind;
 use simulator_cli::{assemble, dem, pipeline, refine_landing, simulate};
 use std::path::Path;
@@ -199,7 +200,8 @@ fn run_simulation_blocking(
         csv_interval: csv_int,
         kml_interval: kml_int,
     };
-    pipeline::run_pipeline(&ctx, &pipeline::default_mandatory_steps(), &[])
+    let optional_step: Vec<Box<dyn PostProcessor>> = vec![Box::new(pipeline::DrawChartsStep)];
+    pipeline::run_pipeline(&ctx, &pipeline::default_mandatory_steps(), &optional_step)
         .map_err(|e| format!("出力書き込みエラー: {e:#}"))?;
 
     // サマリ情報を組み立てて返す
