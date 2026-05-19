@@ -6,10 +6,13 @@
   interface Props {
     parachute?: ParachuteConfig;
   }
+
   let { parachute = $bindable<ParachuteConfig | undefined>() }: Props =
     $props();
 
-  let enabled = $state(true);
+  let internalConfig: ParachuteConfig | undefined = $state(undefined);
+
+  let enabled = $derived(parachute !== undefined);
   let hasInitialized = false;
 
   $effect(() => {
@@ -19,16 +22,17 @@
         parachute = { terminal_velocity_table: "", deploy_delay_sec: 1.0 };
       }
     }
-
-    enabled = parachute !== undefined;
   });
 
   function toggle() {
-    enabled = !enabled;
-    if (enabled && !parachute) {
-      parachute = { terminal_velocity_table: "", deploy_delay_sec: 1.0 };
-    } else if (!enabled) {
+    if (enabled) {
+      internalConfig = parachute;
       parachute = undefined;
+    } else {
+      parachute = internalConfig ?? {
+        terminal_velocity_table: "",
+        deploy_delay_sec: 1.0,
+      };
     }
   }
 </script>

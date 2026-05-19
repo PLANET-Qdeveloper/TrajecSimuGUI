@@ -9,11 +9,13 @@
   let {
     kmlString = null,
     overlayKmlString = null,
+    landingAreaKmlString = null,
     visible = true,
     mapLoaded = $bindable(false),
   }: {
     kmlString: string | null;
     overlayKmlString: string | null;
+    landingAreaKmlString: string | null;
     visible?: boolean;
     mapLoaded?: boolean;
   } = $props();
@@ -37,7 +39,6 @@
     }
 
     const geojson = parseKml(kmlStr);
-
     const ballistic_paths = geojson.features
       .filter((f) => f.geometry?.type === "LineString")
       .filter((f) => f.properties?.name === "Ballistic phase")
@@ -49,7 +50,7 @@
           number,
         ][],
       }));
-
+    console.log(geojson);
     const parachute_paths = geojson.features
       .filter((f) => f.geometry?.type === "LineString")
       .filter((f) => f.properties?.name === "Parachute descent")
@@ -135,11 +136,53 @@
       const geom = f.geometry;
       if (!geom) continue;
       if (geom.type === "LineString") {
-        for (const c of (geom as { coordinates: number[][] }).coordinates)
-          coords.push([c[0], c[1]]);
+        for (const c of (geom as { coordinates: number[][] }).coordinates) {
+          if (c && c.length >= 2 && !isNaN(c[0]) && !isNaN(c[1])) {
+            coords.push([c[0], c[1]]);
+          }
+        }
       } else if (geom.type === "Point") {
         const c = (geom as { coordinates: number[] }).coordinates;
+        if (c && c.length >= 2 && !isNaN(c[0]) && !isNaN(c[1])) {
+          coords.push([c[0], c[1]]);
+        }
+      }
+    }
+    if (coords.length > 0) {
+      const bounds = coords.reduce(
+        (b, c) => b.extend(c),
+        new maplibregl.LngLatBounds(coords[0], coords[0]),
+      );
+      map.fitBounds(bounds, { padding: 60, maxZoom: 14 });
+    }
+  }
+
+  function updateLandingArea(kmlStr: string | null) {
+    if (!map || !mapLoaded) return;
+    const source = map.getSource("kml-landing-area") as
+      | maplibregl.GeoJSONSource
+      | undefined;
+    if (!source) return;
+    if (!kmlStr) {
+      source.setData({ type: "FeatureCollection", features: [] });
+      return;
+    }
+    const geojson = parseKml(kmlStr);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    source.setData(geojson as any);
+
+    const coords: [number, number][] = [];
+    for (const f of geojson.features) {
+      const geom = f.geometry;
+      if (!geom) continue;
+      if (geom.type === "Point") {
+        const c = (geom as { coordinates: number[] }).coordinates;
         coords.push([c[0], c[1]]);
+      } else if (geom.type === "Polygon") {
+        for (const ring of (geom as { coordinates: number[][][] })
+          .coordinates) {
+          for (const c of ring) coords.push([c[0], c[1]]);
+        }
       }
     }
     if (coords.length > 0) {
@@ -170,6 +213,9 @@
   });
   $effect(() => {
     updateOverlay(overlayKmlString);
+  });
+  $effect(() => {
+    updateLandingArea(landingAreaKmlString);
   });
   $effect(() => {
     if (visible && map) {
@@ -238,6 +284,37 @@
         paint: {
           "circle-radius": 4,
           "circle-color": "#0ea5e9",
+          "circle-stroke-width": 1.5,
+          "circle-stroke-color": "#ffffff",
+        },
+      });
+
+      map!.addSource("kml-landing-area", {
+        type: "geojson",
+        data: { type: "FeatureCollection", features: [] },
+      });
+      map!.addLayer({
+        id: "kml-landing-area-fill",
+        type: "fill",
+        source: "kml-landing-area",
+        filter: ["==", ["geometry-type"], "Polygon"],
+        paint: { "fill-color": "#005ed5", "fill-opacity": 0.2 },
+      });
+      map!.addLayer({
+        id: "kml-landing-area-outline",
+        type: "line",
+        source: "kml-landing-area",
+        filter: ["==", ["geometry-type"], "Polygon"],
+        paint: { "line-color": "#005ed5", "line-width": 2 },
+      });
+      map!.addLayer({
+        id: "kml-landing-area-points",
+        type: "circle",
+        source: "kml-landing-area",
+        filter: ["==", ["geometry-type"], "Point"],
+        paint: {
+          "circle-radius": 4,
+          "circle-color": "#005ed5",
           "circle-stroke-width": 1.5,
           "circle-stroke-color": "#ffffff",
         },
