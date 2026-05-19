@@ -15,6 +15,7 @@
 
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Arc;
 
 use anyhow::Result;
 use rayon::prelude::*;
@@ -47,6 +48,8 @@ pub struct LandingAreaArgs {
     pub kml_interval: usize,
     /// Skip GSI DEM landing-point refinement.
     pub no_dem: bool,
+    /// Optional progress callback: `(completed, total)`.
+    pub on_progress: Option<Arc<dyn Fn(usize, usize) + Send + Sync>>,
 }
 
 // ---------------------------------------------------------------------------
@@ -193,6 +196,9 @@ pub fn run(base_cfg: &Config, base_params: &RocketParams, args: &LandingAreaArgs
                 Ok(cr) => {
                     let n = completed.fetch_add(1, Ordering::Relaxed) + 1;
                     eprintln!("[{n:>3}/{total}] OK  {}", cond.dir_name());
+                    if let Some(cb) = &args.on_progress {
+                        cb(n, total);
+                    }
                     Some(cr)
                 }
                 Err(e) => {

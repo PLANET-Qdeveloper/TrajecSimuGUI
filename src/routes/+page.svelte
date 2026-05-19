@@ -7,6 +7,7 @@
     import {
         defaultConfig,
         type AppConfig,
+        type LandingAreaSummary,
         type SimSummary,
     } from "$lib/types/config";
 
@@ -22,8 +23,12 @@
     let running = $state(false);
     let progressMsg = $state("");
     let result = $state<SimSummary | null>(null);
+    let landingAreaResult = $state<LandingAreaSummary | null>(null);
     let outDir = $state("");
     let noDem = $state(false);
+    let landingDirections = $state(8);
+    let landingSpeedMax = $state(8.0);
+    let landingSpeedSteps = $state(9);
 
     let mapLoaded = $state(false);
     let overlayKmlString = $state<string | null>(null);
@@ -89,6 +94,26 @@
         }
     }
 
+    async function handleRunLandingArea() {
+        running = true;
+        landingAreaResult = null;
+        progressMsg = "";
+        try {
+            landingAreaResult = await invoke<LandingAreaSummary>("run_landing_area", {
+                config,
+                outDir,
+                noDem,
+                directions: landingDirections,
+                speedMax: landingSpeedMax,
+                speedSteps: landingSpeedSteps,
+            });
+        } catch (e) {
+            progressMsg = `エラー: ${e}`;
+        } finally {
+            running = false;
+        }
+    }
+
     async function handleRunSingle() {
         running = true;
         result = null;
@@ -144,10 +169,15 @@
                         bind:running
                         bind:progressMsg
                         bind:result
+                        bind:landingAreaResult
                         bind:outDir
                         bind:noDem
+                        bind:landingDirections
+                        bind:landingSpeedMax
+                        bind:landingSpeedSteps
                         class="border-t shrink-0"
                         on_run_single={handleRunSingle}
+                        on_run_parallel={handleRunLandingArea}
                 />
             </div>
 
@@ -158,6 +188,7 @@
                     <Map
                             kmlString={result?.kml_result ?? null}
                             {overlayKmlString}
+                            landingAreaKmlString={landingAreaResult?.kml_result ?? null}
                             visible={activeTab === "params"}
                             bind:mapLoaded
                     />
