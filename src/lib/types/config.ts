@@ -85,6 +85,11 @@ export interface SimSummary {
   out_dir: string;
 }
 
+export interface LandingAreaSummary {
+  out_dir: string;
+  kml_result: string;
+}
+
 export function defaultConfig(): AppConfig {
   return {
     launch: {

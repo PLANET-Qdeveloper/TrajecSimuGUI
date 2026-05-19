@@ -2,7 +2,7 @@ use serde::Serialize;
 use simulator_cli::kml_writer::write_trajectory_kml;
 use simulator_cli::pipeline::PostProcessor;
 use simulator_cli::EventKind;
-use simulator_cli::{assemble, dem, pipeline, refine_landing, simulate};
+use simulator_cli::{assemble, dem, landing_area, pipeline, refine_landing, simulate};
 use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -127,6 +127,12 @@ fn validate_config(config: simulator_cli::config::Config) -> Result<(), String> 
 }
 
 // ── シミュレーション実行 ──────────────────────────────────────────────────────
+
+#[derive(Serialize, Clone)]
+pub struct LandingAreaSummary {
+    pub out_dir: String,
+    pub kml_result: String,
+}
 
 #[derive(Serialize, Clone)]
 pub struct SimSummary {
@@ -265,6 +271,83 @@ fn run_simulation_blocking(
     })
 }
 
+// ── 着地範囲スイープ ──────────────────────────────────────────────────────────
+
+#[tauri::command]
+async fn run_landing_area(
+    config: simulator_cli::config::Config,
+    out_dir: String,
+    no_dem: bool,
+    directions: u32,
+    speed_max: f64,
+    speed_steps: u32,
+    jobs: Option<usize>,
+    app: tauri::AppHandle,
+) -> Result<LandingAreaSummary, String> {
+    let out_path = PathBuf::from(out_dir);
+    let result = tauri::async_runtime::spawn_blocking(move || {
+        run_landing_area_blocking(
+            config, out_path, no_dem, directions, speed_max, speed_steps, jobs, &app,
+        )
+    })
+    .await
+    .map_err(|e| format!("スレッドエラー: {e}"))?;
+    result
+}
+
+fn run_landing_area_blocking(
+    cfg: simulator_cli::config::Config,
+    out_dir: PathBuf,
+    no_dem: bool,
+    directions: u32,
+    speed_max: f64,
+    speed_steps: u32,
+    jobs: Option<usize>,
+    app: &tauri::AppHandle,
+) -> Result<LandingAreaSummary, String> {
+    let emit = |msg: &str| {
+        let _ = app.emit("sim-progress", msg);
+    };
+
+    emit("パラメータを組み立て中...");
+    let params = assemble::assemble(&cfg).map_err(|e| format!("パラメータエラー: {e:#}"))?;
+
+    std::fs::create_dir_all(&out_dir)
+        .map_err(|e| format!("出力ディレクトリ作成エラー: {e}"))?;
+
+    let (csv_int, kml_int) = pipeline::normalise_intervals(
+        cfg.sim.csv_sample_interval as usize,
+        cfg.sim.kml_sample_interval as usize,
+    );
+    let app_clone = app.clone();
+    let args = landing_area::LandingAreaArgs {
+        out_dir: out_dir.clone(),
+        directions,
+        speed_max,
+        speed_steps,
+        jobs,
+        csv_interval: csv_int,
+        kml_interval: kml_int,
+        no_dem,
+        on_progress: Some(Arc::new(move |n: usize, total: usize| {
+            let _ = app_clone.emit("sim-progress", format!("着地範囲: {n}/{total} 完了"));
+        })),
+    };
+
+    emit("着地範囲シミュレーション開始...");
+    landing_area::run(&cfg, &params, &args)
+        .map_err(|e| format!("着地範囲エラー: {e:#}"))?;
+
+    let kml_result = std::fs::read_to_string(out_dir.join("landing_range.kml"))
+        .map_err(|e| format!("KML 読み込みエラー: {e}"))?;
+
+    emit("完了");
+    Ok(LandingAreaSummary {
+        out_dir: out_dir.to_string_lossy().to_string(),
+        kml_result,
+    })
+}
+
 // ── Tauri アプリ本体 ──────────────────────────────────────────────────────────
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -292,6 +375,7 @@ pub fn run() {
             read_text_file,
             write_text_file,
             run_simulation,
+            run_landing_area,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

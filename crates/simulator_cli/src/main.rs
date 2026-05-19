@@ -133,6 +133,7 @@ fn main() -> Result<()> {
                 csv_interval: cfg.sim.csv_sample_interval as usize,
                 kml_interval: cfg.sim.kml_sample_interval as usize,
                 no_dem,
+                on_progress: None,
             };
             landing_area::run(&cfg, &params, &args)?;
         }

@@ -279,7 +279,12 @@ impl SimulationOrchestrator {
                 }
 
                 if next_phase.is_none() && out.completed {
-                    next_phase = Some(Phase::Parachute);
+                    if self.parachute_deployed {
+                        next_phase = Some(Phase::Parachute);
+                    } else {
+                        next_phase = Some(Phase::Completed);
+                    }
+
                     self.decimation_counter = 0;
                 }
             }
