@@ -78,6 +78,10 @@
         const savedConfig = await s.get<AppConfig>("config");
         if (savedConfig) config = savedConfig;
       }
+      const savedOverlayKml = await s.get<string | null>("overlayKmlString");
+      if (savedOverlayKml != null) overlayKmlString = savedOverlayKml;
+      const savedOverlayName = await s.get<string>("overlayFileName");
+      if (savedOverlayName != null) overlayFileName = savedOverlayName;
       storeReady = true;
     });
 
@@ -96,6 +100,8 @@
     store.set("landingSpeedSteps", landingSpeedSteps);
     store.set("configFilePath", configFilePath);
     store.set("config", $state.snapshot(config));
+    store.set("overlayKmlString", overlayKmlString);
+    store.set("overlayFileName", overlayFileName);
     store.save();
   });
 

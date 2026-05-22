@@ -52,7 +52,7 @@
     return kmlToGeoJson(doc);
   }
 
-  function fitBoundGeoJson(geojson) {
+  function fitBoundGeoJson(geojson: ReturnType<typeof parseKml>) {
     if (!map) return;
     const coords: [number, number][] = [];
     for (const f of geojson.features) {
