@@ -1,4 +1,6 @@
-@import url("tailwindcss");
+/* prettier-ignore */
+/* stylelint-disable-next-line */
+@import "tailwindcss";
 
 @theme {
   --color-primary: #85023e;

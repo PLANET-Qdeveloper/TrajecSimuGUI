@@ -14,23 +14,23 @@ body:
   diameter: 0.145
   # Measured airframe dry mass with fuel section installed (before tank fill)
   dry_mass_with_fuel_section: 17.633
-  cg: [ 1.144, 0.0, 0.0 ]
-  inertia: [ 0.05, 4.12, 4.12, 0.0, 0.0, 0.0 ]
+  cg: [1.144, 0.0, 0.0]
+  inertia: [0.05, 4.12, 4.12, 0.0, 0.0, 0.0]
 
 engine:
   thrust_table: tables/thrust.csv
-  thruster_pos: [ 1.889, 0.0, 0.0 ]
+  thruster_pos: [1.889, 0.0, 0.0]
   tank:
-    position: [ 0.869, 0.0, 0.0 ]
-    drain_position: [ 1.141, 0.0, 0.0 ]
+    position: [0.869, 0.0, 0.0]
+    drain_position: [1.141, 0.0, 0.0]
     tank_contents: 3.53
   fuel:
-    position: [ 1.559, 0.0, 0.0 ]
+    position: [1.559, 0.0, 0.0]
     fuel_section_weight: 0.643
     fuel_section_weight_after_burn: 0.1
 
 aero:
-  cp_at_launch: [ 1.374, 0.0, 0.0 ]
+  cp_at_launch: [1.374, 0.0, 0.0]
   cp_mach_table: tables/cp_mach.csv
   cd0_alpha_mach_table: tables/cd_alpha_mach.csv
   cn_table: tables/cn_mach.csv
@@ -48,4 +48,3 @@ sim:
   time_step: 0.001
   csv_sample_interval: 10
   kml_sample_interval: 50
-

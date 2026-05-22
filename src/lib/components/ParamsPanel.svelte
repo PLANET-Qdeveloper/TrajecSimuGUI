@@ -6,23 +6,24 @@
   import AeroGroup from "$lib/components/groups/AeroGroup.svelte";
   import ParachuteGroup from "$lib/components/groups/ParachuteGroup.svelte";
   import SimGroup from "$lib/components/groups/SimGroup.svelte";
+  import GoogleSheetInput from "$lib/components/GoogleSheetInput.svelte";
 
   interface Props {
     config: AppConfig;
     configFilePath?: string;
     class?: string;
+    url?: string;
     onsave?: () => void;
     onload?: () => void;
-    onimport?: () => void;
   }
 
   let {
     config = $bindable<AppConfig>(),
     configFilePath = "",
     class: cls = "",
+    url = $bindable(""),
     onsave,
     onload,
-    onimport,
   }: Props = $props();
 
   const filename = $derived(
@@ -30,13 +31,17 @@
       ? (configFilePath.split("/").pop() ?? configFilePath)
       : "（未保存）",
   );
+
+  function handleSheetMerge(merged: AppConfig) {
+    config = merged;
+  }
 </script>
 
 <div class="flex flex-col h-full overflow-hidden {cls}">
   <!-- ツールバー -->
   <div class="flex items-center gap-1 px-2 py-1 border-b bg-gray-50 shrink-0">
     <span
-      class="text-[10px] text-gray-400 truncate flex-1"
+      class="text-[10px] text-gray-400 truncate max-w-[120px]"
       title={configFilePath || ""}
     >
       {filename}
@@ -44,18 +49,18 @@
     <button
       onclick={onsave}
       class="px-2 py-0.5 text-xs border bg-white hover:bg-gray-50 active:bg-gray-100 shrink-0"
-      >保存</button
-    >
+      >保存
+    </button>
     <button
       onclick={onload}
       class="px-2 py-0.5 text-xs border bg-white hover:bg-gray-50 active:bg-gray-100 shrink-0"
-      >読込</button
-    >
-    <button
-      onclick={onimport}
-      class="px-2 py-0.5 text-xs border bg-white hover:bg-gray-50 active:bg-gray-100 shrink-0"
-      >インポート</button
-    >
+      >読込
+    </button>
+  </div>
+
+  <!-- Google スプレッドシート取込 -->
+  <div class="px-2 py-1 border-b bg-gray-50 shrink-0">
+    <GoogleSheetInput {config} onmerge={handleSheetMerge} bind:url />
   </div>
 
   <!-- パラメータ グループ (スクロール) -->

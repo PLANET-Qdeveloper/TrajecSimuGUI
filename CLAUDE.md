@@ -68,6 +68,7 @@ Each phase implements `StageRunner { initialize, step }` and returns `StageStepO
 ### Key data structures
 
 **`SimulationState`** (`output.rs`) — per-step snapshot shared by all phases. All values in SI. Coordinates:
+
 - `position.alt_agl_m` stores **MSL altitude** (not true AGL); named for historical reasons
 - `position.local_x_m/y_m` — distance in launch-yaw and perpendicular directions
 - `velocity.u/v/w_mps` — body-axis forward / lateral / down components
@@ -99,12 +100,30 @@ ISA 1976. `sample_atmosphere(alt_msl_m) -> AtmosphereSample { temperature_k, pre
 User-facing YAML (`config.rs` + `assemble.rs`). Tables (thrust, aero, cp, terminal velocity) are referenced as CSV paths relative to the config file.
 
 ```yaml
-launch: { latitude, longitude, elevation, rail_length, pitch, yaw, wind_speed_mps, wind_direction_deg, ... }
-body:   { diameter, dry_mass_with_fuel_section, cg, inertia }
-engine: { thrust_table, thruster_pos, tank: { position, tank_contents }, fuel: {...} }
-aero:   { cp_at_launch, cp_mach_table, cd0_alpha_mach_table, cn_table, cs_table, ... }
-parachute: { terminal_velocity_table, deploy_delay_sec }   # optional
-sim:    { flight_duration, time_step, csv_sample_interval, kml_sample_interval }
+launch:
+  {
+    latitude,
+    longitude,
+    elevation,
+    rail_length,
+    pitch,
+    yaw,
+    wind_speed_mps,
+    wind_direction_deg,
+    ...,
+  }
+body: { diameter, dry_mass_with_fuel_section, cg, inertia }
+engine:
+  {
+    thrust_table,
+    thruster_pos,
+    tank: { position, tank_contents },
+    fuel: { ... },
+  }
+aero:
+  { cp_at_launch, cp_mach_table, cd0_alpha_mach_table, cn_table, cs_table, ... }
+parachute: { terminal_velocity_table, deploy_delay_sec } # optional
+sim: { flight_duration, time_step, csv_sample_interval, kml_sample_interval }
 ```
 
 See `crates/simulator_cli/examples/minimal/config.yaml` for a complete reference.
@@ -115,12 +134,12 @@ Bilinear interpolation table. `mach_keys` must have ≥ 2 entries; each row is `
 
 ### Output files (written by `runner.rs`)
 
-| File | Content |
-|---|---|
-| `mainline.csv` / `parachute.csv` | Trajectory rows decimated by `csv_sample_interval` |
-| `events.csv` / `events.json` | All events with full state payload |
-| `summary.json` | Apogee, max speed, flight time, landing point |
-| `trajectory.kml` | LineStrings + event placemarks, `altitudeMode=absolute` (MSL) |
+| File                             | Content                                                       |
+| -------------------------------- | ------------------------------------------------------------- |
+| `mainline.csv` / `parachute.csv` | Trajectory rows decimated by `csv_sample_interval`            |
+| `events.csv` / `events.json`     | All events with full state payload                            |
+| `summary.json`                   | Apogee, max speed, flight time, landing point                 |
+| `trajectory.kml`                 | LineStrings + event placemarks, `altitudeMode=absolute` (MSL) |
 
 ### DEM elevation refinement (`dem.rs`, `refine_landing.rs`)
 

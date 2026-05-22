@@ -13,8 +13,8 @@ const config = {
       fallback: "index.html",
     }),
     files: {
-      assets: 'public'
-    }
+      assets: "public",
+    },
   },
 };
 

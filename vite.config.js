@@ -11,10 +11,10 @@ export default defineConfig(async () => ({
   // maplibre-gl uses class fields. Setting target to esnext prevents esbuild from
   // transforming them to __publicField() calls, which are undefined in GL workers.
   optimizeDeps: {
-    esbuildOptions: { target: 'esnext' },
+    esbuildOptions: { target: "esnext" },
   },
   build: {
-    target: 'esnext',
+    target: "esnext",
   },
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`

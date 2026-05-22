@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import { invoke } from "@tauri-apps/api/core";
   import { listen } from "@tauri-apps/api/event";
+  import { Store } from "@tauri-apps/plugin-store";
   import { open, save } from "@tauri-apps/plugin-dialog";
 
   import {
@@ -26,6 +27,7 @@
   let landingAreaResult = $state<LandingAreaSummary | null>(null);
   let outDir = $state("");
   let noDem = $state(false);
+  let spreadsheetUrl = $state("");
   let landingDirections = $state(8);
   let landingSpeedMax = $state(8.0);
   let landingSpeedSteps = $state(9);
@@ -34,13 +36,67 @@
   let overlayKmlString = $state<string | null>(null);
   let overlayFileName = $state("");
 
+  let showTrajectoryMarker = $state(true);
+  let showBallisticCourse = $state(true);
+  let showParachuteCourse = $state(true);
+  let showBallisticLandingRange = $state(true);
+  let showParachuteLandingRange = $state(true);
+  let showImportedKmlOverlay = $state(true);
+
+  let store: Store | null = null;
+  let storeReady = $state(false);
+
   onMount(() => {
     const unlisten = listen<string>("sim-progress", (e) => {
       progressMsg = e.payload;
     });
+
+    Store.load("app-settings.json").then(async (s) => {
+      store = s;
+      const savedUrl = await s.get<string>("spreadsheetUrl");
+      if (savedUrl != null) spreadsheetUrl = savedUrl;
+      const savedOutDir = await s.get<string>("outDir");
+      if (savedOutDir != null) outDir = savedOutDir;
+      const savedNoDem = await s.get<boolean>("noDem");
+      if (savedNoDem != null) noDem = savedNoDem;
+      const savedDirections = await s.get<number>("landingDirections");
+      if (savedDirections != null) landingDirections = savedDirections;
+      const savedSpeedMax = await s.get<number>("landingSpeedMax");
+      if (savedSpeedMax != null) landingSpeedMax = savedSpeedMax;
+      const savedSpeedSteps = await s.get<number>("landingSpeedSteps");
+      if (savedSpeedSteps != null) landingSpeedSteps = savedSpeedSteps;
+      const savedPath = await s.get<string>("configFilePath");
+      if (savedPath) {
+        try {
+          config = await invoke<AppConfig>("load_config", { path: savedPath });
+          configFilePath = savedPath;
+        } catch {
+          const savedConfig = await s.get<AppConfig>("config");
+          if (savedConfig) config = savedConfig;
+        }
+      } else {
+        const savedConfig = await s.get<AppConfig>("config");
+        if (savedConfig) config = savedConfig;
+      }
+      storeReady = true;
+    });
+
     return () => {
       unlisten.then((fn) => fn());
     };
+  });
+
+  $effect(() => {
+    if (!storeReady || !store) return;
+    store.set("spreadsheetUrl", spreadsheetUrl);
+    store.set("outDir", outDir);
+    store.set("noDem", noDem);
+    store.set("landingDirections", landingDirections);
+    store.set("landingSpeedMax", landingSpeedMax);
+    store.set("landingSpeedSteps", landingSpeedSteps);
+    store.set("configFilePath", configFilePath);
+    store.set("config", $state.snapshot(config));
+    store.save();
   });
 
   async function handleLoad() {
@@ -77,20 +133,6 @@
       configFilePath = path as string;
     } catch (e) {
       alert(`保存エラー: ${e}`);
-    }
-  }
-
-  async function handleImport() {
-    const path = await open({
-      multiple: false,
-      filters: [{ name: "YAML", extensions: ["yaml", "yml"] }],
-    });
-    if (!path) return;
-    try {
-      config = await invoke<AppConfig>("load_config", { path: path as string });
-      // configFilePath はそのまま（インポートは現在ファイルを変えない）
-    } catch (e) {
-      alert(`インポートエラー: ${e}`);
     }
   }
 
@@ -143,7 +185,7 @@
           ? 'border-primary text-primary'
           : 'border-transparent text-gray-500 hover:text-gray-700'}"
       >
-        {tab === "params" ? "パラメータ" : "マップ"}
+        {tab === "params" ? "パラメータ" : "結果詳細"}
       </button>
     {/each}
   </div>
@@ -161,9 +203,9 @@
           bind:config
           {configFilePath}
           class="flex-1 overflow-hidden"
+          bind:url={spreadsheetUrl}
           onsave={handleSave}
           onload={handleLoad}
-          onimport={handleImport}
         />
         <RunPanel
           bind:running
@@ -190,7 +232,42 @@
             landingAreaKmlString={landingAreaResult?.kml_result ?? null}
             visible={activeTab === "params"}
             bind:mapLoaded
+            {showTrajectoryMarker}
+            {showBallisticCourse}
+            {showParachuteCourse}
+            {showBallisticLandingRange}
+            {showParachuteLandingRange}
+            {showImportedKmlOverlay}
           />
+        </div>
+        <!-- 表示レイヤー切り替え -->
+        <div
+          class="flex items-center gap-3 px-2 py-1 border-t bg-gray-50 text-[10px] shrink-0 flex-wrap"
+        >
+          <label class="flex items-center gap-1 cursor-pointer select-none">
+            <input type="checkbox" bind:checked={showTrajectoryMarker} />
+            マーカー
+          </label>
+          <label class="flex items-center gap-1 cursor-pointer select-none">
+            <input type="checkbox" bind:checked={showBallisticCourse} />
+            <span class="text-orange-600">弾道軌跡</span>
+          </label>
+          <label class="flex items-center gap-1 cursor-pointer select-none">
+            <input type="checkbox" bind:checked={showParachuteCourse} />
+            <span class="text-pink-500">落下傘軌跡</span>
+          </label>
+          <label class="flex items-center gap-1 cursor-pointer select-none">
+            <input type="checkbox" bind:checked={showBallisticLandingRange} />
+            <span class="text-orange-600">弾道範囲</span>
+          </label>
+          <label class="flex items-center gap-1 cursor-pointer select-none">
+            <input type="checkbox" bind:checked={showParachuteLandingRange} />
+            <span class="text-pink-500">落下傘範囲</span>
+          </label>
+          <label class="flex items-center gap-1 cursor-pointer select-none">
+            <input type="checkbox" bind:checked={showImportedKmlOverlay} />
+            <span class="text-sky-500">KMLオーバーレイ</span>
+          </label>
         </div>
         <KmlFileInput
           filename={overlayFileName}
