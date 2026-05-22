@@ -1,3 +1,5 @@
+mod google_sheets;
+
 use serde::Serialize;
 use simulator_cli::kml_writer::write_trajectory_kml;
 use simulator_cli::pipeline::PostProcessor;
@@ -69,7 +71,10 @@ fn write_text_file(path: String, content: String) -> Result<(), String> {
 
 #[tauri::command]
 fn load_config(path: String) -> Result<simulator_cli::config::Config, String> {
-    simulator_cli::config::Config::load(std::path::Path::new(&path)).map_err(|e| format!("{e:#}"))
+    let cfg = simulator_cli::config::Config::load(std::path::Path::new(&path))
+        .map_err(|e| format!("{e:#}"))?;
+    assemble::assemble(&cfg).map_err(|e| format!("{e:#}"))?;
+    Ok(cfg)
 }
 
 fn to_relative(base: &std::path::Path, abs: &std::path::Path) -> PathBuf {
@@ -353,6 +358,26 @@ fn run_landing_area_blocking(
     })
 }
 
+// ── Google スプレッドシート取込 ───────────────────────────────────────────────
+
+#[tauri::command]
+async fn fetch_google_sheet(
+    app: tauri::AppHandle,
+    url: String,
+) -> Result<google_sheets::SheetConfig, String> {
+    google_sheets::fetch_google_sheet(&app, url).await
+}
+
+#[tauri::command]
+fn get_google_auth_status(app: tauri::AppHandle) -> bool {
+    google_sheets::is_logged_in(&app)
+}
+
+#[tauri::command]
+fn revoke_google_auth(app: tauri::AppHandle) -> Result<(), String> {
+    google_sheets::revoke_token(&app)
+}
+
 // ── Tauri アプリ本体 ──────────────────────────────────────────────────────────
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -363,6 +388,7 @@ pub fn run() {
     });
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .register_asynchronous_uri_scheme_protocol("tile", move |_ctx, request, responder| {
@@ -381,6 +407,9 @@ pub fn run() {
             write_text_file,
             run_simulation,
             run_landing_area,
+            fetch_google_sheet,
+            get_google_auth_status,
+            revoke_google_auth,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

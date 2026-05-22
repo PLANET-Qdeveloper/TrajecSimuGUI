@@ -14,7 +14,7 @@ use anyhow::{Context, Result};
 
 use simulator_core::params::RocketParams;
 use simulator_core::progress::EventStamp;
-use simulator_core::{EventKind, SimulationState, UnifiedSimulationOutput};
+use simulator_core::{EventKind, EventSource, SimulationState, UnifiedSimulationOutput};
 
 const KML_HEADER: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
@@ -26,9 +26,15 @@ const KML_HEADER: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
   <Style id="parachute">
     <LineStyle><color>ffa779cc</color><width>2</width></LineStyle>
   </Style>
-  <Style id="event">
+  <Style id="event_ballistic">
     <IconStyle>
-      <color>ffffffff</color>
+      <color>ff005ed5</color>
+      <Icon><href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href></Icon>
+    </IconStyle>
+  </Style>
+  <Style id="event_parachute">
+    <IconStyle>
+      <color>ffa779cc</color>
       <Icon><href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href></Icon>
     </IconStyle>
   </Style>
@@ -143,9 +149,14 @@ fn write_event_placemarks(f: &mut impl Write, events: &[EventStamp]) -> Result<(
         let alt_msl = state.position.alt_msl_m;
         let kind = e.kind;
         let label = event_label(kind);
+        let event_source = if e.source == EventSource::Parachute {
+            "parachute"
+        } else {
+            "ballistic"
+        };
         writeln!(
             f,
-            "  <Placemark>\n    <name>{label}</name>\n    <styleUrl>#event</styleUrl>\n    \
+            "  <Placemark>\n    <name>{label}</name>\n    <styleUrl>#event_{event_source}</styleUrl>\n    \
              <description>t={:.3}s alt_msl={:.1}m mach={:.3} qbar={:.1}Pa</description>\n    \
              <Point>\n      <altitudeMode>absolute</altitudeMode>\n      \
              <coordinates>{:.7},{:.7},{:.3}</coordinates>\n    </Point>\n  </Placemark>",

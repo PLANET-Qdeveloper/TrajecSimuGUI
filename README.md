@@ -67,9 +67,9 @@ TrajecSimuGUI/
 #### 1.1 Parameter System
 
 - [] Define `SimulationParams` struct for rocket inputs
-    - Altitude, velocity, pitch/roll/yaw angles
-    - Mass, position (lat/lon)
-    - Simulation duration and time step
+  - Altitude, velocity, pitch/roll/yaw angles
+  - Mass, position (lat/lon)
+  - Simulation duration and time step
 - [] Implement parameter validation
 - [ ] Create parameter preset system (common rocket types)
 - [ ] JSON serialization support
@@ -77,23 +77,23 @@ TrajecSimuGUI/
 #### 1.2 Output Data Structure
 
 - [] Define `SimulationOutput` and related data types
-    - `SimulationState`: position, velocity, attitude, acceleration
-    - Trajectory metrics (downrange, max altitude)
+  - `SimulationState`: position, velocity, attitude, acceleration
+  - Trajectory metrics (downrange, max altitude)
 - [] Implement JSON serialization
 - [ ] Create trajectory data export formats (CSV, GeoJSON)
 
 #### 1.3 Simulator Trait & Interface
 
 - [] Define `Simulator` trait for pluggable backends
-    - `initialize()`, `step()`, `reset()`
-    - `get_output()`, `is_complete()`
+  - `initialize()`, `step()`, `reset()`
+  - `get_output()`, `is_complete()`
 - [] Create abstract interface for parameter conversion
 
 #### 1.4 Custom Ballistic Simulator
 
 - [] Implement simple ballistic trajectory model
-    - Basic physics: gravity, velocity integration
-    - Position tracking and altitude computation
+  - Basic physics: gravity, velocity integration
+  - Position tracking and altitude computation
 - [ ] Add atmospheric density model
 - [ ] Add drag coefficient effects
 - [ ] Add thrust/burn modeling
@@ -276,21 +276,21 @@ pub trait Simulator: Send + Sync {
 ⏳ = Planned
 
 | Component           | Status | Notes                                 |
-|---------------------|--------|---------------------------------------|
-| Workspace structure | ✅      | Cargo.toml configured                 |
-| Core library stub   | ✅      | Module organization done              |
-| Parameter system    | ✅      | Basic validation implemented          |
-| Output structures   | ✅      | All data types defined                |
-| Simulator trait     | ✅      | Abstraction defined                   |
-| Custom simulator    | ✅      | Basic ballistic model working         |
-| JSBSim wrapper      | ⏳      | Skeleton only, Python binding pending |
-| Data analysis       | ⏳      | Statistics module not started         |
-| CLI basic           | ✅      | Argument parsing done                 |
-| CLI advanced        | ⏳      | Batch and export pending              |
-| Tauri backend       | ⏳      | Basic IPC commands defined            |
-| SvelteKit frontend  | ⏳      | Not integrated with simulator yet     |
-| 2D visualization    | ⏳      | Not started                           |
-| 3D visualization    | ⏳      | Not started                           |
+| ------------------- | ------ | ------------------------------------- |
+| Workspace structure | ✅     | Cargo.toml configured                 |
+| Core library stub   | ✅     | Module organization done              |
+| Parameter system    | ✅     | Basic validation implemented          |
+| Output structures   | ✅     | All data types defined                |
+| Simulator trait     | ✅     | Abstraction defined                   |
+| Custom simulator    | ✅     | Basic ballistic model working         |
+| JSBSim wrapper      | ⏳     | Skeleton only, Python binding pending |
+| Data analysis       | ⏳     | Statistics module not started         |
+| CLI basic           | ✅     | Argument parsing done                 |
+| CLI advanced        | ⏳     | Batch and export pending              |
+| Tauri backend       | ⏳     | Basic IPC commands defined            |
+| SvelteKit frontend  | ⏳     | Not integrated with simulator yet     |
+| 2D visualization    | ⏳     | Not started                           |
+| 3D visualization    | ⏳     | Not started                           |
 
 ## Development Workflow
 

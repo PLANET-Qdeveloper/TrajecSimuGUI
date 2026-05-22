@@ -5,33 +5,33 @@
 launch:
   latitude: 35.0
   longitude: 139.0
-  elevation: 5.0           # pad MSL [m]
-  rail_length: 5.0         # rail length [m]
-  pitch: 89.0              # deg (90 = vertical)
+  elevation: 5.0 # pad MSL [m]
+  rail_length: 5.0 # rail length [m]
+  pitch: 89.0 # deg (90 = vertical)
   roll: 0.0
   yaw: 0.0
   # Power-law wind profile: V(h) = wind_speed_mps * (h / wind_reference_alt) ^ wind_power_exponent
   # Generated from 0 to 10 000 m at 5 m steps.
   wind_speed_mps: 3.0
-  wind_direction_deg: 270.0      # meteorological "from" direction
-  wind_reference_alt: 10.0       # reference height for power law [m]
-  wind_power_exponent: 0.1667    # 1/6 (open terrain)
+  wind_direction_deg: 270.0 # meteorological "from" direction
+  wind_reference_alt: 10.0 # reference height for power law [m]
+  wind_power_exponent: 0.1667 # 1/6 (open terrain)
 
 body:
   diameter: 0.15
   dry_mass_with_fuel_section: 28.0
   cg: [1.0, 0.0, 0.0]
-  inertia: [15.0, 15.0, 0.2, 0.0, 0.0, 0.0]   # [Ixx, Iyy, Izz, Ixy, Ixz, Iyz]
+  inertia: [15.0, 15.0, 0.2, 0.0, 0.0, 0.0] # [Ixx, Iyy, Izz, Ixy, Ixz, Iyz]
 
 engine:
   thrust_table: tables/thrust.csv
   thruster_pos: [2.0, 0.0, 0.0]
   tank:
     position: [0.8, 0.0, 0.0]
-    tank_contents: 2.0          # kg
+    tank_contents: 2.0 # kg
   fuel:
     position: [0.8, 0.0, 0.0]
-    fuel_section_weight: 1.5          # kg
+    fuel_section_weight: 1.5 # kg
     fuel_section_weight_after_burn: 0.1
 
 aero:

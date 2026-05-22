@@ -5,24 +5,46 @@
   import { kml as kmlToGeoJson } from "@tmcw/togeojson";
   import { MapboxOverlay } from "@deck.gl/mapbox";
   import { PathLayer, ScatterplotLayer, TextLayer } from "@deck.gl/layers";
+  import type { Layer } from "@deck.gl/core";
+
+  interface Props {
+    kmlString: string | null;
+    overlayKmlString: string | null;
+    landingAreaKmlString: string | null;
+    showTrajectoryMarker: boolean;
+    showBallisticCourse: boolean;
+    showParachuteCourse: boolean;
+    showBallisticLandingRange: boolean;
+    showParachuteLandingRange: boolean;
+    showImportedKmlOverlay: boolean;
+    visible?: boolean;
+    mapLoaded?: boolean;
+  }
 
   let {
     kmlString = null,
     overlayKmlString = null,
     landingAreaKmlString = null,
+    showTrajectoryMarker = false,
+    showBallisticCourse = false,
+    showParachuteCourse = false,
+    showBallisticLandingRange = false,
+    showParachuteLandingRange = false,
+    showImportedKmlOverlay = false,
     visible = true,
     mapLoaded = $bindable(false),
-  }: {
-    kmlString: string | null;
-    overlayKmlString: string | null;
-    landingAreaKmlString: string | null;
-    visible?: boolean;
-    mapLoaded?: boolean;
-  } = $props();
+  }: Props = $props();
 
   let mapContainer: HTMLDivElement;
   let map: maplibregl.Map | undefined;
   let overlay: MapboxOverlay | undefined;
+
+  let trajectoryLayers: Layer[] = [];
+  let landingAreaLayers: Layer[] = [];
+
+  function applyDeckLayers() {
+    overlay?.setProps({ layers: [...trajectoryLayers, ...landingAreaLayers] });
+  }
 
   function parseKml(kmlStr: string) {
     const parser = new DOMParser();
@@ -30,107 +52,8 @@
     return kmlToGeoJson(doc);
   }
 
-  function updateTrajectory(kmlStr: string | null) {
-    if (!map || !mapLoaded || !overlay) return;
-
-    if (!kmlStr) {
-      overlay.setProps({ layers: [] });
-      return;
-    }
-
-    const geojson = parseKml(kmlStr);
-    const ballistic_paths = geojson.features
-      .filter((f) => f.geometry?.type === "LineString")
-      .filter((f) => f.properties?.name === "Ballistic phase")
-      .map((f) => ({
-        name: (f.properties?.name ?? "") as string,
-        path: (f.geometry as { coordinates: number[][] }).coordinates as [
-          number,
-          number,
-          number,
-        ][],
-      }));
-    console.log(geojson);
-    const parachute_paths = geojson.features
-      .filter((f) => f.geometry?.type === "LineString")
-      .filter((f) => f.properties?.name === "Parachute descent")
-      .map((f) => ({
-        name: (f.properties?.name ?? "") as string,
-        path: (f.geometry as { coordinates: number[][] }).coordinates as [
-          number,
-          number,
-          number,
-        ][],
-      }));
-
-    const points = geojson.features
-      .filter((f) => f.geometry?.type === "Point")
-      .map((f) => ({
-        position: (f.geometry as { coordinates: number[] }).coordinates as [
-          number,
-          number,
-          number,
-        ],
-        text: f.properties?.name,
-      }));
-
-    overlay.setProps({
-      layers: [
-        new PathLayer({
-          id: "trajectories_ballistic",
-          data: ballistic_paths,
-          getPath: (d: { path: [number, number, number][] }) => d.path,
-          getColor: [213, 94, 0, 255],
-          getWidth: 3,
-          widthUnits: "pixels",
-          billboard: true,
-          jointRounded: true,
-          pickable: false,
-        }),
-        new PathLayer({
-          id: "trajectories_parachute",
-          data: parachute_paths,
-          getPath: (d: { path: [number, number, number][] }) => d.path,
-          getColor: [204, 121, 167, 255],
-          getWidth: 3,
-          widthUnits: "pixels",
-          billboard: true,
-          jointRounded: true,
-          pickable: false,
-        }),
-        new ScatterplotLayer({
-          id: "events",
-          data: points,
-          getPosition: (d: { position: [number, number, number] }) =>
-            d.position,
-          getRadius: 5,
-          radiusUnits: "pixels",
-          getFillColor: [255, 255, 255, 255],
-          getLineColor: [50, 50, 50, 255],
-          stroked: true,
-          lineWidthUnits: "pixels",
-          billboard: true,
-          getLineWidth: 2,
-          pickable: false,
-        }),
-        new TextLayer({
-          id: "event-labels",
-          data: points,
-          getPosition: (d: { position: [number, number, number] }) =>
-            d.position,
-          getText: (d: { text?: string }) => d.text ?? "",
-          getSize: 14,
-          sizeUnits: "pixels",
-          getColor: [255, 255, 255, 255],
-          getHaloColor: [0, 0, 0, 200],
-          haloWidth: 1,
-          billboard: true,
-          getAlignmentBaseline: "bottom",
-          pickable: false,
-        }),
-      ],
-    });
-
+  function fitBoundGeoJson(geojson) {
+    if (!map) return;
     const coords: [number, number][] = [];
     for (const f of geojson.features) {
       const geom = f.geometry;
@@ -157,41 +80,270 @@
     }
   }
 
-  function updateLandingArea(kmlStr: string | null) {
-    if (!map || !mapLoaded) return;
-    const source = map.getSource("kml-landing-area") as
-      | maplibregl.GeoJSONSource
-      | undefined;
-    if (!source) return;
+  function updateTrajectory(kmlStr: string | null) {
+    if (!map || !mapLoaded || !overlay) return;
+
     if (!kmlStr) {
-      source.setData({ type: "FeatureCollection", features: [] });
+      trajectoryLayers = [];
+      applyDeckLayers();
+      return;
+    }
+
+    const geojson = parseKml(kmlStr);
+    const ballistic_paths = geojson.features
+      .filter((f) => f.geometry?.type === "LineString")
+      .filter((f) => f.properties?.name === "Ballistic phase")
+      .map((f) => ({
+        name: (f.properties?.name ?? "") as string,
+        path: (f.geometry as { coordinates: number[][] }).coordinates as [
+          number,
+          number,
+          number,
+        ][],
+      }));
+
+    const parachute_paths = geojson.features
+      .filter((f) => f.geometry?.type === "LineString")
+      .filter((f) => f.properties?.name === "Parachute descent")
+      .map((f) => ({
+        name: (f.properties?.name ?? "") as string,
+        path: (f.geometry as { coordinates: number[][] }).coordinates as [
+          number,
+          number,
+          number,
+        ][],
+      }));
+
+    const points_ballistic = geojson.features
+      .filter((f) => f.geometry?.type === "Point")
+      .filter((f) => f.properties?.styleUrl === "#event_ballistic")
+      .map((f) => ({
+        position: (f.geometry as { coordinates: number[] }).coordinates as [
+          number,
+          number,
+          number,
+        ],
+        text: f.properties?.name,
+      }));
+
+    const points_parachute = geojson.features
+      .filter((f) => f.geometry?.type === "Point")
+      .filter((f) => f.properties?.styleUrl === "#event_parachute")
+      .map((f) => ({
+        position: (f.geometry as { coordinates: number[] }).coordinates as [
+          number,
+          number,
+          number,
+        ],
+        text: f.properties?.name,
+      }));
+
+    trajectoryLayers = [
+      new PathLayer({
+        id: "trajectories_ballistic",
+        data: ballistic_paths,
+        getPath: (d: { path: [number, number, number][] }) => d.path,
+        getColor: [213, 94, 0, 255],
+        getWidth: 3,
+        visible: showBallisticCourse,
+        widthUnits: "pixels",
+        billboard: true,
+        jointRounded: true,
+        pickable: false,
+      }),
+      new PathLayer({
+        id: "trajectories_parachute",
+        data: parachute_paths,
+        getPath: (d: { path: [number, number, number][] }) => d.path,
+        getColor: [204, 121, 167, 255],
+        getWidth: 3,
+        visible: showParachuteCourse,
+        widthUnits: "pixels",
+        billboard: true,
+        jointRounded: true,
+        pickable: false,
+      }),
+      new ScatterplotLayer({
+        id: "traj_events_ballistic",
+        data: points_ballistic,
+        getPosition: (d: { position: [number, number, number] }) => d.position,
+        getRadius: 5,
+        radiusUnits: "pixels",
+        getFillColor: [213, 94, 0, 255],
+        getLineColor: [50, 50, 50, 255],
+        visible: showTrajectoryMarker && showBallisticCourse,
+        stroked: true,
+        lineWidthUnits: "pixels",
+        billboard: true,
+        getLineWidth: 2,
+        pickable: false,
+      }),
+      new TextLayer({
+        id: "traj_event_labels_ballistic",
+        data: points_ballistic,
+        getPosition: (d: { position: [number, number, number] }) => d.position,
+        getText: (d: { text?: string }) => d.text ?? "",
+        getSize: 14,
+        sizeUnits: "pixels",
+        getColor: [255, 255, 255, 255],
+        getHaloColor: [0, 0, 0, 200],
+        visible: showTrajectoryMarker && showBallisticCourse,
+        haloWidth: 1,
+        billboard: true,
+        getAlignmentBaseline: "bottom",
+        pickable: false,
+      }),
+      new ScatterplotLayer({
+        id: "traj_events_parachute",
+        data: points_parachute,
+        getPosition: (d: { position: [number, number, number] }) => d.position,
+        getRadius: 5,
+        radiusUnits: "pixels",
+        getFillColor: [204, 121, 167, 255],
+        getLineColor: [50, 50, 50, 255],
+        visible: showTrajectoryMarker && showParachuteCourse,
+        stroked: true,
+        lineWidthUnits: "pixels",
+        billboard: true,
+        getLineWidth: 2,
+        pickable: false,
+      }),
+      new TextLayer({
+        id: "traj_event_labels_parachute",
+        data: points_parachute,
+        getPosition: (d: { position: [number, number, number] }) => d.position,
+        getText: (d: { text?: string }) => d.text ?? "",
+        getSize: 14,
+        sizeUnits: "pixels",
+        getColor: [255, 255, 255, 255],
+        getHaloColor: [0, 0, 0, 200],
+        visible: showTrajectoryMarker && showParachuteCourse,
+        haloWidth: 1,
+        billboard: true,
+        getAlignmentBaseline: "bottom",
+        pickable: false,
+      }),
+    ];
+    applyDeckLayers();
+
+    fitBoundGeoJson(geojson);
+  }
+
+  function updateLandingArea(kmlStr: string | null) {
+    if (!map || !mapLoaded || !overlay) return;
+
+    if (!kmlStr) {
+      landingAreaLayers = [];
+      applyDeckLayers();
       return;
     }
     const geojson = parseKml(kmlStr);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    source.setData(geojson as any);
+    const ballistic_paths = geojson.features
+      .filter((f) => f.geometry?.type === "Polygon")
+      .filter((f) => f.properties?.styleUrl === "#ballistic_hull")
+      .map((f) => ({
+        name: (f.properties?.name ?? "") as string,
+        path: (f.geometry as { coordinates: number[][][] }).coordinates[0] as [
+          number,
+          number,
+          number,
+        ][],
+      }));
 
-    const coords: [number, number][] = [];
-    for (const f of geojson.features) {
-      const geom = f.geometry;
-      if (!geom) continue;
-      if (geom.type === "Point") {
-        const c = (geom as { coordinates: number[] }).coordinates;
-        coords.push([c[0], c[1]]);
-      } else if (geom.type === "Polygon") {
-        for (const ring of (geom as { coordinates: number[][][] })
-          .coordinates) {
-          for (const c of ring) coords.push([c[0], c[1]]);
-        }
-      }
-    }
-    if (coords.length > 0) {
-      const bounds = coords.reduce(
-        (b, c) => b.extend(c),
-        new maplibregl.LngLatBounds(coords[0], coords[0]),
-      );
-      map.fitBounds(bounds, { padding: 60, maxZoom: 14 });
-    }
+    const parachute_paths = geojson.features
+      .filter((f) => f.geometry?.type === "Polygon")
+      .filter((f) => f.properties?.styleUrl === "#parachute_hull")
+      .map((f) => ({
+        name: (f.properties?.name ?? "") as string,
+        path: (f.geometry as { coordinates: number[][][] }).coordinates[0] as [
+          number,
+          number,
+          number,
+        ][],
+      }));
+
+    const points_ballistic = geojson.features
+      .filter((f) => f.geometry?.type === "Point")
+      .filter((f) => f.properties?.styleUrl === "#ballistic_pt")
+      .map((f) => ({
+        position: (f.geometry as { coordinates: number[] }).coordinates as [
+          number,
+          number,
+          number,
+        ],
+        text: f.properties?.name,
+      }));
+
+    const points_parachute = geojson.features
+      .filter((f) => f.geometry?.type === "Point")
+      .filter((f) => f.properties?.styleUrl === "#parachute_pt")
+      .map((f) => ({
+        position: (f.geometry as { coordinates: number[] }).coordinates as [
+          number,
+          number,
+          number,
+        ],
+        text: f.properties?.name,
+      }));
+
+    landingAreaLayers = [
+      new PathLayer({
+        id: "landing_area_ballistic",
+        data: ballistic_paths,
+        getPath: (d: { path: [number, number, number][] }) => d.path,
+        getColor: [213, 94, 0, 255],
+        getWidth: 1,
+        widthUnits: "pixels",
+        visible: showBallisticLandingRange,
+        billboard: true,
+        jointRounded: true,
+        pickable: false,
+      }),
+      new PathLayer({
+        id: "landing_area_parachute",
+        data: parachute_paths,
+        getPath: (d: { path: [number, number, number][] }) => d.path,
+        getColor: [204, 121, 167, 255],
+        getWidth: 1,
+        widthUnits: "pixels",
+        visible: showParachuteLandingRange,
+        billboard: true,
+        jointRounded: true,
+        pickable: false,
+      }),
+      new ScatterplotLayer({
+        id: "landing_area_events_ballistic",
+        data: points_ballistic,
+        getPosition: (d: { position: [number, number, number] }) => d.position,
+        getRadius: 2,
+        radiusUnits: "pixels",
+        getFillColor: [213, 94, 0, 255],
+        getLineColor: [50, 50, 50, 255],
+        stroked: true,
+        visible: showTrajectoryMarker && showBallisticLandingRange,
+        lineWidthUnits: "pixels",
+        billboard: true,
+        getLineWidth: 1,
+        pickable: false,
+      }),
+      new ScatterplotLayer({
+        id: "landing_area_events_parachute",
+        data: points_parachute,
+        getPosition: (d: { position: [number, number, number] }) => d.position,
+        getRadius: 2,
+        radiusUnits: "pixels",
+        getFillColor: [204, 121, 167, 255],
+        getLineColor: [50, 50, 50, 255],
+        stroked: true,
+        visible: showTrajectoryMarker && showParachuteLandingRange,
+        lineWidthUnits: "pixels",
+        billboard: true,
+        getLineWidth: 1,
+        pickable: false,
+      }),
+    ];
+    applyDeckLayers();
+    fitBoundGeoJson(geojson);
   }
 
   function updateOverlay(kmlStr: string | null) {
@@ -204,8 +356,13 @@
       source.setData({ type: "FeatureCollection", features: [] });
       return;
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    source.setData(parseKml(kmlStr) as any);
+
+    if (showImportedKmlOverlay) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      source.setData(parseKml(kmlStr) as any);
+    } else {
+      source.setData({ type: "FeatureCollection", features: [] });
+    }
   }
 
   $effect(() => {
@@ -322,6 +479,7 @@
 
       overlay = new MapboxOverlay({ layers: [] });
       map!.addControl(overlay as unknown as maplibregl.IControl);
+      applyDeckLayers();
 
       mapLoaded = true;
     });

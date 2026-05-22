@@ -1,0 +1,147 @@
+name: Build & Release
+
+on:
+  push:
+    tags: ["v*"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    environment: macdep
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: windows-latest
+            target: x86_64-pc-windows-msvc
+            bundles: nsis # exeインストーラーのみ生成
+          - platform: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            bundles: appimage # 汎用実行ファイルとDebian系インストーラーのみ生成
+          - platform: macos-latest
+            target: aarch64-apple-darwin
+            bundles: dmg # M1/M2/M3用DMGのみ生成
+          - platform: macos-15
+            target: x86_64-apple-darwin
+            bundles: dmg # Intel Mac用DMGのみ生成
+
+    runs-on: ${{ matrix.platform }}
+    timeout-minutes: 60
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set version from tag
+        shell: bash
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "Setting version to $VERSION"
+          # package.json
+          sed -i.bak 's/"version": ".*"/"version": "'"$VERSION"'"/' package.json
+          # tauri.conf.json
+          sed -i.bak 's/"version": ".*"/"version": "'"$VERSION"'"/' src-tauri/tauri.conf.json
+          # Cargo.toml (only the package version line)
+          sed -i.bak '0,/^version = ".*"/s//version = "'"$VERSION"'"/' src-tauri/Cargo.toml
+          rm -f package.json.bak src-tauri/tauri.conf.json.bak src-tauri/Cargo.toml.bak
+
+      - name: Install system dependencies (Linux)
+        if: matrix.platform == 'ubuntu-22.04'
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libasound2-dev libssl-dev pkg-config
+          version: 1.0 # キャッシュのバージョン（無効化・再取得したい時は 1.1 などに変更する）
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Cache Rust dependencies
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
+      - name: Install frontend dependencies
+        run: pnpm install
+
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        with:
+          args: --target ${{ matrix.target }} --bundles ${{ matrix.bundles }}
+          tagName: ${{ github.ref_name }}
+          releaseName: "edx-controller ${{ github.ref_name }}"
+          releaseBody: "See the assets below to download the installer for your platform."
+          releaseDraft: true
+          prerelease: false
+
+      - name: Repack AppImage without bundled system libs (Linux)
+        if: matrix.platform == 'ubuntu-22.04'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Find the built AppImage
+          APPIMAGE=$(find src-tauri/target -name "*.AppImage" -type f | head -1)
+          FILENAME=$(basename "$APPIMAGE")
+
+          # Extract
+          chmod +x "$APPIMAGE"
+          "$APPIMAGE" --appimage-extract
+
+          # Remove all bundled shared libraries
+          # Tauri (WebKit2GTK) apps use system runtime libs;
+          # bundling them causes EGL/GPU driver incompatibilities
+          rm -rf squashfs-root/usr/lib
+          rm -rf squashfs-root/apprun-hooks
+
+          # Replace AppRun with a minimal launcher
+          cat > squashfs-root/AppRun << 'EOF'
+          #!/bin/bash
+          exec "$(dirname "$(readlink -f "$0")")/usr/bin/edx-controller" "$@"
+          EOF
+          chmod +x squashfs-root/AppRun
+          rm -f squashfs-root/AppRun.wrapped
+
+          # Repack
+          wget -q "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage" -O appimagetool
+          chmod +x appimagetool
+          APPIMAGE_EXTRACT_AND_RUN=1 ARCH=x86_64 ./appimagetool squashfs-root "$APPIMAGE"
+
+          # Replace the release asset
+          gh release delete-asset ${{ github.ref_name }} "$FILENAME" -y || true
+          gh release upload ${{ github.ref_name }} "$APPIMAGE"
+
+      - name: Upload portable exe (Windows)
+        if: matrix.platform == 'windows-latest'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: pwsh
+        run: |
+          Move-Item src-tauri\target\${{ matrix.target }}\release\edx-controller.exe edx-controller_${{ github.ref_name }}_portable.exe
+          gh release upload ${{ github.ref_name }} edx-controller_${{ github.ref_name }}_portable.exe
+          gh release view ${{ github.ref_name }} --json assets -q '.assets[].name' |
+            Select-String -Pattern '_setup\.exe$' |
+            ForEach-Object { gh release delete-asset ${{ github.ref_name }} $_.Line -y }

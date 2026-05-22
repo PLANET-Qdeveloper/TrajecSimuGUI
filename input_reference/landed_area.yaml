@@ -1,7 +1,7 @@
 launch:
   # Liftoff configuration
   yaw:
-    - 283.0  # ランチャ方位角 292.34 - 磁気偏角 9.34
+    - 283.0 # ランチャ方位角 292.34 - 磁気偏角 9.34
   pitch:
     - 75.0
   roll: 0.0
@@ -14,21 +14,20 @@ launch:
     - 13.0
   ground_wind_speed:
     - 0.0
-  wind_power_factor: 0.16666  # べき指数 1/6
-  winds_table: 
+  wind_power_factor: 0.16666 # べき指数 1/6
+  winds_table:
   range_kmz: 21stNSE保安域案_海射場.kmz
-
 
 rocket:
   # Rocket configuration
   projected_frontal_area: 0.016512996 # 代表面積 (π*(0.145/2)^2)
-  wing_span: 0.26  # 半スパン 0.13m * 2
+  wing_span: 0.26 # 半スパン 0.13m * 2
   wing_chord: 0.092 # 平均コード長 (Cr+Ct)/2 = (120+64)/2 = 92mm
 
   # Inertia parameters
-  inertia_xx: 0.05  # ロール軸慣性モーメント
-  inertia_yy: 4.12  # ヨー軸慣性モーメント
-  inertia_zz: 4.12  # ピッチ軸慣性モーメント
+  inertia_xx: 0.05 # ロール軸慣性モーメント
+  inertia_yy: 4.12 # ヨー軸慣性モーメント
+  inertia_zz: 4.12 # ピッチ軸慣性モーメント
   inertia_xy: 0.0
   inertia_xz: 0.0
   inertia_yz: 0.0
@@ -93,13 +92,12 @@ rocket:
   pitch_coefficient_alpha: 0.0 # ピッチ傾斜
 
   # Table paths
-  fuel_remaining_table: 
+  fuel_remaining_table:
   thrust_table: "tables/thrust.csv"
   cd0_table: "tables/cd0.csv"
   cdmach_table: "tables/cdmach.csv"
   cnmach_table: "tables/cnmach.csv"
   csmach_table: "tables/csmach.csv"
-
 
 simulation:
   # Simulation configuration
