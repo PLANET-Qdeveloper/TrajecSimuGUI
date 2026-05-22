@@ -29,6 +29,7 @@
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-dialog": "^2.7.1",
     "@tauri-apps/plugin-opener": "^2",
+    "@tauri-apps/plugin-updater": "~2.10.1",
     "@tmcw/togeojson": "^7.1.2",
     "animejs": "^4.4.1",
     "maplibre-gl": "^5.20.0"
