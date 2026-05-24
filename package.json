@@ -17,11 +17,6 @@
     "tauri": "tauri"
   },
   "license": "MIT",
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild"
-    ]
-  },
   "dependencies": {
     "@deck.gl/core": "^9.3.2",
     "@deck.gl/layers": "^9.3.2",
@@ -33,6 +28,7 @@
     "@tauri-apps/plugin-updater": "~2.10.1",
     "@tmcw/togeojson": "^7.1.2",
     "animejs": "^4.4.1",
+    "highcharts": "^12.6.0",
     "maplibre-gl": "^5.20.0"
   },
   "devDependencies": {

@@ -5,6 +5,7 @@ use simulator_cli::kml_writer::write_trajectory_kml;
 use simulator_cli::pipeline::PostProcessor;
 use simulator_cli::EventKind;
 use simulator_cli::{assemble, dem, landing_area, pipeline, refine_landing, simulate};
+use simulator_core::Trajectory;
 use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -150,6 +151,8 @@ pub struct SimSummary {
     pub landing_lat_ballistic: Option<f64>,
     pub landing_lon_ballistic: Option<f64>,
     pub landing_alt_m_ballistic: Option<f64>,
+    pub trajectory_ballistic: Trajectory,
+    pub trajectory_parachute: Trajectory,
     pub kml_result: String,
     pub out_dir: String,
 }
@@ -255,6 +258,32 @@ fn run_simulation_blocking(
     let kml_string = String::from_utf8(kml_vector).map_err(|e| format!("KML 生成エラー: {e:#}"))?;
 
     emit("完了");
+
+    let time_at_parachute_open = output
+        .events
+        .iter()
+        .find(|e| e.kind == EventKind::ParachuteOpen)
+        .map(|e| e.sim_time_sec);
+    let index_at_parachute_open = time_at_parachute_open.and_then(|t| {
+        output
+            .mainline
+            .trajectory
+            .row_iter()
+            .position(|s| s.time_sec >= t)
+    });
+
+    let chained_trajectory = if let Some(index_at_parachute_open) = index_at_parachute_open {
+        let mut trajectory_before_deploy = output
+            .mainline
+            .trajectory
+            .clone();
+        trajectory_before_deploy.truncate(index_at_parachute_open);
+        trajectory_before_deploy.append(&mut output.parachute_branch.trajectory);
+        trajectory_before_deploy
+    } else {
+        output.mainline.trajectory.clone()
+    };
+
     Ok(SimSummary {
         apogee_m: output.mainline.max_altitude_m,
         max_speed_mps: output
@@ -271,6 +300,8 @@ fn run_simulation_blocking(
         landing_lat_parachute,
         landing_lon_parachute,
         landing_alt_m_parachute,
+        trajectory_ballistic: output.mainline.trajectory,
+        trajectory_parachute: chained_trajectory,
         kml_result: kml_string,
         out_dir: out_dir.to_string_lossy().to_string(),
     })

@@ -71,6 +71,100 @@ export interface AppConfig {
   sim: SimConfig;
 }
 
+export enum TelemetryDataKey {
+  // ── Position ────────────────────────────────────────────────────────────
+  LatDeg = "lat_deg",
+  LonDeg = "lon_deg",
+  AltMslM = "alt_msl_m",
+  DownRangeM = "down_range_m",
+  LocalXM = "local_x_m",
+  LocalYM = "local_y_m",
+
+  // ── Velocity ────────────────────────────────────────────────────────────
+  UMps = "u_mps",
+  VMps = "v_mps",
+  WMps = "w_mps",
+  TrueAirspeedMps = "true_airspeed_mps",
+  GroundSpeedMps = "ground_speed_mps",
+
+  // ── Attitude ────────────────────────────────────────────────────────────
+  PitchDeg = "pitch_deg",
+  RollDeg = "roll_deg",
+  YawDeg = "yaw_deg",
+
+  // ── Angular rates ────────────────────────────────────────────────────────
+  PRadSec = "p_rad_sec",
+  QRadSec = "q_rad_sec",
+  RRadSec = "r_rad_sec",
+
+  // ── Acceleration ─────────────────────────────────────────────────────────
+  AxMps2 = "ax_mps2",
+  AyMps2 = "ay_mps2",
+  AzMps2 = "az_mps2",
+
+  // ── Aerodynamics / atmosphere ────────────────────────────────────────────
+  AlphaDeg = "alpha_deg",
+  BetaDeg = "beta_deg",
+  QbarPa = "qbar_pa",
+  TotalAoaDeg = "total_aoa_deg",
+  PressurePa = "pressure_pa",
+  TemperatureK = "temperature_k",
+  GustAirspeedMps = "gust_airspeed_mps",
+  GustAoaDeg = "gust_aoa_deg",
+
+  // ── Propulsion ───────────────────────────────────────────────────────────
+  ThrustN = "thrust_n",
+  Mach = "mach",
+}
+
+export interface Trajectory {
+  time_sec: number[];
+
+  // ── Position ────────────────────────────────────────────────────────────
+  lat_deg: number[];
+  lon_deg: number[];
+  alt_msl_m: number[];
+  down_range_m: number[];
+  local_x_m: number[];
+  local_y_m: number[];
+
+  // ── Velocity ────────────────────────────────────────────────────────────
+  u_mps: number[];
+  v_mps: number[];
+  w_mps: number[];
+  true_airspeed_mps: number[];
+  ground_speed_mps: number[];
+
+  // ── Attitude ────────────────────────────────────────────────────────────
+  pitch_deg: number[];
+  roll_deg: number[];
+  yaw_deg: number[];
+
+  // ── Angular rates ────────────────────────────────────────────────────────
+  p_rad_sec: number[];
+  q_rad_sec: number[];
+  r_rad_sec: number[];
+
+  // ── Acceleration ─────────────────────────────────────────────────────────
+  ax_mps2: number[];
+  ay_mps2: number[];
+  az_mps2: number[];
+
+  // ── Aerodynamics / atmosphere ────────────────────────────────────────────
+  alpha_deg: number[];
+  beta_deg: number[];
+  qbar_pa: number[];
+  total_aoa_deg: number[];
+  pressure_pa: number[];
+  temperature_k: number[];
+  gust_airspeed_mps: number[];
+  gust_aoa_deg: number[];
+
+  // ── Propulsion ───────────────────────────────────────────────────────────
+  thrust_n: number[];
+  mach: number[];
+}
+
 export interface SimSummary {
   apogee_m: number;
   max_speed_mps: number;
@@ -81,6 +175,8 @@ export interface SimSummary {
   landing_lat_ballistic?: number;
   landing_lon_ballistic?: number;
   landing_alt_m_ballistic?: number;
+  trajectory_ballistic: Trajectory;
+  trajectory_parachute: Trajectory;
   kml_result: string;
   out_dir: string;
 }

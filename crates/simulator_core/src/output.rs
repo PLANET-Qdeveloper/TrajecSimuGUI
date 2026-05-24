@@ -172,6 +172,46 @@ impl Trajectory {
         self.time_sec.is_empty()
     }
 
+    pub fn append(&mut self, other: &mut Self) {
+        self.time_sec.append(&mut other.time_sec);
+        self.lat_deg.append(&mut other.lat_deg);
+        self.lon_deg.append(&mut other.lon_deg);
+        self.alt_msl_m.append(&mut other.alt_msl_m);
+        self.down_range_m.append(&mut other.down_range_m);
+        self.local_x_m.append(&mut other.local_x_m);
+        self.local_y_m.append(&mut other.local_y_m);
+
+        self.u_mps.append(&mut other.u_mps);
+        self.v_mps.append(&mut other.v_mps);
+        self.w_mps.append(&mut other.w_mps);
+        self.true_airspeed_mps.append(&mut other.true_airspeed_mps);
+        self.ground_speed_mps.append(&mut other.ground_speed_mps);
+
+        self.pitch_deg.append(&mut other.pitch_deg);
+        self.roll_deg.append(&mut other.roll_deg);
+        self.yaw_deg.append(&mut other.yaw_deg);
+
+        self.p_rad_sec.append(&mut other.p_rad_sec);
+        self.q_rad_sec.append(&mut other.q_rad_sec);
+        self.r_rad_sec.append(&mut other.r_rad_sec);
+
+        self.ax_mps2.append(&mut other.ax_mps2);
+        self.ay_mps2.append(&mut other.ay_mps2);
+        self.az_mps2.append(&mut other.az_mps2);
+
+        self.alpha_deg.append(&mut other.alpha_deg);
+        self.beta_deg.append(&mut other.beta_deg);
+        self.qbar_pa.append(&mut other.qbar_pa);
+        self.total_aoa_deg.append(&mut other.total_aoa_deg);
+        self.pressure_pa.append(&mut other.pressure_pa);
+        self.temperature_k.append(&mut other.temperature_k);
+        self.gust_airspeed_mps.append(&mut other.gust_airspeed_mps);
+        self.gust_aoa_deg.append(&mut other.gust_aoa_deg);
+
+        self.thrust_n.append(&mut other.thrust_n);
+        self.mach.append(&mut other.mach);
+    }
+
     /// Append one step from a [`SimulationState`].
     pub fn push(&mut self, s: &SimulationState) {
         self.time_sec.push(s.time_sec);

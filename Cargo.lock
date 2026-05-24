@@ -5494,6 +5494,7 @@ dependencies = [
  "serde_yaml",
  "sha2",
  "simulator_cli",
+ "simulator_core",
  "tauri",
  "tauri-build",
  "tauri-plugin-dialog",
