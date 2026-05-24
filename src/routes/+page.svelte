@@ -350,7 +350,12 @@
       </div>
       <!-- マップ: 残りを全て占有 -->
       <div class="flex-[2] min-w-0 flex flex-col overflow-hidden border-l">
-        <Select options={chartMapOptions} bind:value={selectedChartMapValue} />
+        <div class="py-1.5">
+          <Select
+            options={chartMapOptions}
+            bind:value={selectedChartMapValue}
+          />
+        </div>
         <div class="flex-1 min-h-0">
           <ChartMap
             latitude={result?.trajectory_ballistic.lat_deg ?? []}

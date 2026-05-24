@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { AppConfig } from "$lib/types/config";
+  import Button from "$lib/components/Button.svelte";
   import LaunchGroup from "$lib/components/groups/LaunchGroup.svelte";
   import BodyGroup from "$lib/components/groups/BodyGroup.svelte";
   import EngineGroup from "$lib/components/groups/EngineGroup.svelte";
@@ -46,16 +47,8 @@
     >
       {filename}
     </span>
-    <button
-      onclick={onsave}
-      class="px-2 py-0.5 text-xs border bg-white hover:bg-gray-50 active:bg-gray-100 shrink-0"
-      >保存
-    </button>
-    <button
-      onclick={onload}
-      class="px-2 py-0.5 text-xs border bg-white hover:bg-gray-50 active:bg-gray-100 shrink-0"
-      >読込
-    </button>
+    <Button onclick={onsave}>保存</Button>
+    <Button onclick={onload}>読込</Button>
   </div>
 
   <!-- Google スプレッドシート取込 -->

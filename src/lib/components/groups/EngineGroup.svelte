@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { EngineConfig } from "$lib/types/config";
-  import Input from "$lib/components/Input.svelte";
+  import NumberInput from "$lib/components/NumberInput.svelte";
   import FilePathInput from "$lib/components/FilePathInput.svelte";
 
   let { engine = $bindable<EngineConfig>() }: { engine: EngineConfig } =
@@ -9,11 +9,11 @@
   function pos3(
     arr: [number, number, number],
     i: number,
-    val: string,
+    v: number,
   ): [number, number, number] {
-    const v = [...arr] as [number, number, number];
-    v[i] = parseFloat(val) || 0;
-    return v;
+    const next = [...arr] as [number, number, number];
+    next[i] = v;
+    return next;
   }
 </script>
 
@@ -36,16 +36,11 @@
       <span class="text-[10px] text-gray-500">スラスタ位置 (m) — X, Y, Z</span>
       <div class="grid grid-cols-3 gap-1">
         {#each [0, 1, 2] as i (i)}
-          <Input
-            type="number"
-            step="0.001"
+          <NumberInput
+            step={0.001}
             value={engine.thruster_pos[i]}
-            oninput={(e) =>
-              (engine.thruster_pos = pos3(
-                engine.thruster_pos,
-                i,
-                (e.target as HTMLInputElement).value,
-              ))}
+            onValueChange={(v) =>
+              (engine.thruster_pos = pos3(engine.thruster_pos, i, v))}
           />
         {/each}
       </div>
@@ -57,10 +52,9 @@
       <div class="grid grid-cols-3 gap-x-2 gap-y-1">
         <label class="flex flex-col gap-0.5">
           <span class="text-[10px] text-gray-500">タンク質量 (kg)</span>
-          <Input
-            type="number"
-            step="0.01"
-            min="0"
+          <NumberInput
+            step={0.01}
+            min={0}
             bind:value={engine.tank.tank_contents}
           />
         </label>
@@ -70,16 +64,11 @@
           >
           <div class="grid grid-cols-3 gap-1">
             {#each [0, 1, 2] as i (i)}
-              <Input
-                type="number"
-                step="0.001"
+              <NumberInput
+                step={0.001}
                 value={engine.tank.position[i]}
-                oninput={(e) =>
-                  (engine.tank.position = pos3(
-                    engine.tank.position,
-                    i,
-                    (e.target as HTMLInputElement).value,
-                  ))}
+                onValueChange={(v) =>
+                  (engine.tank.position = pos3(engine.tank.position, i, v))}
               />
             {/each}
           </div>
@@ -93,19 +82,17 @@
       <div class="grid grid-cols-3 gap-x-2 gap-y-1">
         <label class="flex flex-col gap-0.5">
           <span class="text-[10px] text-gray-500">燃料質量 (kg)</span>
-          <Input
-            type="number"
-            step="0.001"
-            min="0"
+          <NumberInput
+            step={0.001}
+            min={0}
             bind:value={engine.fuel.fuel_section_weight}
           />
         </label>
         <label class="flex flex-col gap-0.5">
           <span class="text-[10px] text-gray-500">燃焼後質量 (kg)</span>
-          <Input
-            type="number"
-            step="0.001"
-            min="0"
+          <NumberInput
+            step={0.001}
+            min={0}
             bind:value={engine.fuel.fuel_section_weight_after_burn}
           />
         </label>
@@ -114,16 +101,11 @@
           <span class="text-[10px] text-gray-500">燃料位置 (m) — X, Y, Z</span>
           <div class="grid grid-cols-3 gap-1">
             {#each [0, 1, 2] as i (i)}
-              <Input
-                type="number"
-                step="0.001"
+              <NumberInput
+                step={0.001}
                 value={engine.fuel.position[i]}
-                oninput={(e) =>
-                  (engine.fuel.position = pos3(
-                    engine.fuel.position,
-                    i,
-                    (e.target as HTMLInputElement).value,
-                  ))}
+                onValueChange={(v) =>
+                  (engine.fuel.position = pos3(engine.fuel.position, i, v))}
               />
             {/each}
           </div>

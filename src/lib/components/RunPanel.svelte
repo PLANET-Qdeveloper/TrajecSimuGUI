@@ -1,7 +1,8 @@
 <script lang="ts">
-  import { open } from "@tauri-apps/plugin-dialog";
   import type { LandingAreaSummary, SimSummary } from "$lib/types/config";
   import Button from "$lib/components/Button.svelte";
+  import FilePathInput from "$lib/components/FilePathInput.svelte";
+  import NumberInput from "$lib/components/NumberInput.svelte";
 
   interface Props {
     running?: boolean;
@@ -33,11 +34,6 @@
     on_run_parallel,
   }: Props = $props();
 
-  async function browseOutDir() {
-    const dir = await open({ directory: true, multiple: false });
-    if (dir) outDir = dir as string;
-  }
-
   function handleRunSingle() {
     if (!outDir) {
       alert("出力ディレクトリを選択してください");
@@ -57,19 +53,12 @@
 
 <div class="flex flex-col gap-1.5 p-2 bg-gray-50 {cls}">
   <!-- 出力ディレクトリ -->
-  <div class="flex flex-col gap-0.5">
-    <span class="text-[10px] text-gray-500">出力ディレクトリ</span>
-    <div class="flex gap-1">
-      <input
-        class="flex-1 px-2 py-0.5 border text-xs bg-white"
-        value={outDir}
-        readonly
-        placeholder="未選択"
-        title={outDir}
-      />
-      <Button onclick={browseOutDir}>参照</Button>
-    </div>
-  </div>
+  <FilePathInput
+    directory
+    label="出力ディレクトリ"
+    placeholder="未選択"
+    bind:value={outDir}
+  />
 
   <!-- オプション -->
   <div class="flex items-center gap-3">
@@ -85,33 +74,15 @@
     <div class="grid grid-cols-3 gap-1">
       <div class="flex flex-col gap-0.5">
         <span class="text-[9px] text-gray-400">方向数</span>
-        <input
-          type="number"
-          bind:value={landingDirections}
-          min="1"
-          max="36"
-          class="w-full px-1 py-0.5 border text-xs bg-white"
-        />
+        <NumberInput bind:value={landingDirections} min={1} max={36} />
       </div>
       <div class="flex flex-col gap-0.5">
         <span class="text-[9px] text-gray-400">最大風速 (m/s)</span>
-        <input
-          type="number"
-          bind:value={landingSpeedMax}
-          min="0"
-          step="0.5"
-          class="w-full px-1 py-0.5 border text-xs bg-white"
-        />
+        <NumberInput bind:value={landingSpeedMax} min={0} step={0.5} />
       </div>
       <div class="flex flex-col gap-0.5">
         <span class="text-[9px] text-gray-400">ステップ数</span>
-        <input
-          type="number"
-          bind:value={landingSpeedSteps}
-          min="1"
-          max="20"
-          class="w-full px-1 py-0.5 border text-xs bg-white"
-        />
+        <NumberInput bind:value={landingSpeedSteps} min={1} max={20} />
       </div>
     </div>
   </div>

@@ -31,7 +31,7 @@
   type="button"
   {onclick}
   {disabled}
-  class="px-1 py-1 text-sm font-medium transition-colors
+  class="px-1 py-0.5 text-sm font-medium transition-colors
          focus:outline-none focus:ring-2 focus:ring-offset-2
          disabled:opacity-50 disabled:cursor-not-allowed
          {variants[variant]} {className}"

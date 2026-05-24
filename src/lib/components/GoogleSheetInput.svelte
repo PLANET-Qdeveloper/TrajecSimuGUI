@@ -4,6 +4,7 @@
   import { mergeSheetConfig, countUpdatedFields } from "$lib/utils/configMerge";
   import type { SheetConfig } from "$lib/utils/configMerge";
   import type { AppConfig } from "$lib/types/config";
+  import Button from "$lib/components/Button.svelte";
 
   interface Props {
     config: AppConfig;
@@ -59,28 +60,19 @@
       type="text"
       bind:value={url}
       placeholder="スプレッドシート URL"
-      class="flex-1 px-2 py-0.5 text-xs border border-gray-300 bg-white focus:outline-none focus:border-blue-400 min-w-0"
+      class="flex-1 px-2 py-0.5 text-xs border bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-transparent min-w-0"
       onkeydown={(e) => e.key === "Enter" && handleLoad()}
     />
-    <button
-      onclick={handleLoad}
-      disabled={loading || !url.trim()}
-      class="px-2 py-0.5 text-xs border bg-white hover:bg-gray-50 active:bg-gray-100 shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
-    >
+    <Button onclick={handleLoad} disabled={loading || !url.trim()}>
       {loading ? "取込中..." : "諸元取込"}
-    </button>
+    </Button>
   </div>
 
   <!-- ステータス行 -->
   <div class="flex items-center gap-2 text-[10px]">
     {#if loggedIn}
       <span class="text-green-600">● ログイン済み</span>
-      <button
-        onclick={handleRevoke}
-        class="text-gray-400 hover:text-gray-600 underline"
-      >
-        ログアウト
-      </button>
+      <Button onclick={handleRevoke}>ログアウト</Button>
     {:else}
       <span class="text-gray-400"
         >○ 未ログイン（読込時にブラウザが開きます）</span
