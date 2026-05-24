@@ -110,8 +110,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Find the built AppImage
-          APPIMAGE=$(find src-tauri/target -name "*.AppImage" -type f | head -1)
+          # Find the built AppImage (Tauri v2 outputs to workspace root target/)
+          APPIMAGE=$(find target -name "*.AppImage" ! -name "*.tar.gz" -type f | head -1)
           FILENAME=$(basename "$APPIMAGE")
 
           # Extract
