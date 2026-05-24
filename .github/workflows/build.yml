@@ -32,6 +32,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - name: Set version from tag
         shell: bash
@@ -42,9 +44,11 @@ jobs:
           sed -i.bak 's/"version": ".*"/"version": "'"$VERSION"'"/' package.json
           # tauri.conf.json
           sed -i.bak 's/"version": ".*"/"version": "'"$VERSION"'"/' src-tauri/tauri.conf.json
-          # Cargo.toml (only the package version line)
+          # workspace Cargo.toml (workspace.package.version)
+          sed -i.bak '0,/^version = ".*"/s//version = "'"$VERSION"'"/' Cargo.toml
+          # src-tauri Cargo.toml
           sed -i.bak '0,/^version = ".*"/s//version = "'"$VERSION"'"/' src-tauri/Cargo.toml
-          rm -f package.json.bak src-tauri/tauri.conf.json.bak src-tauri/Cargo.toml.bak
+          rm -f package.json.bak src-tauri/tauri.conf.json.bak Cargo.toml.bak src-tauri/Cargo.toml.bak
 
       - name: Install system dependencies (Linux)
         if: matrix.platform == 'ubuntu-22.04'
@@ -94,7 +98,7 @@ jobs:
         with:
           args: --target ${{ matrix.target }} --bundles ${{ matrix.bundles }}
           tagName: ${{ github.ref_name }}
-          releaseName: "edx-controller ${{ github.ref_name }}"
+          releaseName: "trajecsimugui ${{ github.ref_name }}"
           releaseBody: "See the assets below to download the installer for your platform."
           releaseDraft: true
           uploadUpdaterJson: true
@@ -122,7 +126,7 @@ jobs:
           # Replace AppRun with a minimal launcher
           cat > squashfs-root/AppRun << 'EOF'
           #!/bin/bash
-          exec "$(dirname "$(readlink -f "$0")")/usr/bin/edx-controller" "$@"
+          exec "$(dirname "$(readlink -f "$0")")/usr/bin/trajecsimugui" "$@"
           EOF
           chmod +x squashfs-root/AppRun
           rm -f squashfs-root/AppRun.wrapped
@@ -136,17 +140,7 @@ jobs:
           gh release delete-asset ${{ github.ref_name }} "$FILENAME" -y || true
           gh release upload ${{ github.ref_name }} "$APPIMAGE"
 
-      - name: Upload portable exe (Windows)
-        if: matrix.platform == 'windows-latest'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        shell: pwsh
-        run: |
-          Move-Item src-tauri\target\${{ matrix.target }}\release\edx-controller.exe edx-controller_${{ github.ref_name }}_portable.exe
-          gh release upload ${{ github.ref_name }} edx-controller_${{ github.ref_name }}_portable.exe
-          gh release view ${{ github.ref_name }} --json assets -q '.assets[].name' |
-            Select-String -Pattern '_setup\.exe$' |
-            ForEach-Object { gh release delete-asset ${{ github.ref_name }} $_.Line -y }
+
   cli:
     needs: build
     runs-on: ${{ matrix.platform }}
@@ -169,6 +163,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
