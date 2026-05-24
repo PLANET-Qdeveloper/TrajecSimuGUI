@@ -58,6 +58,7 @@ fn main() {
         .include(&header_dir)
         .include(header_dir.join("simgear"))
         .include(manifest.join("cpp"))
+        .define("JSBSIM_STATIC_LINK", None) // suppress __declspec(dllimport) on Windows static link
         .flag_if_supported("-std=c++17")
         .flag_if_supported("-Wno-unused-parameter")
         .compile("jsbsim_bridge");
