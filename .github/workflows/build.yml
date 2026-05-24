@@ -78,7 +78,7 @@ jobs:
         run: pnpm install
 
       - name: Build Tauri app
-        uses: tauri-apps/tauri-action@v0
+        uses: tauri-apps/tauri-action@v0.6.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
@@ -97,6 +97,7 @@ jobs:
           releaseName: "edx-controller ${{ github.ref_name }}"
           releaseBody: "See the assets below to download the installer for your platform."
           releaseDraft: true
+          uploadUpdaterJson: true
           prerelease: false
 
       - name: Repack AppImage without bundled system libs (Linux)
