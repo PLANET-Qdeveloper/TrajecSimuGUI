@@ -32,8 +32,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: true
+
+      - name: Fetch JSBSim submodule
+        run: git submodule update --init jsbsim
 
       - name: Set version from tag
         shell: bash
@@ -163,8 +164,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: true
+
+      - name: Fetch JSBSim submodule
+        run: git submodule update --init jsbsim
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
