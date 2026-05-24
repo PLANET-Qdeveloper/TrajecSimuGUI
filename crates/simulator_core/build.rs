@@ -36,9 +36,17 @@ fn main() {
     let profile = std::env::var("PROFILE").unwrap_or_else(|_| "debug".into());
     let lib_dir = {
         let base = dst.join("lib");
-        let sub = base.join(&profile); // lib/debug, lib/release
+        let sub = base.join(&profile); // lib/debug, lib/release (Unix cmake)
+        // MSVC cmake outputs to lib/Release or lib/Debug (title-case)
+        let mut title = profile.clone();
+        if let Some(first) = title.get_mut(0..1) {
+            first.make_ascii_uppercase();
+        }
+        let sub_title = base.join(&title);
         if sub.exists() {
             sub
+        } else if sub_title.exists() {
+            sub_title
         } else {
             base
         }
