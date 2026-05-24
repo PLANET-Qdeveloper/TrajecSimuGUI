@@ -23,7 +23,7 @@ jobs:
             bundles: appimage # 汎用実行ファイルとDebian系インストーラーのみ生成
           - platform: macos-latest
             target: aarch64-apple-darwin
-            bundles: dmg # M1/M2/M3用DMGのみ生成
+            bundles: dmg,updater # M1/M2/M3用DMGのみ生成
 
     runs-on: ${{ matrix.platform }}
     timeout-minutes: 60
