@@ -273,10 +273,7 @@ fn run_simulation_blocking(
     });
 
     let chained_trajectory = if let Some(index_at_parachute_open) = index_at_parachute_open {
-        let mut trajectory_before_deploy = output
-            .mainline
-            .trajectory
-            .clone();
+        let mut trajectory_before_deploy = output.mainline.trajectory.clone();
         trajectory_before_deploy.truncate(index_at_parachute_open);
         trajectory_before_deploy.append(&mut output.parachute_branch.trajectory);
         trajectory_before_deploy
