@@ -1,5 +1,6 @@
 <script lang="ts">
   import { open } from "@tauri-apps/plugin-dialog";
+  import Button from "$lib/components/Button.svelte";
 
   interface Props {
     value?: string;
@@ -8,6 +9,7 @@
     filterName?: string;
     placeholder?: string;
     defaultDir?: string;
+    directory?: boolean;
   }
 
   let {
@@ -17,6 +19,7 @@
     filterName,
     placeholder = "未設定",
     defaultDir = "",
+    directory = false,
   }: Props = $props();
 
   const filterLabel = $derived(
@@ -24,12 +27,17 @@
   );
 
   async function browse() {
-    const result = await open({
-      multiple: false,
-      defaultPath: defaultDir || undefined,
-      filters: [{ name: filterLabel, extensions }],
-    });
-    if (result) value = result as string;
+    if (directory) {
+      const result = await open({ directory: true, multiple: false });
+      if (result) value = result as string;
+    } else {
+      const result = await open({
+        multiple: false,
+        defaultPath: defaultDir || undefined,
+        filters: [{ name: filterLabel, extensions }],
+      });
+      if (result) value = result as string;
+    }
   }
 </script>
 
@@ -45,17 +53,9 @@
       {placeholder}
       title={value || placeholder}
     />
-    <button
-      onclick={browse}
-      class="shrink-0 px-2 py-0.5 text-xs border bg-white hover:bg-gray-50 active:bg-gray-100"
-      >参照</button
-    >
+    <Button onclick={browse}>参照</Button>
     {#if value}
-      <button
-        onclick={() => (value = "")}
-        class="shrink-0 px-1.5 py-0.5 text-xs border bg-white hover:bg-gray-50 text-gray-400"
-        title="クリア">×</button
-      >
+      <Button onclick={() => (value = "")}>×</Button>
     {/if}
   </div>
 </div>

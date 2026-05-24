@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { LaunchConfig } from "$lib/types/config";
-  import Input from "$lib/components/Input.svelte";
+  import NumberInput from "$lib/components/NumberInput.svelte";
   import FilePathInput from "$lib/components/FilePathInput.svelte";
 
   let { launch = $bindable<LaunchConfig>() }: { launch: LaunchConfig } =
@@ -45,34 +45,34 @@
     <!-- 座標・標高 -->
     <label class="flex flex-col gap-0.5">
       <span class="text-[10px] text-gray-500">緯度 (°)</span>
-      <Input type="number" step="0.00001" bind:value={launch.latitude} />
+      <NumberInput step={0.00001} bind:value={launch.latitude} />
     </label>
     <label class="flex flex-col gap-0.5">
       <span class="text-[10px] text-gray-500">経度 (°)</span>
-      <Input type="number" step="0.00001" bind:value={launch.longitude} />
+      <NumberInput step={0.00001} bind:value={launch.longitude} />
     </label>
     <label class="flex flex-col gap-0.5">
       <span class="text-[10px] text-gray-500">標高 (m)</span>
-      <Input type="number" step="0.1" bind:value={launch.elevation} />
+      <NumberInput step={0.1} bind:value={launch.elevation} />
     </label>
 
     <!-- レール・姿勢 -->
     <label class="flex flex-col gap-0.5">
       <span class="text-[10px] text-gray-500">レール長 (m)</span>
-      <Input type="number" step="0.1" min="0" bind:value={launch.rail_length} />
+      <NumberInput step={0.1} min={0} bind:value={launch.rail_length} />
     </label>
     <label class="flex flex-col gap-0.5">
       <span class="text-[10px] text-gray-500">ピッチ (°)</span>
-      <Input type="number" step="0.1" bind:value={launch.pitch} />
+      <NumberInput step={0.1} bind:value={launch.pitch} />
     </label>
     <label class="flex flex-col gap-0.5">
       <span class="text-[10px] text-gray-500">ヨー (°)</span>
-      <Input type="number" step="0.1" bind:value={launch.yaw} />
+      <NumberInput step={0.1} bind:value={launch.yaw} />
     </label>
 
     <label class="flex flex-col gap-0.5">
       <span class="text-[10px] text-gray-500">ロール (°)</span>
-      <Input type="number" step="0.1" bind:value={launch.roll} />
+      <NumberInput step={0.1} bind:value={launch.roll} />
     </label>
 
     <!-- 風 -->
@@ -102,38 +102,24 @@
     {#if windMode === "constant"}
       <label class="flex flex-col gap-0.5">
         <span class="text-[10px] text-gray-500">風速 (m/s)</span>
-        <Input
-          type="number"
-          step="0.1"
-          min="0"
-          bind:value={launch.wind_speed_mps}
-        />
+        <NumberInput step={0.1} min={0} bind:value={launch.wind_speed_mps} />
       </label>
       <label class="flex flex-col gap-0.5">
         <span class="text-[10px] text-gray-500">風向 (°)</span>
-        <Input
-          type="number"
-          step="1"
-          min="0"
-          max="360"
+        <NumberInput
+          step={1}
+          min={0}
+          max={360}
           bind:value={launch.wind_direction_deg}
         />
       </label>
       <label class="flex flex-col gap-0.5">
         <span class="text-[10px] text-gray-500">基準高度 (m)</span>
-        <Input
-          type="number"
-          step="0.1"
-          bind:value={launch.wind_reference_alt}
-        />
+        <NumberInput step={0.1} bind:value={launch.wind_reference_alt} />
       </label>
       <label class="flex flex-col gap-0.5">
         <span class="text-[10px] text-gray-500">べき指数</span>
-        <Input
-          type="number"
-          step="0.01"
-          bind:value={launch.wind_power_exponent}
-        />
+        <NumberInput step={0.01} bind:value={launch.wind_power_exponent} />
       </label>
     {:else if windMode === "table"}
       <div class="col-span-3">

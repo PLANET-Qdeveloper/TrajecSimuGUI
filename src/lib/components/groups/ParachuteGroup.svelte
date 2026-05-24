@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { ParachuteConfig } from "$lib/types/config";
-  import Input from "$lib/components/Input.svelte";
+  import NumberInput from "$lib/components/NumberInput.svelte";
   import FilePathInput from "$lib/components/FilePathInput.svelte";
 
   interface Props {
@@ -62,10 +62,9 @@
       />
       <label class="flex flex-col gap-0.5 w-36">
         <span class="text-[10px] text-gray-500">展開遅延 (s)</span>
-        <Input
-          type="number"
-          step="0.1"
-          min="0"
+        <NumberInput
+          step={0.1}
+          min={0}
           bind:value={parachute.deploy_delay_sec}
         />
       </label>

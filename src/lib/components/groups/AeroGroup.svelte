@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { AeroConfig } from "$lib/types/config";
-  import Input from "$lib/components/Input.svelte";
+  import NumberInput from "$lib/components/NumberInput.svelte";
   import FilePathInput from "$lib/components/FilePathInput.svelte";
 
   let { aero = $bindable<AeroConfig>() }: { aero: AeroConfig } = $props();
@@ -8,11 +8,11 @@
   function pos3(
     arr: [number, number, number],
     i: number,
-    val: string,
+    v: number,
   ): [number, number, number] {
-    const v = [...arr] as [number, number, number];
-    v[i] = parseFloat(val) || 0;
-    return v;
+    const next = [...arr] as [number, number, number];
+    next[i] = v;
+    return next;
   }
 </script>
 
@@ -28,16 +28,11 @@
       <span class="text-[10px] text-gray-500">初期 CP 位置 (m) — X, Y, Z</span>
       <div class="grid grid-cols-3 gap-1">
         {#each [0, 1, 2] as i (i)}
-          <Input
-            type="number"
-            step="0.001"
+          <NumberInput
+            step={0.001}
             value={aero.cp_at_launch[i]}
-            oninput={(e) =>
-              (aero.cp_at_launch = pos3(
-                aero.cp_at_launch,
-                i,
-                (e.target as HTMLInputElement).value,
-              ))}
+            onValueChange={(v) =>
+              (aero.cp_at_launch = pos3(aero.cp_at_launch, i, v))}
           />
         {/each}
       </div>
@@ -69,15 +64,15 @@
     <div class="grid grid-cols-3 gap-x-2 gap-y-1">
       <label class="flex flex-col gap-0.5">
         <span class="text-[10px] text-gray-500">ロール減衰</span>
-        <Input type="number" step="0.001" bind:value={aero.roll_damping} />
+        <NumberInput step={0.001} bind:value={aero.roll_damping} />
       </label>
       <label class="flex flex-col gap-0.5">
         <span class="text-[10px] text-gray-500">ピッチ減衰</span>
-        <Input type="number" step="0.001" bind:value={aero.pitch_damping} />
+        <NumberInput step={0.001} bind:value={aero.pitch_damping} />
       </label>
       <label class="flex flex-col gap-0.5">
         <span class="text-[10px] text-gray-500">ヨー減衰</span>
-        <Input type="number" step="0.001" bind:value={aero.yaw_damping} />
+        <NumberInput step={0.001} bind:value={aero.yaw_damping} />
       </label>
     </div>
   </div>
