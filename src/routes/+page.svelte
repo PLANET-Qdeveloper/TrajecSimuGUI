@@ -4,6 +4,7 @@
   import { listen } from "@tauri-apps/api/event";
   import { Store } from "@tauri-apps/plugin-store";
   import { open, save } from "@tauri-apps/plugin-dialog";
+  import { checkForUpdates } from "$lib/utils/updater";
 
   import {
     type AppConfig,
@@ -68,6 +69,10 @@
   ];
 
   onMount(() => {
+
+    checkForUpdates().catch((e) => {
+      console.error("アップデートの確認に失敗:", e);
+    });
     const unlisten = listen<string>("sim-progress", (e) => {
       progressMsg = e.payload;
     });
