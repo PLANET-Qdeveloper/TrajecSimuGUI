@@ -23,7 +23,7 @@ jobs:
             bundles: appimage # 汎用実行ファイルとDebian系インストーラーのみ生成
           - platform: macos-latest
             target: aarch64-apple-darwin
-            bundles: dmg,updater # M1/M2/M3用DMGのみ生成
+            bundles: dmg # M1/M2/M3用DMGのみ生成
 
     runs-on: ${{ matrix.platform }}
     timeout-minutes: 60
@@ -114,7 +114,7 @@ jobs:
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
         with:
-          args: --target ${{ matrix.target }} --bundles ${{ matrix.bundles }} --verbose
+          args: --target ${{ matrix.target }} --bundles ${{ matrix.bundles }}
           tagName: ${{ github.ref_name }}
           releaseName: "trajecsimugui ${{ github.ref_name }}"
           releaseBody: "See the assets below to download the installer for your platform."
@@ -126,6 +126,8 @@ jobs:
         if: matrix.platform == 'ubuntu-22.04'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: |
           # Find the built AppImage (Tauri v2 outputs to workspace root target/)
           APPIMAGE=$(find target -name "*.AppImage" ! -name "*.tar.gz" -type f | head -1)
@@ -157,6 +159,28 @@ jobs:
           # Replace the release asset
           gh release delete-asset ${{ github.ref_name }} "$FILENAME" -y || true
           gh release upload ${{ github.ref_name }} "$APPIMAGE"
+          
+          # rsign2 で再署名（tauri signer と同じ ed25519 形式）
+          cargo install rsign2
+          echo "$TAURI_SIGNING_PRIVATE_KEY" | base64 -d > /tmp/key.txt
+          # パスワードは環境変数経由
+          RSIGN_PASSWORD="$TAURI_SIGNING_PRIVATE_KEY_PASSWORD" \
+          rsign sign -W -s /tmp/key.txt -x "${APPIMAGE}.sig" "$APPIMAGE"
+          shred -u /tmp/key.txt
+          
+          # 旧 .sig を消して新しい .sig を上げ直す
+          gh release delete-asset ${{ github.ref_name }} "${FILENAME}.sig" -y || true
+          gh release upload ${{ github.ref_name }} "${APPIMAGE}.sig"
+          
+          # latest.json の Linux 側 signature 文字列も上書きが必要
+          NEW_SIG=$(cat "${APPIMAGE}.sig")
+          gh release download ${{ github.ref_name }} -p latest.json -O /tmp/latest.json
+          jq --arg s "$NEW_SIG" '.platforms["linux-x86_64"].signature = $s
+          | .platforms["linux-x86_64-appimage"].signature = $s' \
+          /tmp/latest.json > /tmp/latest.new.json
+          gh release delete-asset ${{ github.ref_name }} latest.json -y || true
+          gh release upload ${{ github.ref_name }} /tmp/latest.new.json --clobber
+          mv /tmp/latest.new.json latest.json
 
 
   cli:
