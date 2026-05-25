@@ -114,7 +114,7 @@ jobs:
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
         with:
-          args: --target ${{ matrix.target }} --bundles ${{ matrix.bundles }}
+          args: --target ${{ matrix.target }} --bundles ${{ matrix.bundles }} --verbose
           tagName: ${{ github.ref_name }}
           releaseName: "trajecsimugui ${{ github.ref_name }}"
           releaseBody: "See the assets below to download the installer for your platform."
