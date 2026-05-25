@@ -82,6 +82,21 @@ jobs:
       - name: Install frontend dependencies
         run: pnpm install
 
+      - name: Verify signing secrets
+        shell: bash
+        env:
+          K: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          P: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          echo "key length:  ${#K}"
+          echo "pass length: ${#P}"
+          echo "key first byte hex: $(printf %s "$K" | head -c1 | xxd -p)"
+          echo "key last  byte hex: $(printf %s "$K" | tail -c1 | xxd -p)"
+          if [ -z "$K" ]; then
+            echo "::error::TAURI_SIGNING_PRIVATE_KEY is empty"
+            exit 1
+          fi
+
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@action-v0.6.2
         env:
@@ -99,7 +114,7 @@ jobs:
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
         with:
-          args: --target ${{ matrix.target }} --bundles ${{ matrix.bundles }}
+          args: --target ${{ matrix.target }} --bundles ${{ matrix.bundles }} --verbose
           tagName: ${{ github.ref_name }}
           releaseName: "trajecsimugui ${{ github.ref_name }}"
           releaseBody: "See the assets below to download the installer for your platform."
