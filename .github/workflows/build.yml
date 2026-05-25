@@ -224,3 +224,62 @@ jobs:
           OUT="simulator_cli_${{ github.ref_name }}_${{ matrix.target }}${{ matrix.ext }}"
           cp "$BIN" "$OUT"
           gh release upload ${{ github.ref_name }} "$OUT" --clobber
+
+  licenses:
+    needs: [build, cli]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch JSBSim submodule (shallow)
+        run: git submodule update --init --depth 1 jsbsim
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust dependencies
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: .
+
+      - name: Install cargo-about
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-about
+
+      - name: Install frontend dependencies
+        run: pnpm install
+
+      - name: Generate Rust third-party licenses
+        run: cargo about generate -o third-party-licenses-rust.html about.hbs
+
+      - name: Generate JS third-party licenses
+        run: |
+          pnpm exec license-checker-rseidelsohn \
+            --production \
+            --plainVertical \
+            --out third-party-licenses-js.txt
+
+      - name: Upload license files to release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload ${{ github.ref_name }} \
+            third-party-licenses-rust.html \
+            third-party-licenses-js.txt \
+            --clobber

@@ -1,2 +1,7 @@
 allowBuilds:
   esbuild: true
+
+overrides:
+  # GHSA-j452-xhg8-qg39: prototype pollution in protocol-buffers-schema <3.6.1
+  # Transitive: maplibre-gl > pbf > resolve-protobuf-schema > protocol-buffers-schema
+  protocol-buffers-schema: ">=3.6.1"
