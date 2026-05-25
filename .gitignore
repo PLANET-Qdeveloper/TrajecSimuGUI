@@ -54,3 +54,6 @@ Thumbs.db
 
 perf.data.*
 perf.data
+# Generated license files (produced by CI)
+third-party-licenses-rust.html
+third-party-licenses-js.txt
