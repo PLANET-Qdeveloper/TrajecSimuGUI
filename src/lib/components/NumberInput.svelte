@@ -92,6 +92,5 @@
 
   .spin-none {
     appearance: textfield;
-    appearance: textfield;
   }
 </style>

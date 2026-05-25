@@ -1,6 +1,7 @@
 pub mod assemble;
 pub(crate) mod chart;
 pub mod config;
+pub mod convert_legacy;
 pub mod csv_loader;
 pub mod dem;
 pub mod kml_writer;

@@ -37,7 +37,7 @@ fn main() {
     let lib_dir = {
         let base = dst.join("lib");
         let sub = base.join(&profile); // lib/debug, lib/release (Unix cmake)
-        // MSVC cmake outputs to lib/Release or lib/Debug (title-case)
+                                       // MSVC cmake outputs to lib/Release or lib/Debug (title-case)
         let mut title = profile.clone();
         if let Some(first) = title.get_mut(0..1) {
             first.make_ascii_uppercase();

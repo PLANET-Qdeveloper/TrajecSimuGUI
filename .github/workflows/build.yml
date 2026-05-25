@@ -165,15 +165,15 @@ jobs:
           gh release delete-asset ${{ github.ref_name }} "$FILENAME.sig" -y || true
           gh release upload ${{ github.ref_name }} "$APPIMAGE" "$OLD_SIG"
 
-          # --- Patch latest.json to point at the new sig ---
+          # --- Patch latest.json with the new sig and overwrite in-place ---
           NEW_SIG_CONTENT=$(cat "$OLD_SIG")
-          gh release download ${{ github.ref_name }} -p latest.json -O /tmp/latest.json
+          gh release download ${{ github.ref_name }} -p latest.json -D /tmp/
           jq --arg s "$NEW_SIG_CONTENT" '
-            (.platforms["linux-x86_64"] // empty).signature = $s
-            | (.platforms["linux-x86_64-appimage"] // empty).signature = $s
-          ' /tmp/latest.json > /tmp/latest.new.json
-          gh release delete-asset ${{ github.ref_name }} latest.json -y || true
-          gh release upload ${{ github.ref_name }} /tmp/latest.new.json --clobber
+            .platforms["linux-x86_64"].signature = $s |
+            .platforms["linux-x86_64-appimage"].signature = $s
+          ' /tmp/latest.json > /tmp/latest_patched.json
+          mv /tmp/latest_patched.json /tmp/latest.json
+          gh release upload ${{ github.ref_name }} /tmp/latest.json --clobber
 
 
   cli:

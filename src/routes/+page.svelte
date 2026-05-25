@@ -3,7 +3,7 @@
   import { invoke } from "@tauri-apps/api/core";
   import { listen } from "@tauri-apps/api/event";
   import { Store } from "@tauri-apps/plugin-store";
-  import { open, save } from "@tauri-apps/plugin-dialog";
+  import { message, open, save } from "@tauri-apps/plugin-dialog";
   import { checkForUpdates } from "$lib/utils/updater";
 
   import {
@@ -69,7 +69,6 @@
   ];
 
   onMount(() => {
-
     checkForUpdates().catch((e) => {
       console.error("アップデートの確認に失敗:", e);
     });
@@ -168,6 +167,35 @@
     }
   }
 
+  async function handleConvertLegacy() {
+    const inputPath = await open({
+      title: "旧形式設定ファイルを選択 (landed_area.yaml など)",
+      multiple: false,
+      filters: [{ name: "YAML", extensions: ["yaml", "yml"] }],
+    });
+    if (!inputPath) return;
+    const outputDir = await open({
+      title: "変換後のファイルの出力先フォルダを選択",
+      directory: true,
+      multiple: false,
+    });
+    if (!outputDir) return;
+    try {
+      const resultPath = await invoke<string>("convert_legacy_config", {
+        inputPath: inputPath as string,
+        outputDir: outputDir as string,
+      });
+      config = await invoke<AppConfig>("load_config", { path: resultPath });
+      configFilePath = resultPath;
+      await message(
+        `変換が完了しました。\n出力先: ${outputDir as string}`,
+        { title: "変換完了", kind: "info" },
+      );
+    } catch (e) {
+      await message(`変換エラー:\n${e}`, { title: "変換エラー", kind: "error" });
+    }
+  }
+
   async function handleRunLandingArea() {
     await handleRunSingle(); // まずは単一シミュレーションを走らせて結果を表示してから、着陸エリア計算に進む
     running = true;
@@ -239,6 +267,7 @@
           bind:url={spreadsheetUrl}
           onsave={handleSave}
           onload={handleLoad}
+          onconvertlegacy={handleConvertLegacy}
         />
         <RunPanel
           bind:running

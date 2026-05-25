@@ -16,6 +16,7 @@
     url?: string;
     onsave?: () => void;
     onload?: () => void;
+    onconvertlegacy?: () => void;
   }
 
   let {
@@ -25,6 +26,7 @@
     url = $bindable(""),
     onsave,
     onload,
+    onconvertlegacy,
   }: Props = $props();
 
   const filename = $derived(
@@ -49,6 +51,7 @@
     </span>
     <Button onclick={onsave}>保存</Button>
     <Button onclick={onload}>読込</Button>
+    <Button onclick={onconvertlegacy}>旧形式変換</Button>
   </div>
 
   <!-- Google スプレッドシート取込 -->

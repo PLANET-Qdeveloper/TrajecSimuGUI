@@ -1,6 +1,7 @@
 mod google_sheets;
 
 use serde::Serialize;
+use simulator_cli::convert_legacy;
 use simulator_cli::kml_writer::write_trajectory_kml;
 use simulator_cli::pipeline::PostProcessor;
 use simulator_cli::EventKind;
@@ -130,6 +131,13 @@ fn validate_config(config: simulator_cli::config::Config) -> Result<(), String> 
     simulator_cli::assemble::assemble(&config)
         .map(|_| ())
         .map_err(|e| format!("{e:#}"))
+}
+
+#[tauri::command]
+async fn convert_legacy_config(input_path: String, output_dir: String) -> Result<String, String> {
+    let out = convert_legacy::convert(Path::new(&input_path), Path::new(&output_dir))
+        .map_err(|e| format!("{e:#}"))?;
+    Ok(out.to_string_lossy().into_owned())
 }
 
 // ── シミュレーション実行 ──────────────────────────────────────────────────────
@@ -432,6 +440,7 @@ pub fn run() {
             load_config,
             save_config,
             validate_config,
+            convert_legacy_config,
             read_text_file,
             write_text_file,
             run_simulation,

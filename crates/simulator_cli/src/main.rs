@@ -6,6 +6,7 @@ use clap::{Parser, Subcommand};
 mod assemble;
 mod chart;
 mod config;
+mod convert_legacy;
 mod csv_loader;
 mod dem;
 mod kml_writer;
@@ -46,6 +47,15 @@ enum Cmd {
     Inspect {
         #[arg(short, long)]
         config: PathBuf,
+    },
+    /// Convert a legacy Python-TrajecSimu YAML config to the new format.
+    ///
+    /// Writes config.yaml and a tables/ directory under <output-dir>.
+    Convert {
+        #[arg(short, long)]
+        input: PathBuf,
+        #[arg(long, default_value = ".")]
+        output_dir: PathBuf,
     },
     /// Sweep wind speed × direction with power-law profile (rayon-parallel).
     ///
@@ -102,6 +112,10 @@ fn main() -> Result<()> {
             eprintln!("       {}", paths.parachute.display());
             eprintln!("       {}", paths.events.display());
             eprintln!("       {}", paths.kml.display());
+        }
+        Cmd::Convert { input, output_dir } => {
+            let out = convert_legacy::convert(&input, &output_dir)?;
+            eprintln!("converted: {}", out.display());
         }
         Cmd::Validate { config } => {
             let cfg = config::Config::load(&config)?;
