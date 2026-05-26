@@ -49,28 +49,28 @@ GitHub リポジトリの **Settings → Secrets and variables → Actions → E
 
 ### 必須（全プラットフォーム）
 
-| Secret 名 | 内容 |
-|---|---|
-| `TAURI_SIGNING_PRIVATE_KEY` | minisign 秘密鍵（`tauri signer generate` で生成、改行含む全文） |
-| `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | 上記鍵のパスワード |
-| `GITHUB_TOKEN` | GitHub Actions が自動付与（追加設定不要） |
+| Secret 名                             | 内容                                               |
+|--------------------------------------|--------------------------------------------------|
+| `TAURI_SIGNING_PRIVATE_KEY`          | minisign 秘密鍵（`tauri signer generate` で生成、改行含む全文） |
+| `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | 上記鍵のパスワード                                        |
+| `GITHUB_TOKEN`                       | GitHub Actions が自動付与（追加設定不要）                     |
 
 ### macOS コード署名（macOS ビルドを配布する場合）
 
-| Secret 名 | 内容 |
-|---|---|
-| `APPLE_CERTIFICATE` | Apple Developer から取得した .p12 ファイルを base64 エンコードしたもの |
-| `APPLE_CERTIFICATE_PASSWORD` | .p12 ファイルのパスワード |
-| `APPLE_SIGNING_IDENTITY` | `Developer ID Application: Your Name (TEAMID)` 形式の文字列 |
-| `APPLE_ID` | Apple ID メールアドレス |
-| `APPLE_ID_PASSWORD` | Apple ID のアプリ専用パスワード（2FA が必要） |
-| `APPLE_TEAM_ID` | Apple Developer Team ID（10 桁英数字） |
+| Secret 名                     | 内容                                                    |
+|------------------------------|-------------------------------------------------------|
+| `APPLE_CERTIFICATE`          | Apple Developer から取得した .p12 ファイルを base64 エンコードしたもの    |
+| `APPLE_CERTIFICATE_PASSWORD` | .p12 ファイルのパスワード                                       |
+| `APPLE_SIGNING_IDENTITY`     | `Developer ID Application: Your Name (TEAMID)` 形式の文字列 |
+| `APPLE_ID`                   | Apple ID メールアドレス                                      |
+| `APPLE_ID_PASSWORD`          | Apple ID のアプリ専用パスワード（2FA が必要）                         |
+| `APPLE_TEAM_ID`              | Apple Developer Team ID（10 桁英数字）                      |
 
 ### アプリ固有（このプロジェクト）
 
-| Secret 名 | 内容 |
-|---|---|
-| `GOOGLE_CLIENT_ID` | Google OAuth クライアント ID |
+| Secret 名               | 内容                        |
+|------------------------|---------------------------|
+| `GOOGLE_CLIENT_ID`     | Google OAuth クライアント ID    |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth クライアントシークレット |
 
 > Google OAuth のシークレットは `src-tauri/build.rs` で `dotenvy` を通して Rust コンパイル時定数として埋め込まれます。
@@ -93,12 +93,12 @@ git push origin v1.2.3
 
 `build.yml` の `Set version from tag` ステップが以下のファイルを `sed` で書き換えます。
 
-| ファイル | 書き換え内容 |
-|---|---|
-| `package.json` | `"version"` フィールド |
-| `src-tauri/tauri.conf.json` | `"version"` フィールド |
+| ファイル                        | 書き換え内容                            |
+|-----------------------------|-----------------------------------|
+| `package.json`              | `"version"` フィールド                 |
+| `src-tauri/tauri.conf.json` | `"version"` フィールド                 |
 | `Cargo.toml`（workspace ルート） | `[workspace.package]` の `version` |
-| `src-tauri/Cargo.toml` | `[package]` の `version` |
+| `src-tauri/Cargo.toml`      | `[package]` の `version`           |
 
 ```bash
 VERSION="${GITHUB_REF_NAME#v}"   # "v1.2.3" → "1.2.3"
@@ -116,11 +116,11 @@ sed -i.bak '0,/^version = ".*"/s//version = "'"$VERSION"'"/' src-tauri/Cargo.tom
 
 ### ビルド環境
 
-| OS | Runner | Rust ターゲット | バンドル種類 | 成果物 |
-|---|---|---|---|---|
-| Windows | `windows-latest` | `x86_64-pc-windows-msvc` | `nsis` | `*.exe` NSIS インストーラー |
-| Linux | `ubuntu-22.04` | `x86_64-unknown-linux-gnu` | `appimage` | `*.AppImage`（再パッケージ済） |
-| macOS (Apple Silicon) | `macos-latest` | `aarch64-apple-darwin` | `app,dmg` | `*.app` + `*.dmg` |
+| OS                    | Runner           | Rust ターゲット                 | バンドル種類     | 成果物                   |
+|-----------------------|------------------|----------------------------|------------|-----------------------|
+| Windows               | `windows-latest` | `x86_64-pc-windows-msvc`   | `nsis`     | `*.exe` NSIS インストーラー  |
+| Linux                 | `ubuntu-22.04`   | `x86_64-unknown-linux-gnu` | `appimage` | `*.AppImage`（再パッケージ済） |
+| macOS (Apple Silicon) | `macos-latest`   | `aarch64-apple-darwin`     | `app,dmg`  | `*.app` + `*.dmg`     |
 
 ### Linux システム依存関係
 
@@ -238,13 +238,13 @@ tauri-plugin-process = "2"   # relaunch() に必要
 ### Rust 側のプラグイン登録（`src-tauri/src/lib.rs`）
 
 ```rust
-tauri::Builder::default()
-    .plugin(tauri_plugin_updater::Builder::new().build())
-    .plugin(tauri_plugin_process::init())   // ← relaunch() を使うために必須
-    .plugin(tauri_plugin_store::Builder::new().build())
-    .plugin(tauri_plugin_opener::init())
-    .plugin(tauri_plugin_dialog::init())
-    // ...
+tauri::Builder::default ()
+.plugin(tauri_plugin_updater::Builder::new().build())
+.plugin(tauri_plugin_process::init())   // ← relaunch() を使うために必須
+.plugin(tauri_plugin_store::Builder::new().build())
+.plugin(tauri_plugin_opener::init())
+.plugin(tauri_plugin_dialog::init())
+// ...
 ```
 
 > `tauri-plugin-process` を登録しないと実行時に "process.restart not allowed. Plugin not found" エラーが発生します。
@@ -259,25 +259,25 @@ pnpm add @tauri-apps/plugin-process
 ### アップデートチェック実装（`src/lib/utils/updater.ts`）
 
 ```typescript
-import { check } from "@tauri-apps/plugin-updater";
-import { relaunch } from "@tauri-apps/plugin-process";
-import { ask, message } from "@tauri-apps/plugin-dialog";
+import {check} from "@tauri-apps/plugin-updater";
+import {relaunch} from "@tauri-apps/plugin-process";
+import {ask, message} from "@tauri-apps/plugin-dialog";
 
 export async function checkForUpdates() {
-  const update = await check();
-  if (!update) return;
+    const update = await check();
+    if (!update) return;
 
-  const agreed = await ask(`新しいバージョン (${update.version}) が利用可能です。アップデートしますか？`, {
-    title: "アップデートの確認",
-    kind: "info",
-  });
-  if (!agreed) return;
+    const agreed = await ask(`新しいバージョン (${update.version}) が利用可能です。アップデートしますか？`, {
+        title: "アップデートの確認",
+        kind: "info",
+    });
+    if (!agreed) return;
 
-  await update.downloadAndInstall((event) => {
-    // 進捗イベント: "Started" / "Progress" / "Finished"
-  });
+    await update.downloadAndInstall((event) => {
+        // 進捗イベント: "Started" / "Progress" / "Finished"
+    });
 
-  await relaunch();
+    await relaunch();
 }
 ```
 
@@ -342,11 +342,11 @@ gh release upload "$TAG" "simulator_cli_${TAG}_${TARGET}${EXT}" --clobber
 
 成果物:
 
-| プラットフォーム | ファイル名例 |
-|---|---|
-| Linux | `simulator_cli_v1.2.3_x86_64-unknown-linux-gnu` |
-| Windows | `simulator_cli_v1.2.3_x86_64-pc-windows-msvc.exe` |
-| macOS | `simulator_cli_v1.2.3_aarch64-apple-darwin` |
+| プラットフォーム | ファイル名例                                            |
+|----------|---------------------------------------------------|
+| Linux    | `simulator_cli_v1.2.3_x86_64-unknown-linux-gnu`   |
+| Windows  | `simulator_cli_v1.2.3_x86_64-pc-windows-msvc.exe` |
+| macOS    | `simulator_cli_v1.2.3_aarch64-apple-darwin`       |
 
 ---
 
@@ -390,6 +390,7 @@ pnpm exec license-checker-rseidelsohn \
 ## 9. セキュリティ監査
 
 `audit.yml` が以下のタイミングで実行されます:
+
 - `main` ブランチへの push
 - Pull Request 作成・更新
 - 毎週月曜 UTC 00:00（スケジュール実行）
@@ -454,10 +455,10 @@ tauri-plugin-process = "2"
 
 ```rust
 // src-tauri/src/lib.rs
-tauri::Builder::default()
-    .plugin(tauri_plugin_updater::Builder::new().build())
-    .plugin(tauri_plugin_process::init())
-    // ...
+tauri::Builder::default ()
+.plugin(tauri_plugin_updater::Builder::new().build())
+.plugin(tauri_plugin_process::init())
+// ...
 ```
 
 ### ステップ 5: npm パッケージをインストール
@@ -498,13 +499,463 @@ git push origin v0.1.0
 
 ## ツールバージョン（2025年時点）
 
-| ツール | バージョン |
-|---|---|
-| `@tauri-apps/cli` | v2 |
-| `tauri-apps/tauri-action` | action-v0.6.2 |
-| Node.js | 22 |
-| pnpm | 11.2.2 |
-| Rust | stable |
-| `cargo-about` | latest（`taiki-e/install-action` 経由） |
-| `cargo-audit` | latest（`taiki-e/install-action` 経由） |
-| `license-checker-rseidelsohn` | ^4.4.2 |
+| ツール                           | バージョン                               |
+|-------------------------------|-------------------------------------|
+| `@tauri-apps/cli`             | v2                                  |
+| `tauri-apps/tauri-action`     | action-v0.6.2                       |
+| Node.js                       | 22                                  |
+| pnpm                          | 11.2.2                              |
+| Rust                          | stable                              |
+| `cargo-about`                 | latest（`taiki-e/install-action` 経由） |
+| `cargo-audit`                 | latest（`taiki-e/install-action` 経由） |
+| `license-checker-rseidelsohn` | ^4.4.2                              |
+
+---
+
+## build.yml
+
+```yaml
+name: Build & Release
+
+on:
+  push:
+    tags: [ "v*" ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    environment: deploy
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: windows-latest
+            target: x86_64-pc-windows-msvc
+            bundles: nsis # exeインストーラーのみ生成
+          - platform: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            bundles: appimage # 汎用実行ファイルとDebian系インストーラーのみ生成
+          - platform: macos-latest
+            target: aarch64-apple-darwin
+            bundles: app,dmg # M1/M2/M3用DMGのみ生成
+
+    runs-on: ${{ matrix.platform }}
+    timeout-minutes: 60
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch JSBSim submodule
+        run: git submodule update --init jsbsim
+
+      - name: Set version from tag
+        shell: bash
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "Setting version to $VERSION"
+          # package.json
+          sed -i.bak 's/"version": ".*"/"version": "'"$VERSION"'"/' package.json
+          # tauri.conf.json
+          sed -i.bak 's/"version": ".*"/"version": "'"$VERSION"'"/' src-tauri/tauri.conf.json
+          # workspace Cargo.toml (workspace.package.version)
+          sed -i.bak '0,/^version = ".*"/s//version = "'"$VERSION"'"/' Cargo.toml
+          # src-tauri Cargo.toml
+          sed -i.bak '0,/^version = ".*"/s//version = "'"$VERSION"'"/' src-tauri/Cargo.toml
+          rm -f package.json.bak src-tauri/tauri.conf.json.bak Cargo.toml.bak src-tauri/Cargo.toml.bak
+
+      - name: Install system dependencies (Linux)
+        if: matrix.platform == 'ubuntu-22.04'
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libasound2-dev libssl-dev pkg-config
+          version: 1.0 # キャッシュのバージョン（無効化・再取得したい時は 1.1 などに変更する）
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Cache Rust dependencies
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
+      - name: Install frontend dependencies
+        run: pnpm install
+
+      - name: Verify signing secrets
+        shell: bash
+        env:
+          K: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          P: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          echo "key length:  ${#K}"
+          echo "pass length: ${#P}"
+          echo "key first byte hex: $(printf %s "$K" | head -c1 | xxd -p)"
+          echo "key last  byte hex: $(printf %s "$K" | tail -c1 | xxd -p)"
+          if [ -z "$K" ]; then
+            echo "::error::TAURI_SIGNING_PRIVATE_KEY is empty"
+            exit 1
+          fi
+
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@action-v0.6.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+        with:
+          args: --target ${{ matrix.target }} --bundles ${{ matrix.bundles }} --verbose
+          tagName: ${{ github.ref_name }}
+          releaseName: "trajecsimugui ${{ github.ref_name }}"
+          releaseBody: "See the assets below to download the installer for your platform."
+          releaseDraft: true
+          includeUpdaterJson: true
+          prerelease: false
+
+      - name: Repack AppImage without bundled system libs (Linux)
+        if: matrix.platform == 'ubuntu-22.04'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          APPIMAGE=$(find target -name "*.AppImage" ! -name "*.tar.gz" -type f | head -1)
+          FILENAME=$(basename "$APPIMAGE")
+          OLD_SIG="${APPIMAGE}.sig"
+
+          # --- Extract & strip bundled libs ---
+          chmod +x "$APPIMAGE"
+          "$APPIMAGE" --appimage-extract
+          rm -rf squashfs-root/usr/lib
+          rm -rf squashfs-root/apprun-hooks
+          cat > squashfs-root/AppRun << 'EOF'
+          #!/bin/bash
+          exec "$(dirname "$(readlink -f "$0")")/usr/bin/trajecsimugui" "$@"
+          EOF
+          chmod +x squashfs-root/AppRun
+          rm -f squashfs-root/AppRun.wrapped
+
+          # --- Repack ---
+          wget -q "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage" -O appimagetool
+          chmod +x appimagetool
+          APPIMAGE_EXTRACT_AND_RUN=1 ARCH=x86_64 ./appimagetool squashfs-root "$APPIMAGE"
+
+          # --- Re-sign with tauri's own signer (handles password env vars correctly) ---
+          rm -f "$OLD_SIG"
+          pnpm tauri signer sign \
+            --private-key "$TAURI_SIGNING_PRIVATE_KEY" \
+            --password    "$TAURI_SIGNING_PRIVATE_KEY_PASSWORD" \
+            "$APPIMAGE"
+          # → これで $APPIMAGE.sig が再生成される
+          ls -la "$OLD_SIG"
+
+          # --- Upload to release ---
+          gh release delete-asset ${{ github.ref_name }} "$FILENAME"     -y || true
+          gh release delete-asset ${{ github.ref_name }} "$FILENAME.sig" -y || true
+          gh release upload ${{ github.ref_name }} "$APPIMAGE" "$OLD_SIG"
+
+          # --- Patch latest.json with the new sig and overwrite in-place ---
+          NEW_SIG_CONTENT=$(cat "$OLD_SIG")
+          gh release download ${{ github.ref_name }} -p latest.json -D /tmp/
+          jq --arg s "$NEW_SIG_CONTENT" '
+            .platforms["linux-x86_64"].signature = $s |
+            .platforms["linux-x86_64-appimage"].signature = $s
+          ' /tmp/latest.json > /tmp/latest_patched.json
+          mv /tmp/latest_patched.json /tmp/latest.json
+          gh release upload ${{ github.ref_name }} /tmp/latest.json --clobber
+
+
+  cli:
+    needs: build
+    runs-on: ${{ matrix.platform }}
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            ext: ""
+          - platform: windows-latest
+            target: x86_64-pc-windows-msvc
+            ext: ".exe"
+          - platform: macos-latest
+            target: aarch64-apple-darwin
+            ext: ""
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch JSBSim submodule
+        run: git submodule update --init jsbsim
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Cache Rust dependencies
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: .
+
+      - name: Build CLI
+        run: cargo build -p simulator_cli --release --target ${{ matrix.target }}
+
+      - name: Upload CLI to release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          BIN="target/${{ matrix.target }}/release/simulator_cli${{ matrix.ext }}"
+          OUT="simulator_cli_${{ github.ref_name }}_${{ matrix.target }}${{ matrix.ext }}"
+          cp "$BIN" "$OUT"
+          gh release upload ${{ github.ref_name }} "$OUT" --clobber
+
+  licenses:
+    needs: [ build, cli ]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch JSBSim submodule (shallow)
+        run: git submodule update --init --depth 1 jsbsim
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust dependencies
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: .
+
+      - name: Install cargo-about
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-about
+
+      - name: Install frontend dependencies
+        run: pnpm install
+
+      - name: Generate Rust third-party licenses
+        run: cargo about generate -o third-party-licenses-rust.html about.hbs
+
+      - name: Generate JS third-party licenses
+        run: |
+          pnpm exec license-checker-rseidelsohn \
+            --production \
+            --plainVertical \
+            --out third-party-licenses-js.txt
+
+      - name: Upload license files to release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload ${{ github.ref_name }} \
+            third-party-licenses-rust.html \
+            third-party-licenses-js.txt \
+            --clobber
+
+```
+
+## audit.yml
+
+```yaml
+name: Security Audit
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  schedule:
+    - cron: "0 0 * * 1" # 毎週月曜 UTC 00:00
+
+jobs:
+  audit-rust:
+    name: Rust (cargo audit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-audit
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-audit
+
+      - name: Run cargo audit
+        # GTK3 / webkit2gtk 系の abandonment 警告は Tauri 側の推移的依存であり
+        # 現時点では回避不能なため --ignore で抑制する
+        run: |
+          cargo audit \
+            --ignore RUSTSEC-2024-0411 \
+            --ignore RUSTSEC-2024-0412 \
+            --ignore RUSTSEC-2024-0413 \
+            --ignore RUSTSEC-2024-0414 \
+            --ignore RUSTSEC-2024-0415 \
+            --ignore RUSTSEC-2024-0416 \
+            --ignore RUSTSEC-2024-0417 \
+            --ignore RUSTSEC-2024-0418 \
+            --ignore RUSTSEC-2024-0419 \
+            --ignore RUSTSEC-2024-0420 \
+            --ignore RUSTSEC-2024-0370 \
+            --ignore RUSTSEC-2025-0081
+
+  audit-js:
+    name: JS (pnpm audit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run pnpm audit
+        # devDependencies の脆弱性はビルド時ツールのみに影響するため
+        # --prod でパッケージアプリに同梱される production deps のみを対象とする
+        run: pnpm audit --prod --audit-level moderate
+
+```
+
+## updater.ts
+
+```typescript
+import {check} from "@tauri-apps/plugin-updater";
+import {relaunch} from "@tauri-apps/plugin-process";
+import {ask, message} from "@tauri-apps/plugin-dialog";
+
+export async function checkForUpdates() {
+    try {
+        const update = await check();
+
+        // アップデートがない場合はここで終了
+        if (!update) {
+            console.log("no updates available");
+            return;
+        }
+
+        // 1. ユーザーにアップデートするか確認するダイアログを表示
+        const userAgreed = await ask(
+            `新しいバージョン (${update.version}) が利用可能です。\n\n今すぐダウンロードして再起動しますか？`,
+            {
+                title: "アップデートの確認",
+                kind: "info",
+                okLabel: "アップデートする",
+                cancelLabel: "あとで",
+            },
+        );
+
+        // ユーザーが「あとで」を選んだ場合は処理をキャンセル
+        if (!userAgreed) {
+            console.log("アップデートがキャンセルされました。");
+            return;
+        }
+
+        let downloaded = 0;
+        let contentLength: number | undefined = 0;
+
+        await update.downloadAndInstall((event) => {
+            switch (event.event) {
+                case "Started":
+                    contentLength = event.data.contentLength;
+                    console.log(`ダウンロード開始: ${event.data.contentLength} bytes`);
+                    break;
+                case "Progress":
+                    downloaded += event.data.chunkLength;
+                    console.log(`ダウンロード中: ${downloaded} / ${contentLength}`);
+                    // ※ ここでSvelteのストア(store)に進行状況を渡せば、画面上にプログレスバーを出すことも可能です
+                    break;
+                case "Finished":
+                    console.log("ダウンロード完了");
+                    break;
+            }
+        });
+
+        // 3. 完了したら再起動する旨を伝えてから再起動
+        await message("アップデートが完了しました。アプリを再起動します。", {
+            title: "再起動",
+            kind: "info",
+            okLabel: "OK",
+        });
+
+        await relaunch();
+    } catch (error) {
+        console.error("アップデート処理中にエラーが発生しました:", error);
+        await message("アップデートの確認中にエラーが発生しました。", {
+            title: "エラー",
+            kind: "error",
+        });
+    }
+}
+
+```
+
+## 呼び出し例
+
+```sveltehtml
+onMount(() => {
+        checkForUpdates().catch((e) => {
+            console.error("アップデートの確認に失敗:", e);
+        });
+});
+```
