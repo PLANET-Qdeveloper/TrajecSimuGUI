@@ -2,10 +2,11 @@ name: Security Audit
 
 on:
   push:
-    branches: [main]
+    tags: [ "v*" ]
   pull_request:
   schedule:
-    - cron: "0 0 * * 1" # 毎週月曜 UTC 00:00
+    - cron: "0 0 1 * *" # 毎月1日
+
 
 jobs:
   audit-rust:
