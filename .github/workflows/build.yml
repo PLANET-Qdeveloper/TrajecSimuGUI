@@ -256,6 +256,7 @@ jobs:
         uses: swatinem/rust-cache@v2
         with:
           workspaces: .
+          cache-targets: "false"
 
       - name: Install cargo-about
         uses: taiki-e/install-action@v2
