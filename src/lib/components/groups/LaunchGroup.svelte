@@ -118,8 +118,8 @@
         <NumberInput step={0.1} bind:value={launch.wind_reference_alt} />
       </label>
       <label class="flex flex-col gap-0.5">
-        <span class="text-[10px] text-gray-500">べき指数</span>
-        <NumberInput step={0.01} bind:value={launch.wind_power_exponent} />
+        <span class="text-[10px] text-gray-500">べき指数分母 N (α=1/N)</span>
+        <NumberInput step={1} min={1} bind:value={launch.wind_power_exponent} />
       </label>
     {:else if windMode === "table"}
       <div class="col-span-3">

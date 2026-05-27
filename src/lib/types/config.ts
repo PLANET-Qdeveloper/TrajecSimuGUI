@@ -199,7 +199,7 @@ export function defaultConfig(): AppConfig {
       wind_speed_mps: undefined,
       wind_direction_deg: undefined,
       wind_reference_alt: undefined,
-      wind_power_exponent: 0.166666666,
+      wind_power_exponent: 6,
       wind_table: undefined,
     },
     body: {

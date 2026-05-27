@@ -19,7 +19,7 @@ fn default_roll() -> f64 {
 }
 
 fn default_wind_power_exponent() -> f64 {
-    0.166666666
+    6.0 // denominator: actual exponent = 1/N (e.g. 6 → 1/6 ≈ open terrain)
 }
 
 fn default_csv_sample_interval() -> u32 {

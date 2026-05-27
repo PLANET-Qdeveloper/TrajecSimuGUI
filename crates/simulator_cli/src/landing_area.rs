@@ -141,7 +141,7 @@ pub fn run(base_cfg: &Config, base_params: &RocketParams, args: &LandingAreaArgs
         .wind_reference_alt
         .unwrap_or(base_cfg.launch.elevation)
         .max(10.0);
-    let alpha = base_cfg.launch.wind_power_exponent;
+    let alpha = 1.0 / base_cfg.launch.wind_power_exponent;
 
     // Initialise DEM cache once; shared across all rayon workers via reference.
     let dem: Option<DemCache> = if args.no_dem {

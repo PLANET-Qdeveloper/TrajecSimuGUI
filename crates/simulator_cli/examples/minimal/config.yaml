@@ -10,12 +10,12 @@ launch:
   pitch: 89.0 # deg (90 = vertical)
   roll: 0.0
   yaw: 0.0
-  # Power-law wind profile: V(h) = wind_speed_mps * (h / wind_reference_alt) ^ wind_power_exponent
-  # Generated from 0 to 10 000 m at 5 m steps.
+  # Power-law wind profile: V(h) = wind_speed_mps * (h / wind_reference_alt) ^ (1/wind_power_exponent)
+  # Generated from 0 to 10 000 m at variable steps.
   wind_speed_mps: 3.0
   wind_direction_deg: 270.0 # meteorological "from" direction
   wind_reference_alt: 10.0 # reference height for power law [m]
-  wind_power_exponent: 0.1667 # 1/6 (open terrain)
+  wind_power_exponent: 6 # 分母 N (実指数 = 1/N): 6 → 1/6, open terrain
 
 body:
   diameter: 0.15

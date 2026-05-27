@@ -28,7 +28,7 @@ const POWER_LAW_MAX_M: u32 = 10_000;
 /// - `speed_mps`    — reference wind speed at `h_ref_m`
 /// - `direction_deg`— meteorological "from" direction (constant with altitude)
 /// - `h_ref_m`      — reference height (≥ 10 m; caller must clamp)
-/// - `alpha`        — power-law exponent (1/6 ≈ open terrain)
+/// - `alpha`        — power-law exponent as a fraction (e.g. 1.0/6.0 ≈ open terrain)
 pub fn power_law_winds_table(
     speed_mps: f64,
     direction_deg: f64,
@@ -75,7 +75,7 @@ fn build_winds_table(cfg: &Config) -> Result<Vec<[f64; 3]>> {
                 .wind_reference_alt
                 .unwrap_or(cfg.launch.elevation)
                 .max(10.0);
-            let alpha = cfg.launch.wind_power_exponent;
+            let alpha = 1.0 / cfg.launch.wind_power_exponent;
             Ok(power_law_winds_table(speed, direction, h_ref, alpha))
         }
 
@@ -227,7 +227,7 @@ mod tests {
                 wind_speed_mps: Some(3.0),
                 wind_direction_deg: Some(270.0),
                 wind_reference_alt: None,
-                wind_power_exponent: 1.0 / 6.0,
+                wind_power_exponent: 6.0,
                 wind_table: None,
             },
             body: BodyConfig {

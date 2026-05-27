@@ -10,7 +10,7 @@
   }
 
   let {
-    value = $bindable<number | undefined>(undefined),
+    value = $bindable<number | undefined>(),
     step = 1,
     min,
     max,

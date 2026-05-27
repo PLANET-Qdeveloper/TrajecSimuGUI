@@ -13,7 +13,7 @@
   }
 
   let {
-    value = $bindable(""),
+    value = $bindable(),
     label,
     extensions = ["csv"],
     filterName,
@@ -55,7 +55,7 @@
     />
     <Button onclick={browse}>参照</Button>
     {#if value}
-      <Button onclick={() => (value = "")}>×</Button>
+      <Button onclick={() => (value = undefined)}>×</Button>
     {/if}
   </div>
 </div>
