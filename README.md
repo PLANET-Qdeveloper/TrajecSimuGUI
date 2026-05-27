@@ -205,7 +205,7 @@ CSV テーブルのパスは config.yaml からの相対パスで記述します
 | `wind_speed_mps` | float | m/s | 基準高度での風速 |
 | `wind_direction_deg` | float | deg | 風向（気象慣例：風が吹いてくる方向、0 = 北風） |
 | `wind_reference_alt` | float | m | 風速プロファイルの基準高度 |
-| `wind_power_exponent` | float | — | べき乗則の指数（開けた地形 ≈ 0.167） |
+| `wind_power_exponent` | float | — | べき乗則の指数の分母（開けた地形 ≈ 6） |
 | `wind_table` | string | — | （オプション）高度別風速テーブルの CSV パス。指定時は上記スカラー風値より優先 |
 
 > **風速プロファイル**: `V(h) = wind_speed_mps × (h / wind_reference_alt) ^ wind_power_exponent`
