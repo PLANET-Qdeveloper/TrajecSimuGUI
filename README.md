@@ -6,6 +6,8 @@
 ロケットの弾道シミュレーションを実行する GUI アプリです。
 パラメータ入力・シミュレーション実行・軌跡の可視化をウィンドウ上でまとめて行えます。
 
+
+パラメータ例 : [パラメータ例](https://github.com/PLANET-Qdeveloper/TrajecSimuGUI/tree/main/crates/simulator_cli/examples/noshiri_2025)
 ---
 
 ## ダウンロード・インストール
