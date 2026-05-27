@@ -8,7 +8,12 @@
 
   import {
     type AppConfig,
+    type ParachuteConfig,
+    type WindConstantStash,
+    type WindTableStash,
     defaultConfig,
+    defaultWindConstantStash,
+    defaultWindTableStash,
     type LandingAreaSummary,
     type SimSummary,
     TelemetryDataKey,
@@ -25,6 +30,9 @@
   let activeTab = $state<"params" | "map">("params");
   let config = $state<AppConfig>(defaultConfig());
   let configFilePath = $state("");
+  let savedConstantWind = $state<WindConstantStash>(defaultWindConstantStash());
+  let savedTableWind = $state<WindTableStash>(defaultWindTableStash());
+  let savedParachute = $state<ParachuteConfig | undefined>(undefined);
 
   let running = $state(false);
   let progressMsg = $state("");
@@ -107,6 +115,12 @@
       if (savedOverlayKml != null) overlayKmlString = savedOverlayKml;
       const savedOverlayName = await s.get<string>("overlayFileName");
       if (savedOverlayName != null) overlayFileName = savedOverlayName;
+      const storedConstantWind = await s.get<WindConstantStash>("savedConstantWind");
+      if (storedConstantWind != null) savedConstantWind = storedConstantWind;
+      const storedTableWind = await s.get<WindTableStash>("savedTableWind");
+      if (storedTableWind != null) savedTableWind = storedTableWind;
+      const storedParachute = await s.get<ParachuteConfig | undefined>("savedParachute");
+      if (storedParachute !== undefined) savedParachute = storedParachute;
       storeReady = true;
     });
 
@@ -127,6 +141,9 @@
     store.set("config", $state.snapshot(config));
     store.set("overlayKmlString", overlayKmlString);
     store.set("overlayFileName", overlayFileName);
+    store.set("savedConstantWind", $state.snapshot(savedConstantWind));
+    store.set("savedTableWind", $state.snapshot(savedTableWind));
+    store.set("savedParachute", $state.snapshot(savedParachute));
     store.save();
   });
 
@@ -139,6 +156,9 @@
     try {
       config = await invoke<AppConfig>("load_config", { path: path as string });
       configFilePath = path as string;
+      savedConstantWind = defaultWindConstantStash(config.launch);
+      savedTableWind = defaultWindTableStash(config.launch);
+      savedParachute = config.parachute;
     } catch (e) {
       alert(`読み込みエラー: ${e}`);
     }
@@ -187,6 +207,9 @@
       });
       config = await invoke<AppConfig>("load_config", { path: resultPath });
       configFilePath = resultPath;
+      savedConstantWind = defaultWindConstantStash(config.launch);
+      savedTableWind = defaultWindTableStash(config.launch);
+      savedParachute = config.parachute;
       await message(
         `変換が完了しました。\n出力先: ${outputDir as string}`,
         { title: "変換完了", kind: "info" },
@@ -265,6 +288,9 @@
           {configFilePath}
           class="flex-1 overflow-hidden"
           bind:url={spreadsheetUrl}
+          bind:savedConstantWind
+          bind:savedTableWind
+          bind:savedParachute
           onsave={handleSave}
           onload={handleLoad}
           onconvertlegacy={handleConvertLegacy}

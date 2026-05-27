@@ -1,10 +1,20 @@
 <script lang="ts">
-  import type { LaunchConfig } from "$lib/types/config";
+  import type { LaunchConfig, WindConstantStash, WindTableStash } from "$lib/types/config";
+  import { defaultWindConstantStash, defaultWindTableStash } from "$lib/types/config";
   import NumberInput from "$lib/components/NumberInput.svelte";
   import FilePathInput from "$lib/components/FilePathInput.svelte";
 
-  let { launch = $bindable<LaunchConfig>() }: { launch: LaunchConfig } =
-    $props();
+  interface Props {
+    launch: LaunchConfig;
+    savedConstant?: WindConstantStash;
+    savedTable?: WindTableStash;
+  }
+
+  let {
+    launch = $bindable<LaunchConfig>(),
+    savedConstant = $bindable(defaultWindConstantStash()),
+    savedTable = $bindable(defaultWindTableStash()),
+  }: Props = $props();
 
   type WindMode = "calm" | "constant" | "table";
   let windMode = $state<WindMode>(
@@ -16,7 +26,20 @@
   );
 
   function onWindModeChange(mode: WindMode) {
+    // 現在のモードの値を退避
+    if (windMode === "constant") {
+      savedConstant = {
+        wind_speed_mps: launch.wind_speed_mps ?? 5.0,
+        wind_direction_deg: launch.wind_direction_deg ?? 270.0,
+        wind_reference_alt: launch.wind_reference_alt,
+        wind_power_exponent: launch.wind_power_exponent,
+      };
+    } else if (windMode === "table") {
+      savedTable = { wind_table: launch.wind_table ?? "" };
+    }
+
     windMode = mode;
+
     if (mode === "calm") {
       launch.wind_speed_mps = undefined;
       launch.wind_direction_deg = undefined;
@@ -24,13 +47,15 @@
       launch.wind_table = undefined;
     } else if (mode === "constant") {
       launch.wind_table = undefined;
-      if (launch.wind_speed_mps === undefined) launch.wind_speed_mps = 5.0;
-      if (launch.wind_direction_deg === undefined)
-        launch.wind_direction_deg = 270.0;
+      launch.wind_speed_mps = savedConstant.wind_speed_mps;
+      launch.wind_direction_deg = savedConstant.wind_direction_deg;
+      launch.wind_reference_alt = savedConstant.wind_reference_alt;
+      launch.wind_power_exponent = savedConstant.wind_power_exponent;
     } else {
       launch.wind_speed_mps = undefined;
       launch.wind_direction_deg = undefined;
       launch.wind_reference_alt = undefined;
+      launch.wind_table = savedTable.wind_table || undefined;
     }
   }
 </script>

@@ -186,6 +186,30 @@ export interface LandingAreaSummary {
   kml_result: string;
 }
 
+export interface WindConstantStash {
+  wind_speed_mps: number;
+  wind_direction_deg: number;
+  wind_reference_alt?: number;
+  wind_power_exponent: number;
+}
+
+export interface WindTableStash {
+  wind_table: string;
+}
+
+export function defaultWindConstantStash(launch?: LaunchConfig): WindConstantStash {
+  return {
+    wind_speed_mps: launch?.wind_speed_mps ?? 5.0,
+    wind_direction_deg: launch?.wind_direction_deg ?? 270.0,
+    wind_reference_alt: launch?.wind_reference_alt,
+    wind_power_exponent: launch?.wind_power_exponent ?? 6.0,
+  };
+}
+
+export function defaultWindTableStash(launch?: LaunchConfig): WindTableStash {
+  return { wind_table: launch?.wind_table ?? "" };
+}
+
 export function defaultConfig(): AppConfig {
   return {
     launch: {

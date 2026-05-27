@@ -1,5 +1,6 @@
 <script lang="ts">
-  import type { AppConfig } from "$lib/types/config";
+  import type { AppConfig, ParachuteConfig, WindConstantStash, WindTableStash } from "$lib/types/config";
+  import { defaultWindConstantStash, defaultWindTableStash } from "$lib/types/config";
   import Button from "$lib/components/Button.svelte";
   import LaunchGroup from "$lib/components/groups/LaunchGroup.svelte";
   import BodyGroup from "$lib/components/groups/BodyGroup.svelte";
@@ -14,6 +15,9 @@
     configFilePath?: string;
     class?: string;
     url?: string;
+    savedConstantWind?: WindConstantStash;
+    savedTableWind?: WindTableStash;
+    savedParachute?: ParachuteConfig;
     onsave?: () => void;
     onload?: () => void;
     onconvertlegacy?: () => void;
@@ -24,6 +28,9 @@
     configFilePath = "",
     class: cls = "",
     url = $bindable(""),
+    savedConstantWind = $bindable(defaultWindConstantStash()),
+    savedTableWind = $bindable(defaultWindTableStash()),
+    savedParachute = $bindable<ParachuteConfig | undefined>(),
     onsave,
     onload,
     onconvertlegacy,
@@ -61,11 +68,11 @@
 
   <!-- パラメータ グループ (スクロール) -->
   <div class="flex-1 overflow-y-auto px-2 py-1 space-y-2">
-    <LaunchGroup bind:launch={config.launch} />
+    <LaunchGroup bind:launch={config.launch} bind:savedConstant={savedConstantWind} bind:savedTable={savedTableWind} />
     <BodyGroup bind:body={config.body} />
     <EngineGroup bind:engine={config.engine} />
     <AeroGroup bind:aero={config.aero} />
-    <ParachuteGroup bind:parachute={config.parachute} />
+    <ParachuteGroup bind:parachute={config.parachute} bind:savedConfig={savedParachute} />
     <SimGroup bind:sim={config.sim} />
   </div>
 </div>
