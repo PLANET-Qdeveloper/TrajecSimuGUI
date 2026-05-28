@@ -17,7 +17,9 @@ fn main() {
     //   OPT_LEVEL>=1, !DEBUG  -> Release              (matches `release`)
     //   OPT_LEVEL>=1,  DEBUG  -> RelWithDebInfo       (matches `profiling`)
     //   OPT_LEVEL=s|z         -> MinSizeRel
-    let dst = cmake::Config::new(&jsbsim)
+    let target_env = std::env::var("CARGO_CFG_TARGET_ENV").unwrap_or_default();
+    let mut cmake_cfg = cmake::Config::new(&jsbsim);
+    cmake_cfg
         .define("BUILD_SHARED_LIBS", "OFF")
         // Disable everything we don't consume from Rust.
         .define("BUILD_PYTHON_MODULE", "OFF")
@@ -30,8 +32,13 @@ fn main() {
         .define("CMAKE_DISABLE_FIND_PACKAGE_Doxygen", "ON")
         .define("CMAKE_DISABLE_FIND_PACKAGE_CxxTest", "ON")
         .define("CMAKE_DISABLE_FIND_PACKAGE_Cython", "ON")
-        .define("CMAKE_DISABLE_FIND_PACKAGE_Python3", "ON")
-        .build();
+        .define("CMAKE_DISABLE_FIND_PACKAGE_Python3", "ON");
+    // On MSVC, Rust always links against /MD (MultiThreadedDLL) even in debug
+    // builds. Force CMake to use the same CRT to avoid LNK2038 mismatch.
+    if target_env == "msvc" {
+        cmake_cfg.define("CMAKE_MSVC_RUNTIME_LIBRARY", "MultiThreadedDLL");
+    }
+    let dst = cmake_cfg.build();
 
     let profile = std::env::var("PROFILE").unwrap_or_else(|_| "debug".into());
     let lib_dir = {

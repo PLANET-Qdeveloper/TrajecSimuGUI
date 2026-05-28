@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import maplibregl from "maplibre-gl";
   import "maplibre-gl/dist/maplibre-gl.css";
+  import { getTileBaseUrl } from "$lib/utils/tileBaseUrl";
   import { kml as kmlToGeoJson } from "@tmcw/togeojson";
   import { MapboxOverlay } from "@deck.gl/mapbox";
   import { PathLayer, ScatterplotLayer, TextLayer } from "@deck.gl/layers";
@@ -381,6 +382,7 @@
   });
 
   onMount(() => {
+    const tileBase = getTileBaseUrl();
     map = new maplibregl.Map({
       container: mapContainer,
       style: {
@@ -388,14 +390,14 @@
         sources: {
           aerial: {
             type: "raster",
-            tiles: ["tile://localhost/aerial/{z}/{x}/{y}"],
+            tiles: [`${tileBase}/aerial/{z}/{x}/{y}`],
             tileSize: 256,
             minzoom: 2,
             maxzoom: 11,
           },
           "dem-terrain": {
             type: "raster-dem",
-            tiles: ["tile://localhost/dem/{z}/{x}/{y}"],
+            tiles: [`${tileBase}/dem/{z}/{x}/{y}`],
             tileSize: 256,
             encoding: "terrarium",
             minzoom: 1,
