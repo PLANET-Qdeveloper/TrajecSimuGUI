@@ -189,7 +189,7 @@ impl From<&RocketParams> for XmlContext {
             cp_mach_table: p.aero.cp_mach_table.to_vec(),
             cd0_alpha_mach_table,
             cn_table: p.aero.cn_table.to_vec(),
-            cs_table: p.aero.cs_table.to_vec(),
+            cs_table: p.aero.cs_table.iter().map(|&[m, c]| [m, -c]).collect(),
             roll_damping_coefficient: p.aero.roll_damping_coefficient,
             pitch_damping_coefficient: p.aero.pitch_damping_coefficient,
             yaw_damping_coefficient: p.aero.yaw_damping_coefficient,

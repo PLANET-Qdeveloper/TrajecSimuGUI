@@ -2,6 +2,7 @@ use plotters::prelude::*;
 use std::error::Error;
 use std::path::PathBuf;
 
+
 use simulator_core::UnifiedSimulationOutput;
 
 // 岡部・伊藤のカラーパレット指定 (Vermilion -> Orange -> Blue)
@@ -215,6 +216,27 @@ pub fn draw_result_plot(
                 (Some("y".to_string()), &output.mainline.trajectory.ay_mps2),
                 (Some("z".to_string()), &output.mainline.trajectory.az_mps2),
             ],
+        },
+    )
+    .expect("failed to draw mach plot");
+
+
+    let aoa_plot_config = PlotConfig {
+        output_path: path.join("aoa.plot.bmp"),
+        x_label: "Time (s)".to_string(),
+        y_label: "aoa (deg)".to_string(),
+        x_range: None,
+        y_range: None,
+        is_x_log: false,
+        is_y_log: false,
+        annotations: vec![],
+    };
+
+    draw_academic_plot(
+        aoa_plot_config,
+        SeriesData {
+            x_axis: &output.mainline.trajectory.time_sec,
+            y_axis: vec![(None, &output.mainline.trajectory.total_aoa_deg)],
         },
     )
     .expect("failed to draw mach plot");

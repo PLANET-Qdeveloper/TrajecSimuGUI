@@ -431,6 +431,14 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .register_asynchronous_uri_scheme_protocol("tile", move |_ctx, request, responder| {
             let c = caches.clone();
+            let uri = request.uri().path();
+            #[cfg(target_os = "windows")]
+            let path = uri.strip_prefix('/').unwrap_or(uri);
+            
+            #[cfg(not(target_os = "windows"))]
+            let path = uri;
+
+            
             std::thread::spawn(move || {
                 responder.respond(serve_tile(&c, request));
             });
