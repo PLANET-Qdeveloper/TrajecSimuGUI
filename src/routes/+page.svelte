@@ -5,6 +5,14 @@
   import { Store } from "@tauri-apps/plugin-store";
   import { message, open, save } from "@tauri-apps/plugin-dialog";
   import { checkForUpdates } from "$lib/utils/updater";
+  import {
+    type CsvTableDataMap,
+    type TableKey,
+    defaultCsvTableDataMap,
+    parseCsv,
+    serializeCsv,
+  } from "$lib/utils/csvTable";
+  import { dirOf, toAbsolute } from "$lib/utils/path";
 
   import {
     type AppConfig,
@@ -20,6 +28,7 @@
   } from "$lib/types/config";
 
   import SummaryMap from "$lib/components/SummaryMap.svelte";
+  import TablesPanel from "$lib/components/TablesPanel.svelte";
   import DualChart from "$lib/components/DualChart.svelte";
   import KmlFileInput from "$lib/components/KmlFileInput.svelte";
   import ParamsPanel from "$lib/components/ParamsPanel.svelte";
@@ -27,7 +36,7 @@
   import ChartMap from "$lib/components/ChartMap.svelte";
   import Select from "$lib/components/Select.svelte";
 
-  let activeTab = $state<"params" | "map">("params");
+  let activeTab = $state<"params" | "tables" | "map">("params");
   let config = $state<AppConfig>(defaultConfig());
   let configFilePath = $state("");
   let savedConstantWind = $state<WindConstantStash>(defaultWindConstantStash());
@@ -56,8 +65,75 @@
   let showParachuteLandingRange = $state(true);
   let showImportedKmlOverlay = $state(true);
 
+  let tableData = $state<CsvTableDataMap>(defaultCsvTableDataMap());
+
   let store: Store | null = null;
   let storeReady = $state(false);
+
+  function resolveTablePath(configPath: string, relPath: string): string {
+    const norm = (s: string) => s.replace(/\\/g, "/");
+    const normRel = norm(relPath);
+    // 既に絶対パス（Unix: / 始まり、Windows: C:/ 始まり）はそのまま返す
+    if (normRel.startsWith("/") || /^[A-Za-z]:/.test(normRel)) return normRel;
+    const abs = toAbsolute(dirOf(norm(configPath)), normRel);
+    return abs.replace(/^\/([A-Za-z]:)/, "$1");
+  }
+
+  async function loadTableData(loadedConfig: AppConfig, configPath: string) {
+    const pathMap: Partial<Record<TableKey, string | undefined>> = {
+      thrust_table: loadedConfig.engine.thrust_table,
+      cp_mach_table: loadedConfig.aero.cp_mach_table,
+      cd0_alpha_mach_table: loadedConfig.aero.cd0_alpha_mach_table,
+      cn_table: loadedConfig.aero.cn_table,
+      cs_table: loadedConfig.aero.cs_table,
+      wind_table: loadedConfig.launch.wind_table,
+      terminal_velocity_table: loadedConfig.parachute?.terminal_velocity_table,
+    };
+    const newData = defaultCsvTableDataMap();
+    for (const [key, relPath] of Object.entries(pathMap) as [
+      TableKey,
+      string | undefined,
+    ][]) {
+      if (!relPath) continue;
+      try {
+        const absPath = resolveTablePath(configPath, relPath);
+        if (!absPath) continue;
+        const text = await invoke<string>("read_text_file", { path: absPath });
+        newData[key] = parseCsv(text);
+      } catch {
+        // ファイル未存在は空テーブルのまま
+      }
+    }
+    tableData = newData;
+  }
+
+  async function saveTableData(savePath: string) {
+    const pathMap: Partial<Record<TableKey, string | undefined>> = {
+      thrust_table: config.engine.thrust_table,
+      cp_mach_table: config.aero.cp_mach_table,
+      cd0_alpha_mach_table: config.aero.cd0_alpha_mach_table,
+      cn_table: config.aero.cn_table,
+      cs_table: config.aero.cs_table,
+      wind_table: config.launch.wind_table,
+      terminal_velocity_table: config.parachute?.terminal_velocity_table,
+    };
+    for (const [key, relPath] of Object.entries(pathMap) as [
+      TableKey,
+      string | undefined,
+    ][]) {
+      if (!relPath || tableData[key].headers.length === 0) continue;
+      try {
+        const absPath = resolveTablePath(savePath, relPath);
+        if (!absPath) continue;
+        await invoke("write_text_file", {
+          path: absPath,
+          content: serializeCsv(tableData[key]),
+        });
+      } catch (e) {
+        console.error(`テーブル保存失敗 (${key}):`, e);
+      }
+    }
+  }
 
   let selectedChartMapValue: string = $state(TelemetryDataKey.TrueAirspeedMps);
 
@@ -98,14 +174,21 @@
       if (savedSpeedMax != null) landingSpeedMax = savedSpeedMax;
       const savedSpeedSteps = await s.get<number>("landingSpeedSteps");
       if (savedSpeedSteps != null) landingSpeedSteps = savedSpeedSteps;
+
+      // tableData を store から復元（ファイル読み込みのフォールバック）
+      const storedTableData = await s.get<CsvTableDataMap>("tableData");
+      if (storedTableData != null) tableData = storedTableData;
+
       const savedPath = await s.get<string>("configFilePath");
       if (savedPath) {
         try {
           config = await invoke<AppConfig>("load_config", { path: savedPath });
           configFilePath = savedPath;
+          await loadTableData(config, savedPath); // store より CSV ファイルを優先
         } catch {
           const savedConfig = await s.get<AppConfig>("config");
           if (savedConfig) config = savedConfig;
+          // tableData は store から復元済みのまま
         }
       } else {
         const savedConfig = await s.get<AppConfig>("config");
@@ -147,6 +230,7 @@
     store.set("savedConstantWind", $state.snapshot(savedConstantWind));
     store.set("savedTableWind", $state.snapshot(savedTableWind));
     store.set("savedParachute", $state.snapshot(savedParachute));
+    store.set("tableData", $state.snapshot(tableData));
     store.save();
   });
 
@@ -162,6 +246,7 @@
       savedConstantWind = defaultWindConstantStash(config.launch);
       savedTableWind = defaultWindTableStash(config.launch);
       savedParachute = config.parachute;
+      await loadTableData(config, path as string);
     } catch (e) {
       alert(`読み込みエラー: ${e}`);
     }
@@ -171,6 +256,7 @@
     if (!configFilePath) return handleSaveAs();
     try {
       await invoke("save_config", { config, savePath: configFilePath });
+      await saveTableData(configFilePath);
     } catch (e) {
       alert(`保存エラー: ${e}`);
     }
@@ -185,6 +271,7 @@
     try {
       await invoke("save_config", { config, savePath: path as string });
       configFilePath = path as string;
+      await saveTableData(path as string);
     } catch (e) {
       alert(`保存エラー: ${e}`);
     }
@@ -213,6 +300,7 @@
       savedConstantWind = defaultWindConstantStash(config.launch);
       savedTableWind = defaultWindTableStash(config.launch);
       savedParachute = config.parachute;
+      await loadTableData(config, resultPath);
       await message(`変換が完了しました。\n出力先: ${outputDir as string}`, {
         title: "変換完了",
         kind: "info",
@@ -267,7 +355,7 @@
 <div class="flex flex-col h-screen overflow-hidden bg-white text-black">
   <!-- タブバー -->
   <div class="flex border-b shrink-0">
-    {#each ["params", "map"] as const as tab (tab)}
+    {#each (["params", "tables", "map"] as const) as tab (tab)}
       <button
         onclick={() => (activeTab = tab)}
         class="px-4 py-1.5 text-xs font-medium border-b-2 transition-colors
@@ -275,7 +363,7 @@
           ? 'border-primary text-primary'
           : 'border-transparent text-gray-500 hover:text-gray-700'}"
       >
-        {tab === "params" ? "パラメータ" : "結果詳細"}
+        {tab === "params" ? "パラメータ" : tab === "tables" ? "テーブル" : "結果詳細"}
       </button>
     {/each}
   </div>
@@ -399,6 +487,14 @@
           }}
         />
       </div>
+    </div>
+
+    <!-- tables タブ -->
+    <div
+      class="absolute inset-0 overflow-hidden"
+      class:hidden={activeTab !== "tables"}
+    >
+      <TablesPanel bind:tableData {config} />
     </div>
 
     <!-- result タブ -->

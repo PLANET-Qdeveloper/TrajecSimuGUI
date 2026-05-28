@@ -8,7 +8,7 @@ launch:
   yaw: 292.34
   wind_reference_alt: 2.0
   wind_power_exponent: 6.0
-  wind_table: tables/wind_table.csv
+  wind_table: tables\wind_table.csv
 body:
   diameter: 0.145
   dry_mass_with_fuel_section: 16.99
@@ -24,7 +24,7 @@ body:
   - 0.0
   - 0.0
 engine:
-  thrust_table: tables/thrust.csv
+  thrust_table: tables\thrust.csv
   thruster_pos:
   - 1.889
   - 0.0
@@ -51,15 +51,15 @@ aero:
   - 0.515
   - 0.0
   - 0.0
-  cp_mach_table: tables/cp_mach.csv
-  cd0_alpha_mach_table: tables/cd_alpha_mach.csv
-  cn_table: tables/cn_mach.csv
-  cs_table: tables/cs_mach.csv
+  cp_mach_table: tables\cp_mach.csv
+  cd0_alpha_mach_table: tables\cd_alpha_mach.csv
+  cn_table: tables\cn_mach.csv
+  cs_table: tables\cs_mach.csv
   roll_damping: -0.073
   pitch_damping: -2.394
   yaw_damping: -2.394
 parachute:
-  terminal_velocity_table: tables/vterm.csv
+  terminal_velocity_table: tables\vterm.csv
   deploy_delay_sec: 3.0
 sim:
   flight_duration: 4000.0
