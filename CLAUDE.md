@@ -5,7 +5,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Build & Test Commands
 
 ```bash
-# Build
+# Run the full Tauri desktop app (dev mode — starts Vite on :1420 then opens the window)
+pnpm tauri dev
+
+# Build the distributable app bundle
+pnpm tauri build
+
+# Frontend only (SvelteKit/Vite)
+pnpm dev           # dev server on http://localhost:1420
+pnpm build         # static output → build/
+pnpm run check     # svelte-check + tsc type checking
+pnpm run fix       # ESLint + Prettier + cargo fmt + cargo clippy (all at once)
+
+# Rust only
 cargo build -p simulator_core
 cargo build -p simulator_cli
 cargo build --workspace
@@ -41,8 +53,15 @@ cargo insta review   # after a snapshot value legitimately changes
 crates/
   simulator_core/   # physics engine library (no I/O)
   simulator_cli/    # CLI binary — config loading, file output, DEM
-src/                # SvelteKit frontend (Tauri GUI, currently separate from core)
-src-tauri/          # Tauri v2 backend stubs
+  tile_cache/       # aerial imagery and DEM tile caching (GSI Japan)
+src/                # SvelteKit frontend (Tauri GUI)
+  routes/           # +page.svelte (main app), +layout.ts (SPA mode, ssr=false)
+  lib/
+    components/     # Svelte UI components
+    types/          # TypeScript interfaces mirroring Rust config structs
+    utils/          # tileBaseUrl.ts, configMerge.ts, updater.ts, path.ts
+src-tauri/          # Tauri v2 backend (Rust)
+  src/lib.rs        # invoke handlers, tile:// URI scheme, app setup
 ```
 
 ## simulator_core Architecture
@@ -154,3 +173,45 @@ Rayon-parallel sweep over wind speed × direction. Power-law wind profile applie
 ## JSBSim Backend
 
 `JsbSimSimulator` wraps JSBSim via a C++ cxx binding (`jsbsim/ffi.rs`). The smoke test (`tests/jsbsim_smoke.rs`) is `#[ignore]` — run manually when JSBSim is available. The JSBSim aircraft XML is generated from `RocketParams` by `xml_gen/`.
+
+## Frontend Architecture
+
+**Stack**: SvelteKit 2 + Svelte 5 + Vite 6 + Tailwind CSS 4. Compiled to a static site (`adapter-static`, `fallback: "index.html"`) — no SSR.
+
+### State management
+
+All app state lives in `src/routes/+page.svelte` as Svelte 5 `$state()` runes. There are no separate stores. Key state buckets:
+- `config: AppConfig` — mirrors the YAML config struct (`src/lib/types/config.ts`)
+- `result / landingAreaResult` — simulation outputs returned by Tauri invoke
+- `activeTab`, `running`, `progressMsg`, `mapLoaded` — UI coordination
+- Display toggles: `showBallisticCourse`, `showParachuteCourse`, etc. (passed as props to map components)
+
+Persistent settings (output dir, DEM flag, spreadsheet URL) are saved via `@tauri-apps/plugin-store` to `app-settings.json`.
+
+### Map components
+
+`SummaryMap.svelte` and `ChartMap.svelte` both use MapLibre GL JS + deck.gl (`MapboxOverlay`). Tile URLs are built with `getTileBaseUrl()` (`src/lib/utils/tileBaseUrl.ts`):
+- macOS/Linux: `tile://localhost` (native Tauri custom scheme)
+- Windows: `https://tile.localhost` (WebView2 remaps `tile://` → `https://tile.localhost/` so Fetch API in web workers can load it)
+
+### Svelte 5 rune conventions
+
+Components declare props with `interface Props` + destructured `$props()`. Reactive side-effects use `$effect()`. Bindable outputs (e.g., `mapLoaded`) use `$bindable()`.
+
+## Tauri Backend (`src-tauri/src/lib.rs`)
+
+### Invoke commands
+
+| Command | Description |
+|---|---|
+| `load_config(path)` | Parse YAML → `AppConfig` |
+| `save_config(config, savePath)` | Serialize `AppConfig` → YAML |
+| `validate_config(config)` | Return validation errors |
+| `run_simulation(config, outDir, noDem)` | Full sim run; emits `"sim-progress"` events |
+| `run_landing_area(config, outDir, noDem, directions, speedMax, speedSteps)` | Parallel wind sweep |
+| `load_kml_file(path)` | Read KML/KMZ → string |
+| `fetch_google_sheet(url)` | Pull config from Google Sheets (requires auth) |
+
+### Custom tile protocol
+
+`register_asynchronous_uri_scheme_protocol("tile", ...)` serves map tiles from `AerialCache` and `DemCache` (GSI Japan tiles, zoom 1–11). Path format: `/{kind}/{z}/{x}/{y}` where `kind` is `aerial` or `dem`. Both `tile://localhost/…` and `https://tile.localhost/…` resolve identically because the handler reads `request.uri().path()[1..]`.
