@@ -115,11 +115,14 @@
       if (savedOverlayKml != null) overlayKmlString = savedOverlayKml;
       const savedOverlayName = await s.get<string>("overlayFileName");
       if (savedOverlayName != null) overlayFileName = savedOverlayName;
-      const storedConstantWind = await s.get<WindConstantStash>("savedConstantWind");
+      const storedConstantWind =
+        await s.get<WindConstantStash>("savedConstantWind");
       if (storedConstantWind != null) savedConstantWind = storedConstantWind;
       const storedTableWind = await s.get<WindTableStash>("savedTableWind");
       if (storedTableWind != null) savedTableWind = storedTableWind;
-      const storedParachute = await s.get<ParachuteConfig | undefined>("savedParachute");
+      const storedParachute = await s.get<ParachuteConfig | undefined>(
+        "savedParachute",
+      );
       if (storedParachute !== undefined) savedParachute = storedParachute;
       storeReady = true;
     });
@@ -210,12 +213,15 @@
       savedConstantWind = defaultWindConstantStash(config.launch);
       savedTableWind = defaultWindTableStash(config.launch);
       savedParachute = config.parachute;
-      await message(
-        `変換が完了しました。\n出力先: ${outputDir as string}`,
-        { title: "変換完了", kind: "info" },
-      );
+      await message(`変換が完了しました。\n出力先: ${outputDir as string}`, {
+        title: "変換完了",
+        kind: "info",
+      });
     } catch (e) {
-      await message(`変換エラー:\n${e}`, { title: "変換エラー", kind: "error" });
+      await message(`変換エラー:\n${e}`, {
+        title: "変換エラー",
+        kind: "error",
+      });
     }
   }
 

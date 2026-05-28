@@ -1,6 +1,13 @@
 <script lang="ts">
-  import type { LaunchConfig, WindConstantStash, WindTableStash } from "$lib/types/config";
-  import { defaultWindConstantStash, defaultWindTableStash } from "$lib/types/config";
+  import type {
+    LaunchConfig,
+    WindConstantStash,
+    WindTableStash,
+  } from "$lib/types/config";
+  import {
+    defaultWindConstantStash,
+    defaultWindTableStash,
+  } from "$lib/types/config";
   import NumberInput from "$lib/components/NumberInput.svelte";
   import FilePathInput from "$lib/components/FilePathInput.svelte";
 

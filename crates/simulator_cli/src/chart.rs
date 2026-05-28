@@ -2,7 +2,6 @@ use plotters::prelude::*;
 use std::error::Error;
 use std::path::PathBuf;
 
-
 use simulator_core::UnifiedSimulationOutput;
 
 // 岡部・伊藤のカラーパレット指定 (Vermilion -> Orange -> Blue)
@@ -219,7 +218,6 @@ pub fn draw_result_plot(
         },
     )
     .expect("failed to draw mach plot");
-
 
     let aoa_plot_config = PlotConfig {
         output_path: path.join("aoa.plot.bmp"),

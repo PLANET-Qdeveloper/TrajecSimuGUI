@@ -197,7 +197,9 @@ export interface WindTableStash {
   wind_table: string;
 }
 
-export function defaultWindConstantStash(launch?: LaunchConfig): WindConstantStash {
+export function defaultWindConstantStash(
+  launch?: LaunchConfig,
+): WindConstantStash {
   return {
     wind_speed_mps: launch?.wind_speed_mps ?? 5.0,
     wind_direction_deg: launch?.wind_direction_deg ?? 270.0,

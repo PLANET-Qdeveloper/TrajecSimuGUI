@@ -434,11 +434,10 @@ pub fn run() {
             let uri = request.uri().path();
             #[cfg(target_os = "windows")]
             let path = uri.strip_prefix('/').unwrap_or(uri);
-            
+
             #[cfg(not(target_os = "windows"))]
             let path = uri;
 
-            
             std::thread::spawn(move || {
                 responder.respond(serve_tile(&c, request));
             });
