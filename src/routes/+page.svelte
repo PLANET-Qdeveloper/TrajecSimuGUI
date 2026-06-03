@@ -107,7 +107,20 @@
     tableData = newData;
   }
 
-  async function saveTableData(savePath: string) {
+  const DEFAULT_CSV_NAMES: Record<TableKey, string> = {
+    thrust_table: "thrust.csv",
+    cp_mach_table: "cp_mach.csv",
+    cd0_alpha_mach_table: "cd0_alpha_mach.csv",
+    cn_table: "cn.csv",
+    cs_table: "cs.csv",
+    wind_table: "wind.csv",
+    terminal_velocity_table: "terminal_velocity.csv",
+  };
+
+  async function saveTableData(
+    savePath: string,
+  ): Promise<Partial<Record<TableKey, string>>> {
+    const autoAssigned: Partial<Record<TableKey, string>> = {};
     const pathMap: Partial<Record<TableKey, string | undefined>> = {
       thrust_table: config.engine.thrust_table,
       cp_mach_table: config.aero.cp_mach_table,
@@ -121,9 +134,14 @@
       TableKey,
       string | undefined,
     ][]) {
-      if (!relPath || tableData[key].headers.length === 0) continue;
+      if (tableData[key].headers.length === 0) continue;
+      let effectiveRelPath = relPath;
+      if (!effectiveRelPath) {
+        effectiveRelPath = `tables/${DEFAULT_CSV_NAMES[key]}`;
+        autoAssigned[key] = effectiveRelPath;
+      }
       try {
-        const absPath = resolveTablePath(savePath, relPath);
+        const absPath = resolveTablePath(savePath, effectiveRelPath);
         if (!absPath) continue;
         await invoke("write_text_file", {
           path: absPath,
@@ -133,6 +151,19 @@
         console.error(`テーブル保存失敗 (${key}):`, e);
       }
     }
+    return autoAssigned;
+  }
+
+  function applyAutoAssignedPaths(auto: Partial<Record<TableKey, string>>) {
+    if (auto.thrust_table) config.engine.thrust_table = auto.thrust_table;
+    if (auto.cp_mach_table) config.aero.cp_mach_table = auto.cp_mach_table;
+    if (auto.cd0_alpha_mach_table)
+      config.aero.cd0_alpha_mach_table = auto.cd0_alpha_mach_table;
+    if (auto.cn_table) config.aero.cn_table = auto.cn_table;
+    if (auto.cs_table) config.aero.cs_table = auto.cs_table;
+    if (auto.wind_table) config.launch.wind_table = auto.wind_table;
+    if (auto.terminal_velocity_table && config.parachute)
+      config.parachute.terminal_velocity_table = auto.terminal_velocity_table;
   }
 
   let selectedChartMapValue: string = $state(TelemetryDataKey.TrueAirspeedMps);
@@ -184,15 +215,22 @@
         try {
           config = await invoke<AppConfig>("load_config", { path: savedPath });
           configFilePath = savedPath;
-          await loadTableData(config, savedPath); // store より CSV ファイルを優先
+          await loadTableData(config, savedPath);
         } catch {
           const savedConfig = await s.get<AppConfig>("config");
-          if (savedConfig) config = savedConfig;
-          // tableData は store から復元済みのまま
+          if (savedConfig) {
+            config = savedConfig;
+            // YAMLが読めない場合でもCSVはディスクから再読み込みを試みる
+            await loadTableData(savedConfig, savedPath);
+          }
         }
       } else {
         const savedConfig = await s.get<AppConfig>("config");
-        if (savedConfig) config = savedConfig;
+        if (savedConfig) {
+          config = savedConfig;
+          // configFilePath がなくても絶対パスが残っていればCSVを読む
+          await loadTableData(savedConfig, "");
+        }
       }
       const savedOverlayKml = await s.get<string | null>("overlayKmlString");
       if (savedOverlayKml != null) overlayKmlString = savedOverlayKml;
@@ -255,8 +293,9 @@
   async function handleSave() {
     if (!configFilePath) return handleSaveAs();
     try {
+      const auto = await saveTableData(configFilePath);
+      applyAutoAssignedPaths(auto);
       await invoke("save_config", { config, savePath: configFilePath });
-      await saveTableData(configFilePath);
     } catch (e) {
       alert(`保存エラー: ${e}`);
     }
@@ -269,9 +308,10 @@
     });
     if (!path) return;
     try {
-      await invoke("save_config", { config, savePath: path as string });
+      const auto = await saveTableData(path as string);
+      applyAutoAssignedPaths(auto);
       configFilePath = path as string;
-      await saveTableData(path as string);
+      await invoke("save_config", { config, savePath: path as string });
     } catch (e) {
       alert(`保存エラー: ${e}`);
     }
@@ -494,7 +534,7 @@
       class="absolute inset-0 overflow-hidden"
       class:hidden={activeTab !== "tables"}
     >
-      <TablesPanel bind:tableData {config} />
+      <TablesPanel bind:tableData {config} onsave={handleSave} />
     </div>
 
     <!-- result タブ -->

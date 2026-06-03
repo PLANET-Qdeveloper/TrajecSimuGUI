@@ -73,10 +73,8 @@ fn write_text_file(path: String, content: String) -> Result<(), String> {
 
 #[tauri::command]
 fn load_config(path: String) -> Result<simulator_cli::config::Config, String> {
-    let cfg = simulator_cli::config::Config::load(std::path::Path::new(&path))
-        .map_err(|e| format!("{e:#}"))?;
-    assemble::assemble(&cfg).map_err(|e| format!("{e:#}"))?;
-    Ok(cfg)
+    simulator_cli::config::Config::load(std::path::Path::new(&path))
+        .map_err(|e| format!("{e:#}"))
 }
 
 fn to_relative(base: &std::path::Path, abs: &std::path::Path) -> PathBuf {

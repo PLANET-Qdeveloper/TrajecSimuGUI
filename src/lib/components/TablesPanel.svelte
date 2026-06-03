@@ -7,11 +7,13 @@
   interface Props {
     tableData: CsvTableDataMap;
     config: AppConfig;
+    onsave?: () => void;
   }
 
   let {
     tableData = $bindable(defaultCsvTableDataMap()),
     config,
+    onsave,
   }: Props = $props();
 
   type TableEntry = { key: TableKey; label: string; filePath: () => string };
@@ -85,21 +87,32 @@
   <!-- 右: 選択テーブルのエディタ -->
   <div class="flex-1 overflow-hidden flex flex-col">
     <!-- ヘッダ -->
-    <div class="px-3 py-2 border-b bg-gray-50 shrink-0">
-      <div class="text-[11px] font-semibold text-gray-700">
-        {selectedEntry.label}
+    <div class="px-3 py-2 border-b bg-gray-50 shrink-0 flex items-start justify-between gap-2">
+      <div class="min-w-0">
+        <div class="text-[11px] font-semibold text-gray-700">
+          {selectedEntry.label}
+        </div>
+        {#if selectedEntry.filePath()}
+          <div
+            class="text-[10px] text-gray-400 truncate mt-0.5"
+            title={selectedEntry.filePath()}
+          >
+            {selectedEntry.filePath()}
+          </div>
+        {:else}
+          <div class="text-[10px] text-gray-400 italic mt-0.5">
+            ファイルパス未設定（保存時に自動作成）
+          </div>
+        {/if}
       </div>
-      {#if selectedEntry.filePath()}
-        <div
-          class="text-[10px] text-gray-400 truncate mt-0.5"
-          title={selectedEntry.filePath()}
+      {#if onsave}
+        <button
+          type="button"
+          onclick={onsave}
+          class="shrink-0 px-2 py-1 text-[11px] bg-primary text-white rounded hover:bg-primary/80 transition-colors leading-none"
         >
-          {selectedEntry.filePath()}
-        </div>
-      {:else}
-        <div class="text-[10px] text-gray-400 italic mt-0.5">
-          ファイルパス未設定（パラメータタブで設定）
-        </div>
+          保存
+        </button>
       {/if}
     </div>
 
