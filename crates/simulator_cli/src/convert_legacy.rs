@@ -179,7 +179,7 @@ pub fn convert(input_path: &Path, output_dir: &Path) -> Result<PathBuf> {
             wind_speed_mps: wind_speed,
             wind_direction_deg: wind_dir,
             wind_reference_alt: old.launch.wind_ref_altitude,
-            wind_power_exponent: old.launch.wind_power_factor,
+            wind_power_exponent: 1.0 / old.launch.wind_power_factor,
             wind_table: wind_table_rel,
         },
         body: BodyConfig {

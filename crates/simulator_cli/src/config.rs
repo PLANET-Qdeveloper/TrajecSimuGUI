@@ -152,6 +152,13 @@ impl Config {
 
     fn resolve_paths(&mut self, base: &Path) {
         let fix = |p: &mut PathBuf| {
+            // Normalize Windows-style backslashes on Unix.
+            #[cfg(not(windows))]
+            if let Some(s) = p.to_str() {
+                if s.contains('\\') {
+                    *p = PathBuf::from(s.replace('\\', "/"));
+                }
+            }
             if !p.is_absolute() {
                 *p = base.join(&*p);
             }

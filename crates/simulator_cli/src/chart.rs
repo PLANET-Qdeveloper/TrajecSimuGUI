@@ -234,7 +234,7 @@ pub fn draw_result_plot(
         aoa_plot_config,
         SeriesData {
             x_axis: &output.mainline.trajectory.time_sec,
-            y_axis: vec![(None, &output.mainline.trajectory.total_aoa_deg)],
+            y_axis: vec![(None, &output.mainline.trajectory.alpha_deg)],
         },
     )
     .expect("failed to draw mach plot");
