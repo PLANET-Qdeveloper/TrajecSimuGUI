@@ -15,6 +15,11 @@ const N_TO_LBF: f64 = 0.224_808_943_870_96;
 const KG_TO_LBS: f64 = 2.204_622_621_848_775_7;
 const DEG_TO_RAD: f64 = PI / 180.0;
 
+
+fn invert_direction(deg: f64) -> f64 {
+    (deg + 180.0) % 360.0
+}
+
 /// Serialised to `minijinja::Value` and passed to templates.
 #[derive(Debug, Serialize)]
 pub struct XmlContext {
@@ -111,7 +116,7 @@ impl From<&RocketParams> for XmlContext {
         let winds_table = winds
             .into_iter()
             .map(|[alt_m, speed_mps, dir_deg]| {
-                [alt_m, dir_deg * DEG_TO_RAD, speed_mps * MPS_TO_FPS]
+                [alt_m, invert_direction(dir_deg * DEG_TO_RAD ), speed_mps * MPS_TO_FPS]
             })
             .collect();
 
