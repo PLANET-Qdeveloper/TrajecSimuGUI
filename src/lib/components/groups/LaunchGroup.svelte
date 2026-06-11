@@ -32,6 +32,16 @@
         : "calm",
   );
 
+  // launch が外部（YAML読込・ストア復元）から更新されたときに windMode を同期する
+  $effect(() => {
+    const derived: WindMode = launch.wind_table
+      ? "table"
+      : launch.wind_speed_mps !== undefined
+        ? "constant"
+        : "calm";
+    windMode = derived;
+  });
+
   function onWindModeChange(mode: WindMode) {
     // 現在のモードの値を退避
     if (windMode === "constant") {

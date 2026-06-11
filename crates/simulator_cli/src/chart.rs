@@ -86,7 +86,7 @@ pub fn draw_result_plot(
     output: &UnifiedSimulationOutput,
 ) -> Result<(), Box<dyn Error>> {
     let qbar_plot_config = PlotConfig {
-        output_path: path.join("qbar.plot.bmp"),
+        output_path: path.join("qbar.plot.png"),
         x_label: "Time (s)".to_string(),
         y_label: "Dynamic Pressure (Pa)".to_string(),
         x_range: None,
@@ -106,7 +106,7 @@ pub fn draw_result_plot(
     .expect("failed to draw qbar plot");
 
     let mach_plot_config = PlotConfig {
-        output_path: path.join("mach.plot.bmp"),
+        output_path: path.join("mach.plot.png"),
         x_label: "Time (s)".to_string(),
         y_label: "Mach".to_string(),
         x_range: None,
@@ -126,7 +126,7 @@ pub fn draw_result_plot(
     .expect("failed to draw mach plot");
 
     let altitude_plot_config = PlotConfig {
-        output_path: path.join("altitude.plot.bmp"),
+        output_path: path.join("altitude.plot.png"),
         x_label: "Time (s)".to_string(),
         y_label: "Altitude (m)".to_string(),
         x_range: None,
@@ -146,7 +146,7 @@ pub fn draw_result_plot(
     .expect("failed to draw altitude plot");
 
     let velocity_plot_config = PlotConfig {
-        output_path: path.join("velocity.plot.bmp"),
+        output_path: path.join("velocity.plot.png"),
         x_label: "Time (s)".to_string(),
         y_label: "Velocity (m/s)".to_string(),
         x_range: None,
@@ -170,7 +170,7 @@ pub fn draw_result_plot(
     .expect("failed to draw velocity plot");
 
     let trajectory_plot_config = PlotConfig {
-        output_path: path.join("trajectory.plot.bmp"),
+        output_path: path.join("trajectory.plot.png"),
         x_label: "Time (s)".to_string(),
         y_label: "xyz (m)".to_string(),
         x_range: None,
@@ -196,7 +196,7 @@ pub fn draw_result_plot(
     .expect("failed to draw trajectory plot");
 
     let acceleration_plot_config = PlotConfig {
-        output_path: path.join("acceleration.plot.bmp"),
+        output_path: path.join("acceleration.plot.png"),
         x_label: "Time (s)".to_string(),
         y_label: "xyz (m/s²)".to_string(),
         x_range: None,
@@ -220,7 +220,7 @@ pub fn draw_result_plot(
     .expect("failed to draw acceleration plot");
 
     let ax_plot_config = PlotConfig {
-        output_path: path.join("ax.plot.bmp"),
+        output_path: path.join("ax.plot.png"),
         x_label: "Time (s)".to_string(),
         y_label: "Ax (m/s²)".to_string(),
         x_range: None,
@@ -240,7 +240,7 @@ pub fn draw_result_plot(
     .expect("failed to draw ax plot");
 
     let aoa_plot_config = PlotConfig {
-        output_path: path.join("aoa.plot.bmp"),
+        output_path: path.join("aoa.plot.png"),
         x_label: "Time (s)".to_string(),
         y_label: "aoa (deg)".to_string(),
         x_range: None,
@@ -264,7 +264,7 @@ pub fn draw_result_plot(
 
 /// 学術的なグラフを生成する関数
 pub fn draw_academic_plot(config: PlotConfig, data: SeriesData) -> Result<(), Box<dyn Error>> {
-    let root = BitMapBackend::new(&config.output_path, (2000, 1500)).into_drawing_area();
+    let root: DrawingArea<BitMapBackend<'_>, plotters::coord::Shift> = BitMapBackend::new(&config.output_path, (2000, 1500)).into_drawing_area();
     root.fill(&WHITE)?;
 
     let ((data_x_min, data_x_max), (data_y_min, data_y_max)) =
