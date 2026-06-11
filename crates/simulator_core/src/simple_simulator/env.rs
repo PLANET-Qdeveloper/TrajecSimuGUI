@@ -73,9 +73,8 @@ pub(crate) fn latlon_to_local(
 
     let down_range_m = (north_m.powi(2) + east_m.powi(2)).sqrt();
 
-    let yaw_rad = launch_yaw_deg.to_radians();
-    let local_x_m = north_m * yaw_rad.cos() + east_m * yaw_rad.sin();
-    let local_y_m = -north_m * yaw_rad.sin() + east_m * yaw_rad.cos();
+    let local_x_m = north_m;
+    let local_y_m = east_m;
 
     (down_range_m, local_x_m, local_y_m)
 }

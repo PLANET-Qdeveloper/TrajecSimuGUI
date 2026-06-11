@@ -143,7 +143,7 @@ pub fn draw_result_plot(
             y_axis: vec![(None, &output.mainline.trajectory.alt_msl_m)],
         },
     )
-    .expect("failed to draw mach plot");
+    .expect("failed to draw altitude plot");
 
     let velocity_plot_config = PlotConfig {
         output_path: path.join("velocity.plot.bmp"),
@@ -167,7 +167,7 @@ pub fn draw_result_plot(
             ],
         },
     )
-    .expect("failed to draw mach plot");
+    .expect("failed to draw velocity plot");
 
     let trajectory_plot_config = PlotConfig {
         output_path: path.join("trajectory.plot.bmp"),
@@ -193,7 +193,7 @@ pub fn draw_result_plot(
             ],
         },
     )
-    .expect("failed to draw mach plot");
+    .expect("failed to draw trajectory plot");
 
     let acceleration_plot_config = PlotConfig {
         output_path: path.join("acceleration.plot.bmp"),
@@ -217,7 +217,27 @@ pub fn draw_result_plot(
             ],
         },
     )
-    .expect("failed to draw mach plot");
+    .expect("failed to draw acceleration plot");
+
+    let ax_plot_config = PlotConfig {
+        output_path: path.join("ax.plot.bmp"),
+        x_label: "Time (s)".to_string(),
+        y_label: "Ax (m/s²)".to_string(),
+        x_range: None,
+        y_range: None,
+        is_x_log: false,
+        is_y_log: false,
+        annotations: vec![],
+    };
+
+    draw_academic_plot(
+        ax_plot_config,
+        SeriesData {
+            x_axis: &output.mainline.trajectory.time_sec,
+            y_axis: vec![(None, &output.mainline.trajectory.ax_mps2)],
+        },
+    )
+    .expect("failed to draw ax plot");
 
     let aoa_plot_config = PlotConfig {
         output_path: path.join("aoa.plot.bmp"),
@@ -237,7 +257,7 @@ pub fn draw_result_plot(
             y_axis: vec![(None, &output.mainline.trajectory.alpha_deg)],
         },
     )
-    .expect("failed to draw mach plot");
+    .expect("failed to draw aoa plot");
 
     Ok(())
 }
