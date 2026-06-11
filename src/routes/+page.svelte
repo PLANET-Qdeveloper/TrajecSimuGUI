@@ -138,11 +138,11 @@
       let effectiveRelPath = relPath;
       if (!effectiveRelPath) {
         effectiveRelPath = `tables/${DEFAULT_CSV_NAMES[key]}`;
-        autoAssigned[key] = effectiveRelPath;
       }
       try {
         const absPath = resolveTablePath(savePath, effectiveRelPath);
         if (!absPath) continue;
+        if (!relPath) autoAssigned[key] = absPath;
         await invoke("write_text_file", {
           path: absPath,
           content: serializeCsv(tableData[key]),

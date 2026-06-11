@@ -99,7 +99,7 @@ fn save_config(mut config: simulator_cli::config::Config, save_path: String) -> 
         .unwrap_or_else(|| PathBuf::from("."));
 
     let rel = |p: &mut PathBuf| {
-        if !p.as_os_str().is_empty() {
+        if p.is_absolute() {
             *p = to_relative(&save_dir, p);
         }
     };
