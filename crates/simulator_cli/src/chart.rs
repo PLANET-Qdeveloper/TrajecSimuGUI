@@ -259,6 +259,47 @@ pub fn draw_result_plot(
     )
     .expect("failed to draw aoa plot");
 
+
+    let gust_aoa_plot_config = PlotConfig {
+        output_path: path.join("gust_aoa.plot.png"),
+        x_label: "Time (s)".to_string(),
+        y_label: "Gust AoA (deg)".to_string(),
+        x_range: None,
+        y_range: None,
+        is_x_log: false,
+        is_y_log: false,
+        annotations: vec![],
+    };
+
+    draw_academic_plot(
+        gust_aoa_plot_config,
+        SeriesData {
+            x_axis: &output.mainline.trajectory.time_sec,
+            y_axis: vec![(None, &output.mainline.trajectory.gust_aoa_deg)],
+        },
+    )
+    .expect("failed to draw aoa plot");
+
+    let gust_velocity_plot_config = PlotConfig {
+        output_path: path.join("gust_velocity.plot.png"),
+        x_label: "Time (s)".to_string(),
+        y_label: "Gust Velocity (m/s)".to_string(),
+        x_range: None,
+        y_range: None,
+        is_x_log: false,
+        is_y_log: false,
+        annotations: vec![],
+    };
+
+    draw_academic_plot(
+        gust_velocity_plot_config,
+        SeriesData {
+            x_axis: &output.mainline.trajectory.time_sec,
+            y_axis: vec![(None, &output.mainline.trajectory.gust_airspeed_mps)],
+        },
+    )
+    .expect("failed to draw aoa plot");
+
     Ok(())
 }
 
