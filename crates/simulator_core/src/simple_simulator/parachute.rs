@@ -133,6 +133,14 @@ impl ParachuteStage {
         let qbar_pa = 0.5 * atm.density_kg_m3 * airspeed * airspeed;
         let mach = airspeed / atm.sound_speed;
 
+        const V_GUST_MPS: f64 = 9.0;
+        let airspeed_h = (v_rel_e.powi(2) + v_rel_n.powi(2)).sqrt();
+        let gust_airspeed_mps = (airspeed.powi(2) + V_GUST_MPS.powi(2)).sqrt();
+        let gust_aoa_deg = (V_GUST_MPS.powi(2) + v_rel_d.powi(2))
+            .sqrt()
+            .atan2(airspeed_h.max(1e-9))
+            .to_degrees();
+
         // Velocity-aligned pseudo-body frame: x forward (horizontal heading),
         // z down. Yaw is true heading; pitch is descent angle below horizontal.
         let yaw_deg = if v_h > 1e-9 {
@@ -198,8 +206,8 @@ impl ParachuteStage {
                 total_aoa_deg: 0.0,
                 pressure_pa: atm.pressure_pa,
                 temperature_k: atm.temperature_k,
-                gust_airspeed_mps: 0.0,
-                gust_aoa_deg: 0.0,
+                gust_airspeed_mps,
+                gust_aoa_deg,
             },
             thrust_n: 0.0,
             mach,

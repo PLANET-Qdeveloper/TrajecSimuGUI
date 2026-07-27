@@ -73,7 +73,8 @@ fn build_winds_table(cfg: &Config) -> Result<Vec<[f64; 3]>> {
             let h_ref = cfg
                 .launch
                 .wind_reference_alt
-                .unwrap_or(cfg.launch.elevation);
+                .unwrap_or(cfg.launch.elevation)
+                .max(10.0);
             let alpha = 1.0 / cfg.launch.wind_power_exponent;
             Ok(power_law_winds_table(speed, direction, h_ref, alpha))
         }
