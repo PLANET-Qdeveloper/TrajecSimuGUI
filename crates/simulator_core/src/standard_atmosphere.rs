@@ -32,6 +32,18 @@ const LAYER_BASE_TEMP_K: [f64; 8] = [
 
 const LAYER_LAPSE_K_PER_M: [f64; 7] = [-0.0065, 0.0, 0.0010, 0.0028, 0.0, -0.0028, -0.0020];
 
+/// ISA troposphere (<11 km) sea-level reference temperature, in Kelvin.
+/// Exposed for other crates (e.g. `telemetry_protocol`'s pressure-altitude
+/// conversion) that need the closed-form single-layer barometric formula
+/// rather than the full layered model — keeping one source of truth for
+/// the ISA constants avoids the two implementations silently diverging.
+pub const TROPOSPHERE_SEA_LEVEL_TEMP_K: f64 = LAYER_BASE_TEMP_K[0];
+
+/// ISA troposphere lapse rate, in Kelvin per meter of altitude gained
+/// (positive: temperature decreases with altitude). See
+/// [`TROPOSPHERE_SEA_LEVEL_TEMP_K`].
+pub const TROPOSPHERE_LAPSE_RATE_K_PER_M: f64 = -LAYER_LAPSE_K_PER_M[0];
+
 /// Sample the ISA 1976 standard atmosphere at a geometric altitude.
 ///
 /// Altitudes below sea level are clamped to 0 m. Altitudes above 86 km are

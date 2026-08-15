@@ -3,6 +3,7 @@ members = [
     "crates/simulator_core",
     "crates/simulator_cli",
     "crates/tile_cache",
+    "crates/telemetry_protocol",
     "src-tauri",
 ]
 exclude = ["jsbsim", "src", "public", "static"]

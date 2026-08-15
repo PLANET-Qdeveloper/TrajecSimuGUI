@@ -1,0 +1,11 @@
+[package]
+name = "telemetry_protocol"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "NSE2026 serial telemetry protocol: CRC/framing, TLV and CSV decoding"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+simulator_core = { path = "../simulator_core" }

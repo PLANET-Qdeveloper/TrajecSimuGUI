@@ -1,4 +1,5 @@
 mod google_sheets;
+mod serial;
 
 use serde::Serialize;
 use simulator_cli::convert_legacy;
@@ -73,8 +74,7 @@ fn write_text_file(path: String, content: String) -> Result<(), String> {
 
 #[tauri::command]
 fn load_config(path: String) -> Result<simulator_cli::config::Config, String> {
-    simulator_cli::config::Config::load(std::path::Path::new(&path))
-        .map_err(|e| format!("{e:#}"))
+    simulator_cli::config::Config::load(std::path::Path::new(&path)).map_err(|e| format!("{e:#}"))
 }
 
 fn to_relative(base: &std::path::Path, abs: &std::path::Path) -> PathBuf {
@@ -427,6 +427,7 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
+        .manage(serial::SerialManager::default())
         .register_asynchronous_uri_scheme_protocol("tile", move |_ctx, request, responder| {
             let c = caches.clone();
             let uri = request.uri().path();
@@ -454,6 +455,10 @@ pub fn run() {
             fetch_google_sheet,
             get_google_auth_status,
             revoke_google_auth,
+            serial::list_serial_ports,
+            serial::start_serial_telemetry,
+            serial::stop_serial_telemetry,
+            serial::send_serial_text,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

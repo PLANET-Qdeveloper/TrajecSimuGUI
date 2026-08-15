@@ -26,6 +26,9 @@ tauri-plugin-dialog = "2"
 tile_cache = { path = "../crates/tile_cache" }
 simulator_cli = { path = "../crates/simulator_cli" }
 simulator_core = { path = "../crates/simulator_core" }
+telemetry_protocol = { path = "../crates/telemetry_protocol" }
+serialport = "4"
+dirs = "5"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_yaml = "0.9"
@@ -43,3 +46,8 @@ tauri-plugin-store = "2"
 tauri-plugin-updater = "2"
 tauri-plugin-process = "2"
 
+[target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
+# Used only for the PTY open fallback in src/serial.rs: the `serialport`
+# crate cannot set a baud rate on a macOS/iOS pseudo-terminal (it always
+# fails with ENOTTY), which is what the local NSE2026 mock client uses.
+libc = "0.2"

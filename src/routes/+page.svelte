@@ -35,8 +35,9 @@
   import RunPanel from "$lib/components/RunPanel.svelte";
   import ChartMap from "$lib/components/ChartMap.svelte";
   import Select from "$lib/components/Select.svelte";
+  import TelemetryPanel from "$lib/components/telemetry/TelemetryPanel.svelte";
 
-  let activeTab = $state<"params" | "tables" | "map">("params");
+  let activeTab = $state<"params" | "tables" | "map" | "telemetry">("params");
   let config = $state<AppConfig>(defaultConfig());
   let configFilePath = $state("");
   let savedConstantWind = $state<WindConstantStash>(defaultWindConstantStash());
@@ -395,7 +396,7 @@
 <div class="flex flex-col h-screen overflow-hidden bg-white text-black">
   <!-- タブバー -->
   <div class="flex border-b shrink-0">
-    {#each (["params", "tables", "map"] as const) as tab (tab)}
+    {#each (["params", "tables", "map", "telemetry"] as const) as tab (tab)}
       <button
         onclick={() => (activeTab = tab)}
         class="px-4 py-1.5 text-xs font-medium border-b-2 transition-colors
@@ -403,7 +404,13 @@
           ? 'border-primary text-primary'
           : 'border-transparent text-gray-500 hover:text-gray-700'}"
       >
-        {tab === "params" ? "パラメータ" : tab === "tables" ? "テーブル" : "結果詳細"}
+        {tab === "params"
+          ? "パラメータ"
+          : tab === "tables"
+            ? "テーブル"
+            : tab === "map"
+              ? "結果詳細"
+              : "テレメトリ"}
       </button>
     {/each}
   </div>
@@ -576,6 +583,14 @@
           />
         </div>
       </div>
+    </div>
+
+    <!-- telemetry タブ -->
+    <div
+      class="absolute inset-0 overflow-hidden"
+      class:hidden={activeTab !== "telemetry"}
+    >
+      <TelemetryPanel visible={activeTab === "telemetry"} />
     </div>
   </div>
 </div>
