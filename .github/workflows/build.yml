@@ -62,6 +62,7 @@ jobs:
             librsvg2-dev \
             patchelf \
             libasound2-dev \
+            libudev-dev \
             libssl-dev \
             pkg-config
           pkg-config --modversion gdk-3.0
